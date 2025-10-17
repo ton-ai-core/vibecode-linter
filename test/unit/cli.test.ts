@@ -2,7 +2,7 @@
 // WHY: Ensure CLI parsing works correctly
 // REF: REQ-LINT-CLI-001
 
-import { parseCLIArgs } from './cli';
+import { parseCLIArgs } from '../../src/lint/cli';
 
 describe('parseCLIArgs', () => {
   it('should parse default options', () => {

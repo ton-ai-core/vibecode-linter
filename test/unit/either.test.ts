@@ -2,7 +2,7 @@
 // WHY: Ensure Either monad works correctly
 // REF: REQ-LINT-FP-001
 
-import { left, right, eitherMap, eitherFlatMap, eitherGetOrElse } from './either';
+import { left, right, eitherMap, eitherFlatMap, eitherGetOrElse } from '../../src/lint/either';
 
 describe('Either monad', () => {
   describe('left', () => {

@@ -4,7 +4,7 @@
 // REF: REQ-003
 // SOURCE: Jest testing patterns for TypeScript
 
-import { sum } from './index';
+import { sum } from '../../src/index';
 
 describe('sum', () => {
   // Test: Empty array
