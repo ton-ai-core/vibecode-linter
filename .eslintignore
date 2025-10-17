@@ -1,0 +1,17 @@
+# CLI entry points with side effects
+src/cli.ts
+
+# Test files use Jest side effects
+**/*.test.ts
+**/*.spec.ts
+
+# Build output
+dist/
+build/
+
+# Configuration files
+*.config.js
+*.config.ts
+
+# Reports
+reports/
