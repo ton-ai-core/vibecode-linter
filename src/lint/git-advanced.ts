@@ -4,14 +4,13 @@
 // REF: REQ-LINT-GIT-ADV-001
 // SOURCE: lint.ts advanced git functions
 
-import * as fs from "fs";
+import { exec } from "child_process";
 import * as path from "path";
 import { promisify } from "util";
-import { exec } from "child_process";
 
-import type { LintMessage, DiffRangeConfig } from './types.js';
-import { pickSnippetForLine, getCommitSnippetForLine } from './git.js';
 import { computeRealColumnFromVisual, expandTabs } from './diff-parser.js';
+import { getCommitSnippetForLine,pickSnippetForLine } from './git.js';
+import type { DiffRangeConfig,LintMessage } from './types.js';
 
 const execAsync = promisify(exec);
 const TAB_WIDTH = 8;

@@ -4,16 +4,14 @@
 // REF: REQ-LINT-PROC-001
 // SOURCE: lint.ts processing functions
 
+import ruleDocs from "eslint-rule-docs";
 import * as fs from "fs";
 import * as path from "path";
-import ruleDocs from "eslint-rule-docs";
 
-import type { LintMessage, TypeScriptMessage, ESLintMessage, BiomeMessage, CLIOptions, DiffRangeConfig } from './types.js';
 import { ruleIdOf } from './config.js';
-import { buildProgram, buildEdges, topoRank } from './dependency-analysis.js';
-import { getGitDiffBlock, getGitBlameBlock, getGitHistoryBlock, visualColumnAt } from './git-advanced.js';
-import { getWorkspaceSnippet } from './git.js';
-import { expandTabs } from './diff-parser.js';
+import { buildEdges, buildProgram, topoRank } from './dependency-analysis.js';
+import { getGitBlameBlock, getGitDiffBlock, getGitHistoryBlock } from './git-advanced.js';
+import type { BiomeMessage, DiffRangeConfig,ESLintMessage, LintMessage, TypeScriptMessage } from './types.js';
 
 const TAB_WIDTH = 8;
 

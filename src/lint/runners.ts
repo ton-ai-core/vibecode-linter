@@ -4,12 +4,11 @@
 // REF: REQ-LINT-RUNNERS-001
 // SOURCE: lint.ts runner functions
 
-import { promisify } from "util";
 import { exec } from "child_process";
 import * as fs from "fs";
-import * as path from "path";
+import { promisify } from "util";
 
-import type { TypeScriptMessage, LinterResult } from './types.js';
+import type { LinterResult,TypeScriptMessage } from './types.js';
 
 const execAsync = promisify(exec);
 

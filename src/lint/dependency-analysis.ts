@@ -1,6 +1,6 @@
-// CHANGE: Dependency analysis module
-// WHY: Extract TypeScript AST analysis from lint.ts
-// QUOTE(TЗ): "функциональная парадигма", "модульная архитектура"
+// CHANGE: Dependency analysis module in functional style
+// WHY: Use TypeScript Compiler API (imperative) from pure functions
+// QUOTE(TЗ): "функциональная парадигма"
 // REF: REQ-LINT-DEP-001
 // SOURCE: lint.ts dependency functions
 
@@ -11,40 +11,56 @@ import type { LintMessage } from './types.js';
 
 type MsgId = string;
 
-const __msgId = (f: string, m: LintMessage & { filePath: string }): string =>
-  `${path.resolve(f)}:${m.line}:${m.column}:${m.source}:${(m as any).ruleId ?? (m as any).code ?? "no-rule"}`;
+const msgId = (f: string, m: LintMessage & { readonly filePath: string }): MsgId =>
+  `${path.resolve(f)}:${m.line}:${m.column}:${m.source}:${(m as { readonly ruleId?: string; readonly code?: string }).ruleId ?? (m as { readonly code?: string }).code ?? "no-rule"}`;
 
-export const buildProgram = (): ts.Program | null => {
-  const tsconfigPath = path.resolve(process.cwd(), "tsconfig.json");
+export const buildProgram = (cwd: string = process.cwd()): ts.Program | null => {
+  const tsconfigPath = path.resolve(cwd, "tsconfig.json");
   const cfg = ts.readConfigFile(tsconfigPath, ts.sys.readFile);
   const parsed = ts.parseJsonConfigFileContent(cfg.config, ts.sys, path.dirname(tsconfigPath));
   return ts.createProgram({ rootNames: parsed.fileNames, options: parsed.options });
 };
 
-const posOf = (sf: ts.SourceFile, m: { line: number; column: number; endLine?: number; endColumn?: number }): { start: number; end: number } => {
+const posOf = (sf: ts.SourceFile, m: { readonly line: number; readonly column: number; readonly endLine?: number; readonly endColumn?: number }): { readonly start: number; readonly end: number } => {
   const start = ts.getPositionOfLineAndCharacter(sf, Math.max(0, m.line - 1), Math.max(0, m.column - 1));
   const end = (m.endLine && m.endColumn) ?
     ts.getPositionOfLineAndCharacter(sf, m.endLine - 1, Math.max(0, m.endColumn - 1)) : start;
   return { start, end };
 };
 
-const nodeAt = (sf: ts.SourceFile, pos: number): ts.Node => {
-  let n: ts.Node = sf;
-  const visit = (node: ts.Node): void => {
-    if (pos >= node.getStart(sf) && pos < node.getEnd()) {
-      n = node;
-      ts.forEachChild(node, visit);
-    }
-  };
-  visit(sf);
-
-  while (n.parent && !ts.isIdentifier(n) && !ts.isCallExpression(n) && !ts.isPropertyAccessExpression(n) && !ts.isElementAccessExpression(n)) {
-    n = n.parent;
-  }
-  return n;
+const getChildren = (node: ts.Node): ReadonlyArray<ts.Node> => {
+  const result: ts.Node[] = [];
+  node.forEachChild((child: ts.Node) => {
+    result.push(child);
+    return undefined;
+  });
+  return result;
 };
 
-const defSymbols = (checker: ts.TypeChecker, n: ts.Node): ts.Symbol[] => {
+const findNodeAt = (sf: ts.SourceFile, pos: number): ts.Node => {
+  const visitor = (node: ts.Node, currentBest: ts.Node): ts.Node => {
+    if (pos >= node.getStart(sf) && pos < node.getEnd()) {
+      const newBest = node;
+      const children = getChildren(node);
+      return children.reduce((best, child) => visitor(child, best), newBest);
+    }
+    return currentBest;
+  };
+
+  const node = visitor(sf, sf);
+  
+  const refineNode = (n: ts.Node): ts.Node => {
+    if (!n.parent) return n;
+    if (ts.isIdentifier(n) || ts.isCallExpression(n) || ts.isPropertyAccessExpression(n) || ts.isElementAccessExpression(n)) {
+      return n;
+    }
+    return refineNode(n.parent);
+  };
+
+  return refineNode(node);
+};
+
+const defSymbols = (checker: ts.TypeChecker, n: ts.Node): readonly ts.Symbol[] => {
   const locus = ts.isIdentifier(n) ? n :
     ts.isPropertyAccessExpression(n) ? n.name :
     ts.isElementAccessExpression(n) ? n.argumentExpression : n;
@@ -54,95 +70,155 @@ const defSymbols = (checker: ts.TypeChecker, n: ts.Node): ts.Symbol[] => {
   return s ? [s] : [];
 };
 
-export const buildEdges = (messages: Array<LintMessage & { filePath: string }>, program: ts.Program): Array<[MsgId, MsgId]> => {
-  const byFile = new Map<string, Array<LintMessage & { filePath: string }>>();
-  for (const m of messages) {
-    const f = path.resolve(m.filePath);
-    if (!byFile.has(f)) byFile.set(f, []);
-    byFile.get(f)!.push(m);
-  }
+const groupByFile = (messages: ReadonlyArray<LintMessage & { readonly filePath: string }>): ReadonlyMap<string, ReadonlyArray<LintMessage & { readonly filePath: string }>> =>
+  messages.reduce(
+    (acc, m) => {
+      const f = path.resolve(m.filePath);
+      const existing = acc.get(f) ?? [];
+      return new Map(acc).set(f, [...existing, m]);
+    },
+    new Map<string, ReadonlyArray<LintMessage & { readonly filePath: string }>>()
+  );
 
+const collectImportEdges = (
+  file: string,
+  msgs: ReadonlyArray<LintMessage & { readonly filePath: string }>,
+  sf: ts.SourceFile,
+  program: ts.Program,
+  byFile: ReadonlyMap<string, ReadonlyArray<LintMessage & { readonly filePath: string }>>
+): ReadonlyArray<readonly [MsgId, MsgId]> => {
+  const children = getChildren(sf);
+  
+  return children.flatMap((node: ts.Node) => {
+    if (!ts.isImportDeclaration(node) || !ts.isStringLiteral(node.moduleSpecifier)) {
+      return [];
+    }
+    
+    const spec = node.moduleSpecifier.text;
+    const resolved = ts.resolveModuleName(spec, file, program.getCompilerOptions(), ts.sys).resolvedModule;
+    
+    if (!resolved) return [];
+    
+    const target = path.resolve(resolved.resolvedFileName);
+    const tMsgs = byFile.get(target);
+    
+    if (!tMsgs || tMsgs.length === 0) return [];
+    
+    const from = msgId(target, tMsgs[0]!);
+    return msgs.map(mu => [from, msgId(file, mu)] as const);
+  });
+};
+
+export const buildEdges = (messages: ReadonlyArray<LintMessage & { readonly filePath: string }>, program: ts.Program): ReadonlyArray<readonly [MsgId, MsgId]> => {
+  const byFile = groupByFile(messages);
   const checker = program.getTypeChecker();
-  const edges: Array<[MsgId, MsgId]> = [];
 
-  for (const [file, msgs] of byFile) {
+  const symbolEdges = Array.from(byFile.entries()).flatMap(([file, msgs]) => {
     const sf = program.getSourceFile(file);
-    if (!sf) continue;
+    if (!sf) return [];
 
-    for (const mu of msgs) {
+    return msgs.flatMap(mu => {
       const { start } = posOf(sf, mu);
-      const node = nodeAt(sf, start);
+      const node = findNodeAt(sf, start);
       const syms = defSymbols(checker, node);
 
-      for (const sym of syms) {
+      return syms.flatMap(sym => {
         const decls = sym.declarations ?? [];
-        for (const decl of decls) {
+        return decls.flatMap(decl => {
           const df = path.resolve(decl.getSourceFile().fileName);
           const dMsgs = byFile.get(df);
-          if (!dMsgs || dMsgs.length === 0) continue;
+          if (!dMsgs || dMsgs.length === 0) return [];
 
           const ds = decl.getStart();
           const de = decl.getEnd();
-          const dsf = program.getSourceFile(df)!;
+          const dsf = program.getSourceFile(df);
+          if (!dsf) return [];
+
           const found = dMsgs.find(dm => {
             const p = posOf(dsf, dm);
             return p.start >= ds && p.end <= de;
           });
-          if (found) edges.push([__msgId(df, found), __msgId(file, mu)]);
-        }
-      }
-    }
 
-    sf.forEachChild(node => {
-      if (ts.isImportDeclaration(node) && ts.isStringLiteral(node.moduleSpecifier)) {
-        const spec = node.moduleSpecifier.text;
-        const resolved = ts.resolveModuleName(spec, file, program.getCompilerOptions(), ts.sys).resolvedModule;
-        if (!resolved) return;
-        const target = path.resolve(resolved.resolvedFileName);
-        const tMsgs = byFile.get(target);
-        if (!tMsgs || tMsgs.length === 0) return;
-        const from = __msgId(target, tMsgs[0]!);
-        for (const mu of msgs) edges.push([from, __msgId(file, mu)]);
-      }
+          return found ? [[msgId(df, found), msgId(file, mu)] as const] : [];
+        });
+      });
     });
-  }
-  return edges;
+  });
+
+  const importEdges = Array.from(byFile.entries()).flatMap(([file, msgs]) => {
+    const sf = program.getSourceFile(file);
+    return sf ? collectImportEdges(file, msgs, sf, program, byFile) : [];
+  });
+
+  return [...symbolEdges, ...importEdges];
 };
 
-export const topoRank = (messages: Array<LintMessage & { filePath: string }>, edges: Array<[MsgId, MsgId]>): Map<MsgId, number> => {
-  const ids: MsgId[] = messages.map(m => __msgId(m.filePath, m));
-  const succ = new Map<MsgId, Set<MsgId>>();
-  const indeg = new Map<MsgId, number>();
+const topoSortStep = (
+  queue: ReadonlyArray<MsgId>,
+  order: ReadonlyArray<MsgId>,
+  succ: ReadonlyMap<MsgId, ReadonlySet<MsgId>>,
+  indeg: ReadonlyMap<MsgId, number>
+): ReadonlyArray<MsgId> => {
+  if (queue.length === 0) return order;
 
-  for (const id of ids) {
-    succ.set(id, new Set());
-    indeg.set(id, 0);
-  }
+  const u = queue[0]!;
+  const restQueue = queue.slice(1);
+  const newOrder = [...order, u];
+  
+  const successors = Array.from(succ.get(u) ?? []);
+  const updates = successors.map(v => ({
+    id: v,
+    newDegree: (indeg.get(v) ?? 0) - 1
+  }));
 
-  for (const [u, v] of edges) {
-    if (!succ.has(u) || !succ.has(v)) continue;
-    if (!succ.get(u)!.has(v)) {
-      succ.get(u)!.add(v);
-      indeg.set(v, (indeg.get(v) ?? 0) + 1);
-    }
-  }
+  const newIndeg = updates.reduce(
+    (acc, { id, newDegree }) => new Map(acc).set(id, newDegree),
+    indeg
+  );
 
-  const q = ids.filter(id => (indeg.get(id) ?? 0) === 0).sort();
-  const order: MsgId[] = [];
+  const newZeroDegree = updates
+    .filter(({ newDegree }) => newDegree === 0)
+    .map(({ id }) => id);
 
-  while (q.length) {
-    const u = q.shift()!;
-    order.push(u);
-    for (const v of succ.get(u) ?? []) {
-      indeg.set(v, (indeg.get(v) ?? 0) - 1);
-      if ((indeg.get(v) ?? 0) === 0) q.push(v);
-    }
-    q.sort();
-  }
+  const nextQueue = [...restQueue, ...newZeroDegree].sort();
 
-  if (order.length !== ids.length) {
-    for (const id of ids) if (!order.includes(id)) order.push(id);
-  }
+  return topoSortStep(nextQueue, newOrder, succ, newIndeg);
+};
 
-  return new Map(order.map((id, i) => [id, i]));
+export const topoRank = (messages: ReadonlyArray<LintMessage & { readonly filePath: string }>, edges: ReadonlyArray<readonly [MsgId, MsgId]>): ReadonlyMap<MsgId, number> => {
+  const ids: ReadonlyArray<MsgId> = messages.map(m => msgId(m.filePath, m));
+  
+  const initSucc: ReadonlyMap<MsgId, ReadonlySet<MsgId>> = new Map(
+    ids.map(id => [id, new Set<MsgId>()])
+  );
+  
+  const initIndeg: ReadonlyMap<MsgId, number> = new Map(
+    ids.map(id => [id, 0])
+  );
+
+  const edgeUpdates = edges
+    .filter(([u, v]) => initSucc.has(u) && initSucc.has(v))
+    .filter(([u, v]) => !(initSucc.get(u)?.has(v) ?? false));
+
+  const finalSucc = edgeUpdates.reduce(
+    (acc, [u, v]) => {
+      const oldSet = acc.get(u) ?? new Set<MsgId>();
+      const newSet = new Set([...oldSet, v]);
+      return new Map(acc).set(u, newSet);
+    },
+    initSucc
+  );
+
+  const finalIndeg = edgeUpdates.reduce(
+    (acc, [_u, v]) => new Map(acc).set(v, (acc.get(v) ?? 0) + 1),
+    initIndeg
+  );
+
+  const initialQueue = ids.filter(id => (finalIndeg.get(id) ?? 0) === 0).sort();
+  const order = topoSortStep(initialQueue, [], finalSucc, finalIndeg);
+
+  const missingIds = ids.filter(id => !order.includes(id));
+  const completeOrder = [...order, ...missingIds];
+
+  return new Map(completeOrder.map((id, i) => [id, i]));
 };

@@ -27,10 +27,15 @@ export default tseslint.config(
       "*.yml",
       "*.yaml",
       "lint.ts",
-      "src/cli.ts",
-      "src/lint/**/*.ts",
-      "**/*.test.ts",
-      "**/*.spec.ts",
+      "src/cli.ts", // I/O entry point
+      "src/lint/dependency-analysis.ts", // TypeScript Compiler API wrapper
+      "src/lint/git.ts", // Git CLI wrapper
+      "src/lint/git-advanced.ts", // Git CLI wrapper  
+      "src/lint/runners.ts", // SARIF JSON parser wrapper
+      "src/lint/sarif.ts", // File system I/O wrapper
+      "src/lint/display.ts", // Console I/O wrapper
+      "src/lint/processors.ts", // Results processor with mutations
+      "src/lint/config.ts", // JSON parser wrapper (mutable by nature)
     ],
   },
 
@@ -197,9 +202,9 @@ export default tseslint.config(
       "promise/no-multiple-resolved": "error",
 
       // FP-правила и запрет Reflect
-      "functional/immutable-data": "off",
-      "functional/no-let": "off",
-      "functional/no-loop-statements": "off",
+      "functional/immutable-data": "error",
+      "functional/no-let": "error",
+      "functional/no-loop-statements": "error",
       "no-restricted-globals": ["error", "Reflect"],
 
       // // Точечные запреты с пояснениями

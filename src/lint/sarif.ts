@@ -4,10 +4,10 @@
 // REF: REQ-LINT-SARIF-001
 // SOURCE: lint.ts SARIF functions
 
+import { exec } from "child_process";
 import * as fs from "fs";
 import * as path from "path";
 import { promisify } from "util";
-import { exec } from "child_process";
 
 const execAsync = promisify(exec);
 

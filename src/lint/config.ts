@@ -7,8 +7,8 @@
 import * as fs from "fs";
 import * as path from "path";
 
-import type { LinterConfig } from './types.js';
 import { type Either, left, right } from './either.js';
+import type { LinterConfig } from './types.js';
 
 /**
  * Loads linter configuration from file.
@@ -39,8 +39,14 @@ export const loadLinterConfig = (configPath: string): Either<Error, LinterConfig
     return left(new Error("Invalid config: priorityLevels must be an array"));
   }
   
+  type DeepReadonlyPriorityLevel = {
+    readonly level: number;
+    readonly name: string; 
+    readonly rules: ReadonlyArray<string>;
+  };
+  
   const normalized: LinterConfig = {
-    priorityLevels: levels.map((pl: { level: number; name: string; rules: string[] }) => ({
+    priorityLevels: levels.map((pl: DeepReadonlyPriorityLevel) => ({
       level: pl.level,
       name: pl.name,
       rules: pl.rules.map((r: string) => String(r).toLowerCase()),
@@ -58,15 +64,20 @@ export const loadLinterConfig = (configPath: string): Either<Error, LinterConfig
  * 
  * @complexity O(n*m) where n is number of levels and m is rules per level
  */
-export const makeRuleLevelMap = (cfg: LinterConfig): Map<string, { readonly level: number; readonly name: string }> => {
-  const map = new Map<string, { level: number; name: string }>();
-  for (const pl of cfg.priorityLevels) {
-    for (const r of pl.rules) {
-      map.set(r, { level: pl.level, name: pl.name });
-    }
-  }
-  return map;
+type DeepReadonlyLinterConfig = {
+  readonly priorityLevels: ReadonlyArray<{
+    readonly level: number;
+    readonly name: string;
+    readonly rules: ReadonlyArray<string>;
+  }>;
 };
+
+export const makeRuleLevelMap = (cfg: DeepReadonlyLinterConfig): Map<string, { readonly level: number; readonly name: string }> =>
+  new Map(
+    cfg.priorityLevels.flatMap(pl =>
+      pl.rules.map(r => [r, { level: pl.level, name: pl.name }] as const)
+    )
+  );
 
 /**
  * Extracts rule ID from a lint message.
@@ -76,7 +87,7 @@ export const makeRuleLevelMap = (cfg: LinterConfig): Map<string, { readonly leve
  * 
  * @complexity O(1)
  */
-export const ruleIdOf = (m: { readonly ruleId?: string | null; readonly code?: string }): string => {
+export const ruleIdOf = (m: { readonly ruleId?: string | null; readonly code?: string } | Record<string, never>): string => {
   return String(m.ruleId ?? m.code ?? "").toLowerCase();
 };
 
@@ -85,8 +96,8 @@ export const ruleIdOf = (m: { readonly ruleId?: string | null; readonly code?: s
  * 
  * @returns Either configuration or null
  */
-export const loadDefaultConfig = (): LinterConfig | null => {
-  const configPath = path.resolve(process.cwd(), "linter.config.json");
+export const loadDefaultConfig = (cwd: string = process.cwd()): LinterConfig | null => {
+  const configPath = path.resolve(cwd, "linter.config.json");
   const result = loadLinterConfig(configPath);
   return result.tag === "Right" ? result.value : null;
 };

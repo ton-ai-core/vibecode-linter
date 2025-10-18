@@ -4,13 +4,13 @@
 // REF: REQ-LINT-GIT-001
 // SOURCE: lint.ts git functions
 
+import { exec } from "child_process";
 import * as fs from "fs";
 import * as path from "path";
 import { promisify } from "util";
-import { exec } from "child_process";
 
-import type { DiffSnippet, DiffRangeConfig } from './types.js';
 import { extractDiffSnippet } from './diff-parser.js';
+import type { DiffRangeConfig,DiffSnippet } from './types.js';
 
 const execAsync = promisify(exec);
 
