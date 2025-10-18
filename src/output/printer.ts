@@ -17,8 +17,8 @@ import {
 } from "../analysis/index.js";
 import {
 	makeRuleLevelMap,
-	ruleIdOf,
 	type RuleLevelMap,
+	ruleIdOf,
 } from "../config/index.js";
 import { expandTabs } from "../diff/index.js";
 import {
