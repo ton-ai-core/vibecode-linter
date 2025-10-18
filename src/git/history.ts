@@ -229,13 +229,53 @@ export async function getCommitDiffBlocks(
 		if (commitInfo) commits.push(commitInfo);
 	}
 
-	if (commits.length < 2) return null;
-
-	// Generate diff blocks for each pair of consecutive commits
-	const diffBlocks: CommitDiffBlock[] = [];
 	const relativePath = path
 		.relative(process.cwd(), filePath)
 		.replace(/\\/g, "/");
+
+	// CHANGE: Show file creation info when only 1 commit exists
+	// WHY: Files with 1 commit (newly created) should also show history context
+	// REF: user-question-why-no-history-for-some-files
+	if (commits.length < 2) {
+		// Show file creation block for single-commit files
+		if (commits.length === 1) {
+			const creation = commits[0];
+			if (!creation) return null;
+
+			const heading = `--- file created in ${creation.shortHash} -- ${relativePath} | cat ---`;
+			const diffSnippet: DiffSnippet = {
+				header: `@@ File created @@`,
+				lines: [
+					{
+						raw: `+ Created in: ${creation.summary}`,
+						symbol: "+",
+						headLineNumber: line,
+						content: `Created in: ${creation.summary}`,
+					},
+				],
+				pointerIndex: 0,
+			};
+
+			return [
+				{
+					heading,
+					newerCommit: creation,
+					olderCommit: {
+						hash: "0000000000000000000000000000000000000000",
+						shortHash: "(initial)",
+						date: creation.date,
+						author: creation.author,
+						summary: "File did not exist",
+					},
+					diffSnippet,
+				},
+			];
+		}
+		return null;
+	}
+
+	// Generate diff blocks for each pair of consecutive commits
+	const diffBlocks: CommitDiffBlock[] = [];
 
 	for (let i = 0; i < Math.min(commits.length - 1, limit); i += 1) {
 		const newer = commits[i];
