@@ -255,10 +255,21 @@ export async function getCommitDiffBlocks(
 			}
 		}
 
-		const diffSnippet =
-			diffOutput.trim().length > 0
-				? extractDiffSnippet(diffOutput, line)
-				: null;
+		// Try to find snippet for target line, but if not found, use first hunk
+		let diffSnippet: DiffSnippet | null = null;
+		if (diffOutput.trim().length > 0) {
+			diffSnippet = extractDiffSnippet(diffOutput, line);
+			
+			// If target line not in this commit, extract first hunk instead
+			if (!diffSnippet) {
+				// Find first @@ hunk
+				const hunkMatch = diffOutput.match(/@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@/);
+				if (hunkMatch) {
+					const firstChangedLine = Number.parseInt(hunkMatch[1] ?? "1", 10);
+					diffSnippet = extractDiffSnippet(diffOutput, firstChangedLine);
+				}
+			}
+		}
 
 		const heading = `--- git diff ${older.shortHash}..${newer.shortHash} -- ${relativePath} | cat ---`;
 
