@@ -12,14 +12,17 @@
 		},
 		{
 			"level": 2,
-			"name": "Important Errors",
+			"name": "Critical Compiler Errors",
 			"rules": ["all"]
 		},
 		{
 			"level": 3,
-			"name": "Low Priority",
+			"name": "Critical Compiler Errors (Code must follow Clean Code and best practices.)",
 			"rules": [
-				"assist/source/organizeimports"
+				"complexity",
+				"max-lines-per-function",
+				"max-params",
+				"max-depth"
 			]
 		}
 	]
