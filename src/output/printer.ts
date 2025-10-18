@@ -4,7 +4,11 @@
 // REF: REQ-20250210-MODULAR-ARCH
 // SOURCE: lint.ts lines 1558-1813
 
-import * as fs from "fs";
+// CHANGE: Use node: protocol for Node.js built-in modules
+// WHY: Biome lint rule requires explicit node: prefix for clarity
+// REF: lint/style/useNodejsImportProtocol
+// SOURCE: https://biomejs.dev/linter/rules/lint/style/useNodejsImportProtocol
+import * as fs from "node:fs";
 
 import {
 	buildDependencyEdges,

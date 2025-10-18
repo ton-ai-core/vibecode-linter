@@ -14,35 +14,95 @@ import * as path from "node:path";
 import type { LinterConfig, PriorityLevel } from "../types/index.js";
 
 /**
+ * Type representing any valid JSON value.
+ *
+ * @invariant Must be serializable to JSON
+ */
+type JSONValue =
+	| string
+	| number
+	| boolean
+	| null
+	| ReadonlyArray<JSONValue>
+	| { readonly [key: string]: JSONValue };
+
+/**
+ * Type guard to check if value is a JSON object.
+ *
+ * @param value Value to check
+ * @returns True if value is a non-null object
+ */
+function isJSONObject(
+	value: JSONValue,
+): value is { readonly [key: string]: JSONValue } {
+	return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+/**
+ * Type guard to check if value is a string.
+ *
+ * @param value Value to check
+ * @returns True if value is a string
+ */
+function isString(value: JSONValue): value is string {
+	return typeof value === "string";
+}
+
+/**
+ * Type guard to check if value is a number.
+ *
+ * @param value Value to check
+ * @returns True if value is a number
+ */
+function isNumber(value: JSONValue): value is number {
+	return typeof value === "number";
+}
+
+/**
+ * Type guard to check if value is an array.
+ *
+ * @param value Value to check
+ * @returns True if value is an array
+ */
+function isArray(value: JSONValue): value is ReadonlyArray<JSONValue> {
+	return Array.isArray(value);
+}
+
+/**
  * Валидирует и нормализует уровень приоритета.
  *
  * @param value Значение для валидации
  * @returns Нормализованный уровень приоритета или null
+ *
+ * @invariant value должен быть объектом с полями level, name, rules
  */
-// CHANGE: Use literal keys with proper typing to satisfy both Biome and TypeScript
-// WHY: Biome wants literal keys, TypeScript wants them for non-index types
-// REF: lint/complexity/useLiteralKeys
-// SOURCE: https://biomejs.dev/linter/rules/lint/complexity/useLiteralKeys
-function validatePriorityLevel(value: unknown): PriorityLevel | null {
-	if (!value || typeof value !== "object") return null;
+function validatePriorityLevel(value: JSONValue): PriorityLevel | null {
+	if (!isJSONObject(value)) {
+		return null;
+	}
 
-	const obj = value as { level?: unknown; name?: unknown; rules?: unknown };
+	const level = value["level"];
+	const name = value["name"];
+	const rules = value["rules"];
 
 	if (
-		typeof obj.level !== "number" ||
-		typeof obj.name !== "string" ||
-		!Array.isArray(obj.rules)
+		level === undefined ||
+		name === undefined ||
+		rules === undefined ||
+		!isNumber(level) ||
+		!isString(name) ||
+		!isArray(rules)
 	) {
 		return null;
 	}
 
-	const normalizedRules = obj.rules
-		.filter((r): r is string => typeof r === "string")
+	const normalizedRules = rules
+		.filter((r): r is string => isString(r))
 		.map((r) => r.toLowerCase());
 
 	return {
-		level: obj.level,
-		name: obj.name,
+		level,
+		name,
 		rules: normalizedRules,
 	};
 }
@@ -52,28 +112,30 @@ function validatePriorityLevel(value: unknown): PriorityLevel | null {
  *
  * @param configPath Путь к файлу конфигурации
  * @returns Конфигурация линтера или null при ошибке
+ *
+ * @invariant configPath должен указывать на валидный JSON файл
  */
 export function loadLinterConfig(
 	configPath = path.resolve(process.cwd(), "linter.config.json"),
 ): LinterConfig | null {
 	try {
 		const raw = fs.readFileSync(configPath, "utf8");
-		const parsed = JSON.parse(raw) as unknown;
+		const parsed = JSON.parse(raw) as JSONValue;
 
-		if (!parsed || typeof parsed !== "object") return null;
-		const obj = parsed as { priorityLevels?: unknown };
+		if (!isJSONObject(parsed)) {
+			return null;
+		}
 
-		if (!Array.isArray(obj.priorityLevels)) {
+		const priorityLevels = parsed["priorityLevels"];
+		if (priorityLevels === undefined || !isArray(priorityLevels)) {
 			return null;
 		}
 
 		const validatedLevels: PriorityLevel[] = [];
-		for (const level of obj.priorityLevels) {
-			if (level && typeof level === "object" && !Array.isArray(level)) {
-				const validated = validatePriorityLevel(level);
-				if (validated) {
-					validatedLevels.push(validated);
-				}
+		for (const level of priorityLevels) {
+			const validated = validatePriorityLevel(level);
+			if (validated) {
+				validatedLevels.push(validated);
 			}
 		}
 

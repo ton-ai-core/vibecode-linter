@@ -4,10 +4,14 @@
 // REF: REQ-20250210-MODULAR-ARCH
 // SOURCE: lint.ts lines 1196-1284, 1815-1893
 
-import { exec } from "child_process";
-import * as fs from "fs";
-import * as path from "path";
-import { promisify } from "util";
+// CHANGE: Use node: protocol for Node.js built-in modules
+// WHY: Biome lint rule requires explicit node: prefix for clarity
+// REF: lint/style/useNodejsImportProtocol
+// SOURCE: https://biomejs.dev/linter/rules/lint/style/useNodejsImportProtocol
+import { exec } from "node:child_process";
+import * as fs from "node:fs";
+import * as path from "node:path";
+import { promisify } from "node:util";
 
 import type { DuplicateInfo, SarifReport } from "../types/index.js";
 
@@ -165,13 +169,17 @@ export function displayClonesFromSarif(
 				const availableWidth = width - 20; // Reserve space for line numbers and separators
 				const halfWidth = Math.floor(availableWidth / 2);
 
+				// CHANGE: Use template literals instead of string concatenation
+				// WHY: Biome prefers template literals for better readability
+				// REF: lint/style/useTemplate
+				// SOURCE: https://biomejs.dev/linter/rules/lint/style/useTemplate
 				const truncatedA =
 					contentA.length > halfWidth
-						? contentA.substring(0, halfWidth - 1) + "…"
+						? `${contentA.substring(0, halfWidth - 1)}…`
 						: contentA;
 				const truncatedB =
 					contentB.length > halfWidth
-						? contentB.substring(0, halfWidth - 1) + "…"
+						? `${contentB.substring(0, halfWidth - 1)}…`
 						: contentB;
 
 				console.log(

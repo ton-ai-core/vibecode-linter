@@ -101,11 +101,15 @@ function filterMessagesByPath(
 
 	// If targetPath is a directory, show only messages from files in that directory
 	const resolvedTarget = path.resolve(targetPath);
+	// CHANGE: Use template literals instead of string concatenation
+	// WHY: Biome prefers template literals for better readability
+	// REF: lint/style/useTemplate
+	// SOURCE: https://biomejs.dev/linter/rules/lint/style/useTemplate
 	return messages.filter((msg) => {
 		const resolvedFile = path.resolve(msg.filePath);
 		return (
-			resolvedFile.startsWith(resolvedTarget + path.sep) ||
-			resolvedFile.startsWith(resolvedTarget + "/")
+			resolvedFile.startsWith(`${resolvedTarget}${path.sep}`) ||
+			resolvedFile.startsWith(`${resolvedTarget}/`)
 		);
 	});
 }
