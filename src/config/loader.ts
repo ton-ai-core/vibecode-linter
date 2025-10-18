@@ -4,8 +4,12 @@
 // REF: REQ-20250210-MODULAR-ARCH
 // SOURCE: n/a
 
-import * as fs from "fs";
-import * as path from "path";
+// CHANGE: Use node: protocol for Node.js built-in modules
+// WHY: Biome lint rule requires explicit node: prefix for clarity
+// REF: lint/style/useNodejsImportProtocol
+// SOURCE: https://biomejs.dev/linter/rules/lint/style/useNodejsImportProtocol
+import * as fs from "node:fs";
+import * as path from "node:path";
 
 import type { LinterConfig, PriorityLevel } from "../types/index.js";
 
@@ -15,25 +19,31 @@ import type { LinterConfig, PriorityLevel } from "../types/index.js";
  * @param value Значение для валидации
  * @returns Нормализованный уровень приоритета или null
  */
-function validatePriorityLevel(
-	value: Record<string, string | number | string[]>,
-): PriorityLevel | null {
+// CHANGE: Use literal keys with proper typing to satisfy both Biome and TypeScript
+// WHY: Biome wants literal keys, TypeScript wants them for non-index types
+// REF: lint/complexity/useLiteralKeys
+// SOURCE: https://biomejs.dev/linter/rules/lint/complexity/useLiteralKeys
+function validatePriorityLevel(value: unknown): PriorityLevel | null {
+	if (!value || typeof value !== "object") return null;
+
+	const obj = value as { level?: unknown; name?: unknown; rules?: unknown };
+
 	if (
-		typeof value["level"] !== "number" ||
-		typeof value["name"] !== "string" ||
-		!Array.isArray(value["rules"])
+		typeof obj.level !== "number" ||
+		typeof obj.name !== "string" ||
+		!Array.isArray(obj.rules)
 	) {
 		return null;
 	}
 
-	const rules = value["rules"]
+	const normalizedRules = obj.rules
 		.filter((r): r is string => typeof r === "string")
 		.map((r) => r.toLowerCase());
 
 	return {
-		level: value["level"],
-		name: value["name"],
-		rules,
+		level: obj.level,
+		name: obj.name,
+		rules: normalizedRules,
 	};
 }
 
@@ -48,17 +58,17 @@ export function loadLinterConfig(
 ): LinterConfig | null {
 	try {
 		const raw = fs.readFileSync(configPath, "utf8");
-		const parsed = JSON.parse(raw) as Record<
-			string,
-			string | number | Array<Record<string, string | number | string[]>>
-		>;
+		const parsed = JSON.parse(raw) as unknown;
 
-		if (!Array.isArray(parsed["priorityLevels"])) {
+		if (!parsed || typeof parsed !== "object") return null;
+		const obj = parsed as { priorityLevels?: unknown };
+
+		if (!Array.isArray(obj.priorityLevels)) {
 			return null;
 		}
 
 		const validatedLevels: PriorityLevel[] = [];
-		for (const level of parsed["priorityLevels"]) {
+		for (const level of obj.priorityLevels) {
 			if (level && typeof level === "object" && !Array.isArray(level)) {
 				const validated = validatePriorityLevel(level);
 				if (validated) {

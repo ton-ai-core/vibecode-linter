@@ -4,8 +4,12 @@
 // REF: REQ-20250210-MODULAR-ARCH
 // SOURCE: lint.ts lines 1026-1056, 1289-1360
 
-import { exec } from "child_process";
-import { promisify } from "util";
+// CHANGE: Use node: protocol for Node.js built-in modules
+// WHY: Biome lint rule requires explicit node: prefix for clarity
+// REF: lint/style/useNodejsImportProtocol
+// SOURCE: https://biomejs.dev/linter/rules/lint/style/useNodejsImportProtocol
+import { exec } from "node:child_process";
+import { promisify } from "node:util";
 
 import type { LintResult } from "../types/index.js";
 import { extractStdoutFromError } from "../types/index.js";

@@ -4,10 +4,14 @@
 // REF: REQ-20250210-MODULAR-ARCH
 // SOURCE: n/a
 
-import { exec } from "child_process";
-import * as fs from "fs";
-import * as path from "path";
-import { promisify } from "util";
+// CHANGE: Use node: protocol for Node.js built-in modules
+// WHY: Biome lint rule requires explicit node: prefix for clarity
+// REF: lint/style/useNodejsImportProtocol
+// SOURCE: https://biomejs.dev/linter/rules/lint/style/useNodejsImportProtocol
+import { exec } from "node:child_process";
+import * as fs from "node:fs";
+import * as path from "node:path";
+import { promisify } from "node:util";
 
 import type { DiffRangeConfig, ExecError } from "../types/index.js";
 

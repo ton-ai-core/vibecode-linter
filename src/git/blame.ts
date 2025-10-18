@@ -4,7 +4,11 @@
 // REF: REQ-20250210-MODULAR-ARCH
 // SOURCE: n/a
 
-import * as path from "path";
+// CHANGE: Use node: protocol for Node.js built-in modules
+// WHY: Biome lint rule requires explicit node: prefix for clarity
+// REF: lint/style/useNodejsImportProtocol
+// SOURCE: https://biomejs.dev/linter/rules/lint/style/useNodejsImportProtocol
+import * as path from "node:path";
 
 import type {
 	ExecError,
