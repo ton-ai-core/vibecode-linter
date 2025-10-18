@@ -57,6 +57,7 @@ export async function runBiomeFix(targetPath: string): Promise<void> {
 			if (error && typeof error === "object" && "stdout" in error) {
 				// Biome found and fixed issues, may need another pass
 				if (attempt < maxAttempts) {
+					continue;
 				}
 			} else {
 				console.error(`❌ Biome auto-fix failed:`, error);
