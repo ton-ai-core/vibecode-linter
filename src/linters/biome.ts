@@ -275,15 +275,10 @@ function parseBiomeOutput(stdout: string): ReadonlyArray<BiomeResult> {
 					column = p.column;
 				}
 
-				// Map severity: error=2, warning=1, information=0
-				let severityNumber = 1;
-				if (diagnostic.severity === "error") {
-					severityNumber = 2;
-				} else if (diagnostic.severity === "warning") {
-					severityNumber = 1;
-				} else if (diagnostic.severity === "information") {
-					severityNumber = 0;
-				}
+				// CHANGE: Map all Biome diagnostics to errors (severity 2)
+				// WHY: User wants uniform error reporting, no special treatment for information
+				// REF: user-request-uniform-error-format
+				const severityNumber = 2;
 
 				const resultMessage = {
 					ruleId: diagnostic.category || null,

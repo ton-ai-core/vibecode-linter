@@ -96,17 +96,9 @@ export async function processResults(
 			: { diffArg: "HEAD", label: "HEAD" };
 	const diffContext = cliOptions.context ?? 3;
 
-	// CHANGE: Filter out information-level (severity 0) if there are errors or warnings
-	// WHY: Smart priority - show information only after fixing errors/warnings
-	// REF: user-request-smart-priority-system
-	const hasErrorsOrWarnings = sortedMessages.some((m) => m.severity >= 1);
-	const filteredMessages = hasErrorsOrWarnings
-		? sortedMessages.filter((m) => m.severity >= 1)
-		: sortedMessages;
-
-	if (filteredMessages.length > 0) {
-		const byLevel = new Map<number, typeof filteredMessages>();
-		for (const m of filteredMessages) {
+	if (sortedMessages.length > 0) {
+		const byLevel = new Map<number, typeof sortedMessages>();
+		for (const m of sortedMessages) {
 			const level = getPriorityLevel(m, ruleLevelMap);
 			if (!byLevel.has(level)) byLevel.set(level, []);
 			const levelArray = byLevel.get(level);
@@ -136,7 +128,6 @@ export async function processResults(
 
 	const errorCount = sortedMessages.filter((m) => m.severity === 2).length;
 	const warningCount = sortedMessages.filter((m) => m.severity === 1).length;
-	const infoCount = sortedMessages.filter((m) => m.severity === 0).length;
 	const tsErrorCount = sortedMessages.filter(
 		(m) => m.source === "typescript" && m.severity === 2,
 	).length;
@@ -147,26 +138,9 @@ export async function processResults(
 		(m) => m.source === "eslint" && m.severity === 2,
 	).length;
 
-	// CHANGE: Show information count only when no errors/warnings
-	// WHY: Smart priority system - information shown only after errors/warnings fixed
-	// REF: user-request-smart-priority-system
-	if (infoCount > 0 && errorCount === 0 && warningCount === 0) {
-		console.log(
-			`\n📊 Total: ${infoCount} style suggestions (Biome information-level).`,
-		);
-		console.log(
-			`💡 These are optional style improvements. Your code has no errors or warnings!`,
-		);
-	} else {
-		console.log(
-			`\n📊 Total: ${errorCount} errors (${tsErrorCount} TypeScript, ${eslintErrorCount} ESLint, ${biomeErrorCount} Biome), ${warningCount} warnings.`,
-		);
-		if (infoCount > 0) {
-			console.log(
-				`ℹ️  ${infoCount} style suggestions available (will be shown after fixing errors/warnings).`,
-			);
-		}
-	}
+	console.log(
+		`\n📊 Total: ${errorCount} errors (${tsErrorCount} TypeScript, ${eslintErrorCount} ESLint, ${biomeErrorCount} Biome), ${warningCount} warnings.`,
+	);
 	return errorCount > 0;
 }
 
