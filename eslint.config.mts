@@ -189,8 +189,13 @@ export default tseslint.config(
 			"import-x/no-duplicates": "error",
 			"import-x/first": "error",
 			"import-x/newline-after-import": "error",
-			"simple-import-sort/imports": "error",
-			"simple-import-sort/exports": "error",
+			// CHANGE: Disable simple-import-sort to avoid conflicts with Biome organizeImports
+			// WHY: ESLint simple-import-sort and Biome organizeImports run in parallel and overwrite each other
+			// QUOTE(USER): "Можем ли мы отключить тогда это форматирование для eslint ?"
+			// REF: user-request-disable-eslint-import-sort
+			// SOURCE: n/a
+			"simple-import-sort/imports": "off",
+			"simple-import-sort/exports": "off",
 
 			// Чистка мусора
 			"unused-imports/no-unused-imports": "error",
