@@ -52,11 +52,20 @@ export async function runBiomeFix(targetPath: string): Promise<void> {
 	// SOURCE: n/a
 	for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
 		try {
-			await execAsync(`npx biome check --write "${targetPath}"`);
+			const result = await execAsync(`npx biome check --write "${targetPath}"`);
+			console.log(`  Pass ${attempt}: Success (no issues found or all fixed)`);
+			if (result.stdout) console.log(`  stdout: ${result.stdout.trim()}`);
+			if (result.stderr) console.log(`  stderr: ${result.stderr.trim()}`);
 		} catch (error) {
 			// Biome returns non-zero exit code when it finds issues, even if it fixes them
 			// This is expected behavior, continue to next pass
-			if (!(error && typeof error === "object" && "stdout" in error)) {
+			if (error && typeof error === "object" && "stdout" in error) {
+				console.log(`  Pass ${attempt}: Found and fixed issues`);
+				const stdout = (error as { stdout?: string }).stdout;
+				const stderr = (error as { stderr?: string }).stderr;
+				if (stdout) console.log(`  stdout: ${stdout.trim()}`);
+				if (stderr) console.log(`  stderr: ${stderr.trim()}`);
+			} else {
 				console.error(`❌ Biome auto-fix failed:`, error);
 				break;
 			}
