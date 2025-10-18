@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 // CHANGE: Main coordination logic extracted from lint.ts
 // WHY: Separation of CLI entry point from business logic
 // QUOTE(ТЗ): "Разбить lint.ts на подфайлы, каждый файл желательно должен быть не больше 300 строчек кода"
