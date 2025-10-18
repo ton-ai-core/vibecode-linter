@@ -189,7 +189,7 @@ export async function handleSingleCommit(
 	const diffSnippet =
 		diffOutput.trim().length > 0 ? extractDiffSnippet(diffOutput, line) : null;
 
-	const heading = `--- git diff ${emptyTree.slice(0, 12)}..${creation.shortHash} -- ${relativePath} | cat ---`;
+	const heading = `--- git diff ${emptyTree.slice(0, 12)}..${creation.shortHash} -- ${relativePath} | cat`;
 
 	return [
 		{
@@ -238,7 +238,7 @@ export async function buildDiffBlocks(
 				? extractDiffSnippet(diffOutput, fileInfo.line)
 				: null;
 
-		const heading = `--- git diff ${older.shortHash}..${newer.shortHash} -- ${fileInfo.relativePath} | cat ---`;
+		const heading = `--- git diff ${older.shortHash}..${newer.shortHash} -- ${fileInfo.relativePath} | cat`;
 
 		diffBlocks.push({
 			heading,

@@ -126,7 +126,7 @@ Uses `jscpd` to find duplicate code blocks:
     81 |                         appConfig: options.config,
 ---------------------------------------------------------------
 
-    --- git diff b001809..b1662a1 -- src/telegram/bot.ts | cat ---
+    --- git diff b001809..b1662a1 -- src/telegram/bot.ts | cat
     b1662a1 (2025-09-30) by skulidropek: устранение дубликатов
     b001809 (2025-09-28) by skulidropek: implement code review
     @@ -75,7 +75,7 @@
@@ -296,7 +296,7 @@ Shows current uncommitted changes with:
 For each error, shows up to 3 commit blocks:
 
 ```
---- git diff <older>..<newer> -- file.ts | cat ---
+--- git diff <older>..<newer> -- file.ts | cat
 <newer-hash> (<date>) by <author>: <summary>
 <older-hash> (<date>) by <author>: <summary>
 @@ -75,7 +75,7 @@
