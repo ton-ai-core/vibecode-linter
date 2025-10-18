@@ -319,7 +319,7 @@ async function printMessages(
 				if (block.diffSnippet) {
 					console.log(`    ${block.diffSnippet.header}`);
 					
-					// Show only context lines around the target line
+					// Find removed (-) and added (+) lines around target
 					const pointerIndex = block.diffSnippet.pointerIndex;
 					const contextSize = 3;
 					const startIdx = Math.max(0, (pointerIndex ?? 0) - contextSize);
@@ -328,18 +328,62 @@ async function printMessages(
 						(pointerIndex ?? 0) + contextSize + 1,
 					);
 					
+					const removedLines: typeof block.diffSnippet.lines[0][] = [];
+					const addedLines: typeof block.diffSnippet.lines[0][] = [];
+					const contextLines: typeof block.diffSnippet.lines[0][] = [];
+					
 					for (let i = startIdx; i < endIdx; i += 1) {
 						const diffLine = block.diffSnippet.lines[i];
 						if (!diffLine) continue;
-						const lineNumber =
-							diffLine.headLineNumber !== null
-								? String(diffLine.headLineNumber).padStart(4)
-								: "    ";
-						const symbol = diffLine.symbol ?? " ";
+						
+						if (diffLine.symbol === "-") {
+							removedLines.push(diffLine);
+						} else if (diffLine.symbol === "+") {
+							addedLines.push(diffLine);
+						} else if (diffLine.symbol === " ") {
+							contextLines.push(diffLine);
+						}
+					}
+					
+					// Show context before
+					if (contextLines.length > 0 && contextLines[0]) {
+						const line = contextLines[0];
+						const lineNumber = line.headLineNumber !== null
+							? String(line.headLineNumber).padStart(4)
+							: "    ";
 						console.log(
-							`    ${symbol} ${lineNumber} | ${expandTabs(diffLine.content, 8)}`,
+							`      ${lineNumber} | ${expandTabs(line.content, 8)}`,
 						);
 					}
+					
+					// Show removed lines (old code)
+					if (removedLines.length > 0) {
+						for (const line of removedLines.slice(0, 2)) {
+							const lineNumber = "    ";
+							console.log(
+								`    - ${lineNumber} | ${expandTabs(line.content, 8)}`,
+							);
+						}
+						if (removedLines.length > 2) {
+							console.log("          ... (see full diff with git command above)");
+						}
+					}
+					
+					// Show added lines (new code)
+					if (addedLines.length > 0) {
+						for (const line of addedLines.slice(0, 2)) {
+							const lineNumber = line.headLineNumber !== null
+								? String(line.headLineNumber).padStart(4)
+								: "    ";
+							console.log(
+								`    + ${lineNumber} | ${expandTabs(line.content, 8)}`,
+							);
+						}
+						if (addedLines.length > 2) {
+							console.log("          ... (see full diff with git command above)");
+						}
+					}
+					
 					console.log(
 						"    ---------------------------------------------------------------",
 					);
