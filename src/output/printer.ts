@@ -314,11 +314,16 @@ async function printMessages(
 		if (commitDiffBlocks) {
 			for (const block of commitDiffBlocks) {
 				console.log(`\n    ${block.heading}`);
+				// CHANGE: Add Newer/Older prefixes to make commit order clear
+				// WHY: Users need to easily distinguish which commit is new and which is old
+				// QUOTE(USER): "А мы можем перед ними отображать хеши? Иначе не понятно"
+				// REF: user-request-add-newer-older-labels
+				// SOURCE: n/a
 				console.log(
-					`    ${block.newerCommit.shortHash} (${block.newerCommit.date}) by ${block.newerCommit.author}: ${block.newerCommit.summary}`,
+					`    Newer: ${block.newerCommit.shortHash} (${block.newerCommit.date}) by ${block.newerCommit.author}: ${block.newerCommit.summary}`,
 				);
 				console.log(
-					`    ${block.olderCommit.shortHash} (${block.olderCommit.date}) by ${block.olderCommit.author}: ${block.olderCommit.summary}`,
+					`    Older: ${block.olderCommit.shortHash} (${block.olderCommit.date}) by ${block.olderCommit.author}: ${block.olderCommit.summary}`,
 				);
 
 				if (block.diffSnippet) {
