@@ -1,6 +1,7 @@
 // CHANGE: Extracted history helper functions
 // WHY: Reduces line count of history.ts to under 300
 // REF: ESLint max-lines
+
 import { extractDiffSnippet } from "../diff/index.js";
 import type { DiffSnippet, ExecError } from "../types/index.js";
 import { execGitCommand, getCommitSnippetForLine } from "./utils.js";
