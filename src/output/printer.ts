@@ -318,7 +318,19 @@ async function printMessages(
 
 				if (block.diffSnippet) {
 					console.log(`    ${block.diffSnippet.header}`);
-					for (const diffLine of block.diffSnippet.lines) {
+					
+					// Show only context lines around the target line
+					const pointerIndex = block.diffSnippet.pointerIndex;
+					const contextSize = 3;
+					const startIdx = Math.max(0, (pointerIndex ?? 0) - contextSize);
+					const endIdx = Math.min(
+						block.diffSnippet.lines.length,
+						(pointerIndex ?? 0) + contextSize + 1,
+					);
+					
+					for (let i = startIdx; i < endIdx; i += 1) {
+						const diffLine = block.diffSnippet.lines[i];
+						if (!diffLine) continue;
 						const lineNumber =
 							diffLine.headLineNumber !== null
 								? String(diffLine.headLineNumber).padStart(4)
