@@ -29,6 +29,7 @@ export type BiomeResult = LintResult;
 
 /**
  * Запускает Biome auto-fix на указанном пути.
+ * Выполняет несколько проходов для исправления зависимых ошибок.
  *
  * @param targetPath Путь для линтинга
  * @returns Promise<void>
@@ -37,16 +38,36 @@ export type BiomeResult = LintResult;
  */
 export async function runBiomeFix(targetPath: string): Promise<void> {
 	console.log(`🔧 Running Biome auto-fix on: ${targetPath}`);
-	try {
-		await execAsync(`npx biome check --write "${targetPath}"`);
-		console.log(`✅ Biome auto-fix completed`);
-	} catch (error) {
-		if (error && typeof error === "object" && "stdout" in error) {
-			console.log(`✅ Biome auto-fix completed with warnings`);
-		} else {
-			console.error(`❌ Biome auto-fix failed:`, error);
+
+	// CHANGE: Run Biome fix multiple times to handle dependent fixes
+	// WHY: Some fixes (like organizeImports) may create new fixable issues
+	// QUOTE(USER): "А можно что бы наш линтер автоматически применял все эти исправления?"
+	// REF: user-request-auto-apply-all-fixes
+	// SOURCE: n/a
+	const maxAttempts = 3;
+	let attempt = 0;
+
+	while (attempt < maxAttempts) {
+		attempt += 1;
+		try {
+			await execAsync(`npx biome check --write "${targetPath}"`);
+			// If no error, all fixes applied successfully
+			break;
+		} catch (error) {
+			if (error && typeof error === "object" && "stdout" in error) {
+				// Biome found and fixed issues, may need another pass
+				if (attempt < maxAttempts) {
+				}
+			} else {
+				console.error(`❌ Biome auto-fix failed:`, error);
+				break;
+			}
 		}
 	}
+
+	console.log(
+		`✅ Biome auto-fix completed (${attempt} pass${attempt > 1 ? "es" : ""})`,
+	);
 }
 
 /**
