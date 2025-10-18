@@ -7,6 +7,11 @@
 		"vibecode-linter": "dist/main.js"
 	},
 	"type": "module",
+	"files": [
+		"dist",
+		"README.md",
+		"LICENSE"
+	],
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/ton-ai-core/vibecode-linter.git"
