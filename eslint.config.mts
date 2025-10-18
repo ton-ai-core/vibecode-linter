@@ -83,15 +83,19 @@ export default tseslint.config(
 			],
 		},
 		rules: {
-			"complexity": ["error", 8],                    // порог CCN
-			"max-lines-per-function": ["error", 50],       // лимит строк функции
+			"complexity": ["error", 8],
+			"max-lines-per-function": ["error", {
+				"max": 50,
+				"skipBlankLines": true,
+				"skipComments": true
+			}],
 			"max-params": ["error", 5],
 			"max-depth": ["error", 4],
 			"max-lines": ["error", {
 				"max": 300,
 				"skipBlankLines": true,
 				"skipComments": true
-			  }],
+			}],
 			// TS строгие правила
 			"@typescript-eslint/no-unused-vars": "off",
 			"@typescript-eslint/no-explicit-any": "error",

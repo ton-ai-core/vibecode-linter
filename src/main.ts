@@ -24,51 +24,22 @@ import {
 	reportMissingDependencies,
 } from "./utils/dependencies.js";
 
-/**
- * Главная функция линтера.
- */
-export async function main(): Promise<void> {
-	// CHANGE: Check required dependencies before running linter
-	// WHY: Fail early with clear message if tools are not installed
-	// QUOTE(USER): "Надо проверять установлены ли они. Если не установлены говорить об их установке"
-	// REF: user-request-check-dependencies
-	// SOURCE: n/a
-	const depCheck = await checkDependencies();
-	if (!depCheck.allAvailable) {
-		reportMissingDependencies(depCheck.missing);
-		process.exit(1);
-	}
-
-	const cliOptions = parseCLIArgs();
-	console.log(`🔍 Linting directory: ${cliOptions.targetPath}`);
-
-	// CHANGE: Added --no-fix flag to allow skipping auto-fixes
-	// WHY: Users sometimes need to inspect errors without automatic changes
-	// QUOTE(SPEC): "Allow lint.ts to report issues in /src/exchanges without fixing them"
-	// REF: user-msg-lint-not-showing-errors
-	// SOURCE: n/a
-	if (!cliOptions.noFix) {
-		// First run ESLint and Biome fixes in parallel
-		await Promise.all([
-			runESLintFix(cliOptions.targetPath),
-			runBiomeFix(cliOptions.targetPath),
-		]);
-	}
-
-	// Then run ESLint, Biome, and TypeScript in parallel for remaining issues
+// CHANGE: Extracted helper to collect all lint messages
+// WHY: Reduces complexity and line count of main
+// QUOTE(LINT): "Function has a complexity of 13, too many lines (65)"
+// REF: ESLint complexity, max-lines-per-function
+// SOURCE: n/a
+async function collectLintMessages(
+	targetPath: string,
+): Promise<LintMessageWithFile[]> {
 	const [eslintResults, biomeResults, tsMessages] = await Promise.all([
-		getESLintResults(cliOptions.targetPath),
-		getBiomeDiagnostics(cliOptions.targetPath),
-		getTypeScriptDiagnostics(cliOptions.targetPath),
+		getESLintResults(targetPath),
+		getBiomeDiagnostics(targetPath),
+		getTypeScriptDiagnostics(targetPath),
 	]);
 
-	// Always generate SARIF report for duplicates
-	const sarifPath = await generateSarifReport();
-
-	// Combine all messages
 	const allMessages: LintMessageWithFile[] = [];
 
-	// Add ESLint messages
 	for (const result of eslintResults) {
 		for (const message of result.messages) {
 			allMessages.push({
@@ -79,7 +50,6 @@ export async function main(): Promise<void> {
 		}
 	}
 
-	// Add Biome messages
 	for (const result of biomeResults) {
 		for (const message of result.messages) {
 			allMessages.push({
@@ -90,7 +60,6 @@ export async function main(): Promise<void> {
 		}
 	}
 
-	// Add TypeScript messages
 	for (const message of tsMessages) {
 		allMessages.push({
 			...message,
@@ -99,15 +68,23 @@ export async function main(): Promise<void> {
 		});
 	}
 
-	const config = loadLinterConfig();
-	const hasLintErrors = await processResults(allMessages, config, cliOptions);
+	return allMessages;
+}
 
-	// Always generate SARIF but only display duplicates when there are no lint errors
+// CHANGE: Extracted helper to handle duplicates display
+// WHY: Reduces complexity and line count of main
+// QUOTE(LINT): "Function has a complexity of 13, too many lines (65)"
+// REF: ESLint complexity, max-lines-per-function
+// SOURCE: n/a
+function handleDuplicates(
+	hasLintErrors: boolean,
+	sarifPath: string,
+	cliOptions: ReturnType<typeof parseCLIArgs>,
+): boolean {
 	const duplicates = parseSarifReport(sarifPath);
 	const hasDuplicates = duplicates.length > 0;
 
 	if (!hasLintErrors) {
-		// Show duplicates only when there are no lint errors
 		if (hasDuplicates) {
 			displayClonesFromSarif(
 				duplicates,
@@ -119,7 +96,43 @@ export async function main(): Promise<void> {
 		}
 	}
 
-	// Exit with error if there are lint errors OR duplicates (when no lint errors)
+	return hasDuplicates;
+}
+
+/**
+ * Главная функция линтера.
+ *
+ * CHANGE: Refactored to reduce complexity and line count
+ * WHY: Original function had 65 lines and complexity 13
+ * QUOTE(LINT): "Function has too many lines/complexity"
+ * REF: ESLint max-lines-per-function, complexity
+ * SOURCE: n/a
+ */
+export async function main(): Promise<void> {
+	const depCheck = await checkDependencies();
+	if (!depCheck.allAvailable) {
+		reportMissingDependencies(depCheck.missing);
+		process.exit(1);
+	}
+
+	const cliOptions = parseCLIArgs();
+	console.log(`🔍 Linting directory: ${cliOptions.targetPath}`);
+
+	if (!cliOptions.noFix) {
+		await Promise.all([
+			runESLintFix(cliOptions.targetPath),
+			runBiomeFix(cliOptions.targetPath),
+		]);
+	}
+
+	const allMessages = await collectLintMessages(cliOptions.targetPath);
+	const sarifPath = await generateSarifReport();
+
+	const config = loadLinterConfig();
+	const hasLintErrors = await processResults(allMessages, config, cliOptions);
+
+	const hasDuplicates = handleDuplicates(hasLintErrors, sarifPath, cliOptions);
+
 	if (hasLintErrors || (!hasLintErrors && hasDuplicates)) {
 		process.exit(1);
 	}

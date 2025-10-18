@@ -9,8 +9,59 @@
  */
 export const TAB_WIDTH = 8;
 
+// CHANGE: Extracted helper to check if target reached
+// WHY: Reduces complexity and line count of computeRealColumnFromVisual
+// QUOTE(LINT): "Function has too many lines (51). Maximum allowed is 50"
+// REF: ESLint max-lines-per-function
+// SOURCE: n/a
+function isTargetReached(
+	currentVisual: number,
+	visualColumn: number,
+	index: number,
+	contentLength: number,
+): { readonly reached: boolean; readonly position: number } | null {
+	if (currentVisual === visualColumn) {
+		return { reached: true, position: index };
+	}
+	if (currentVisual > visualColumn) {
+		return { reached: true, position: index };
+	}
+	if (index >= contentLength) {
+		return { reached: true, position: contentLength };
+	}
+	return null;
+}
+
+// CHANGE: Extracted helper to process tab character
+// WHY: Reduces complexity of computeRealColumnFromVisual
+// QUOTE(LINT): "Function has a complexity of 9. Maximum allowed is 8"
+// REF: ESLint complexity
+// SOURCE: n/a
+function processTabCharacter(
+	currentVisual: number,
+	visualColumn: number,
+	tabSize: number,
+	index: number,
+): {
+	readonly newVisual: number;
+	readonly shouldBreak: boolean;
+	readonly position: number;
+} {
+	const nextTabStop = Math.floor(currentVisual / tabSize + 1) * tabSize;
+	if (nextTabStop >= visualColumn) {
+		return { newVisual: nextTabStop, shouldBreak: true, position: index + 1 };
+	}
+	return { newVisual: nextTabStop, shouldBreak: false, position: index + 1 };
+}
+
 /**
  * Конвертирует визуальную колонку (как в ESLint) в реальный индекс символа.
+ *
+ * CHANGE: Refactored to reduce complexity and line count
+ * WHY: Original function had 51 lines and complexity 9
+ * QUOTE(LINT): "Function has too many lines/complexity"
+ * REF: ESLint max-lines-per-function, complexity
+ * SOURCE: n/a
  *
  * ESLint и git diff считают табуляцию как 8 пробелов, но в строке это один символ.
  * Эта функция преобразует визуальную позицию в реальный индекс в строке.
@@ -46,40 +97,37 @@ export function computeRealColumnFromVisual(
 		);
 	}
 
-	let realColumn = 0;
 	let currentVisual = 0;
 
 	for (let index = 0; index <= lineContent.length; index += 1) {
-		if (currentVisual === visualColumn) {
-			realColumn = index;
-			break;
-		}
-
-		if (currentVisual > visualColumn) {
-			realColumn = index;
-			break;
-		}
-
-		if (index >= lineContent.length) {
-			realColumn = lineContent.length;
-			break;
+		const target = isTargetReached(
+			currentVisual,
+			visualColumn,
+			index,
+			lineContent.length,
+		);
+		if (target) {
+			return target.position;
 		}
 
 		const char = lineContent[index];
 		if (char === "\t") {
-			const nextTabStop = Math.floor(currentVisual / tabSize + 1) * tabSize;
-			if (nextTabStop >= visualColumn) {
-				currentVisual = nextTabStop;
-				realColumn = index + 1;
-				break;
+			const tabResult = processTabCharacter(
+				currentVisual,
+				visualColumn,
+				tabSize,
+				index,
+			);
+			currentVisual = tabResult.newVisual;
+			if (tabResult.shouldBreak) {
+				return tabResult.position;
 			}
-			currentVisual = nextTabStop;
 		} else {
 			currentVisual += 1;
 		}
 	}
 
-	return realColumn;
+	return lineContent.length;
 }
 
 /**

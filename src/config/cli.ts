@@ -6,8 +6,91 @@
 
 import type { CLIOptions } from "../types/index.js";
 
+// CHANGE: Extracted result type for argument processing
+// WHY: Simplifies control flow in parseCLIArgs
+// QUOTE(LINT): "Function has a complexity of 10. Maximum allowed is 8"
+// REF: ESLint complexity
+// SOURCE: n/a
+interface ArgProcessResult {
+	readonly maxClones: number;
+	readonly width: number;
+	readonly context: number | undefined;
+	readonly noFix: boolean;
+	readonly targetPath: string;
+	readonly skipNext: boolean;
+}
+
+// CHANGE: Extracted numeric flag handler
+// WHY: Reduces complexity by extracting common pattern
+// QUOTE(LINT): "Function has a complexity of 12. Maximum allowed is 8"
+// REF: ESLint complexity
+// SOURCE: n/a
+type NumericFlagHandler = (
+	args: ReadonlyArray<string>,
+	index: number,
+	current: Omit<ArgProcessResult, "skipNext">,
+) => ArgProcessResult | null;
+
+// CHANGE: Created handlers for numeric flags
+// WHY: Eliminates branching in processArgument
+// QUOTE(LINT): "Function has a complexity of 12. Maximum allowed is 8"
+// REF: ESLint complexity
+// SOURCE: n/a
+function createNumericFlagHandler(
+	key: "maxClones" | "width" | "context",
+): NumericFlagHandler {
+	return (args, index, current) => {
+		if (index + 1 >= args.length) return null;
+		const value = Number.parseInt(args[index + 1] ?? "0", 10);
+		return { ...current, [key]: value, skipNext: true };
+	};
+}
+
+const numericHandlers: Record<string, NumericFlagHandler> = {
+	"--max-clones": createNumericFlagHandler("maxClones"),
+	"--width": createNumericFlagHandler("width"),
+	"--context": createNumericFlagHandler("context"),
+};
+
+// CHANGE: Simplified argument processor with handler map
+// WHY: Reduces complexity from 12 to under 8 using lookup table
+// QUOTE(LINT): "Function has a complexity of 12. Maximum allowed is 8"
+// REF: ESLint complexity
+// SOURCE: n/a
+function processArgument(
+	arg: string,
+	args: ReadonlyArray<string>,
+	index: number,
+	current: Omit<ArgProcessResult, "skipNext">,
+): ArgProcessResult {
+	// Try numeric flag handlers
+	const handler = numericHandlers[arg];
+	if (handler) {
+		const result = handler(args, index, current);
+		if (result) return result;
+	}
+
+	// Handle boolean flag
+	if (arg === "--no-fix") {
+		return { ...current, noFix: true, skipNext: false };
+	}
+
+	// Handle positional argument
+	if (!arg.startsWith("--")) {
+		return { ...current, targetPath: arg, skipNext: false };
+	}
+
+	return { ...current, skipNext: false };
+}
+
 /**
  * Парсит аргументы командной строки.
+ *
+ * CHANGE: Refactored to reduce complexity with processArgument helper
+ * WHY: Original function had complexity 10, maximum allowed is 8
+ * QUOTE(LINT): "Function has a complexity of 10. Maximum allowed is 8"
+ * REF: ESLint complexity
+ * SOURCE: n/a
  *
  * @returns Опции командной строки
  *
@@ -20,38 +103,24 @@ import type { CLIOptions } from "../types/index.js";
  */
 export function parseCLIArgs(): CLIOptions {
 	const args = process.argv.slice(2);
-	let targetPath = ".";
-	let maxClones = 15;
-	let width = process.stdout.columns || 120;
-	let context: number | undefined;
-	let noFix = false;
+	let state: Omit<ArgProcessResult, "skipNext"> = {
+		targetPath: ".",
+		maxClones: 15,
+		width: process.stdout.columns || 120,
+		context: undefined,
+		noFix: false,
+	};
 
 	for (let i = 0; i < args.length; i++) {
 		const arg = args[i];
-		if (arg === "--max-clones" && i + 1 < args.length) {
-			const nextArg = args[i + 1];
-			if (nextArg) {
-				maxClones = Number.parseInt(nextArg, 10);
-			}
+		if (!arg) continue;
+
+		const result = processArgument(arg, args, i, state);
+		state = result;
+		if (result.skipNext) {
 			i++;
-		} else if (arg === "--width" && i + 1 < args.length) {
-			const nextArg = args[i + 1];
-			if (nextArg) {
-				width = Number.parseInt(nextArg, 10);
-			}
-			i++;
-		} else if (arg === "--context" && i + 1 < args.length) {
-			const nextArg = args[i + 1];
-			if (nextArg) {
-				context = Number.parseInt(nextArg, 10);
-			}
-			i++;
-		} else if (arg === "--no-fix") {
-			noFix = true;
-		} else if (arg && !arg.startsWith("--")) {
-			targetPath = arg;
 		}
 	}
 
-	return { targetPath, maxClones, width, context, noFix };
+	return state;
 }

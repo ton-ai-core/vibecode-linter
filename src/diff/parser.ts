@@ -8,8 +8,84 @@ import type { DiffLineView, DiffSnippet } from "../types/index.js";
 
 const UNIFIED_HEADER_PATTERN = /^@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@/;
 
+// CHANGE: Extracted helper to parse diff header
+// WHY: Reduces complexity of extractDiffSnippet
+// QUOTE(LINT): "Function has a complexity of 14. Maximum allowed is 8"
+// REF: ESLint complexity
+// SOURCE: n/a
+function parseDiffHeader(line: string): number {
+	const match = UNIFIED_HEADER_PATTERN.exec(line);
+	return match ? Number.parseInt(match[1] ?? "0", 10) : 0;
+}
+
+// CHANGE: Extracted helper to process diff line
+// WHY: Reduces complexity and line count of extractDiffSnippet
+// QUOTE(LINT): "Function has too many lines (77). Maximum allowed is 50"
+// REF: ESLint max-lines-per-function
+// SOURCE: n/a
+function processDiffLine(
+	line: string,
+	headLine: number,
+	targetLine: number,
+	currentLines: DiffLineView[],
+): { readonly newHeadLine: number; readonly foundTarget: boolean } {
+	const symbol = line.length > 0 ? line[0] : undefined;
+	let headLineNumber: number | null = null;
+	let newHeadLine = headLine;
+
+	if (symbol === "+" || symbol === " ") {
+		headLineNumber = headLine;
+		newHeadLine = headLine + 1;
+	}
+
+	const content = symbol ? line.slice(1) : line;
+	currentLines.push({
+		raw: line,
+		symbol: symbol as DiffLineView["symbol"],
+		headLineNumber,
+		content,
+	});
+
+	const foundTarget = headLineNumber === targetLine;
+	return { newHeadLine, foundTarget };
+}
+
+// CHANGE: Extracted snippet state type
+// WHY: Improves code organization and reduces parameter count
+// QUOTE(LINT): "Function has too many lines (77). Maximum allowed is 50"
+// REF: ESLint max-lines-per-function
+// SOURCE: n/a
+interface SnippetState {
+	currentHeader: string;
+	currentLines: DiffLineView[];
+	currentPointer: number | null;
+	headLine: number;
+}
+
+// CHANGE: Extracted helper to create snippet if complete
+// WHY: Reduces complexity of extractDiffSnippet
+// QUOTE(LINT): "Function has a complexity of 14. Maximum allowed is 8"
+// REF: ESLint complexity
+// SOURCE: n/a
+function flushSnippet(state: SnippetState): DiffSnippet | null {
+	if (state.currentHeader && state.currentPointer !== null) {
+		return {
+			header: state.currentHeader,
+			lines: state.currentLines,
+			pointerIndex: state.currentPointer,
+		};
+	}
+	return null;
+}
+
 /**
  * Извлекает из unified diff тот фрагмент, который содержит указанную строку из HEAD.
+ *
+ * CHANGE: Refactored to reduce complexity and line count
+ * WHY: Original function had 77 lines and complexity 14
+ * QUOTE(LINT): "Function has too many lines/complexity"
+ * REF: ESLint max-lines-per-function, complexity
+ * SOURCE: n/a
  *
  * @param unifiedDiff Полный unified diff в текстовом виде
  * @param targetLine Целевая линия в HEAD (1-based)
@@ -42,68 +118,44 @@ export function extractDiffSnippet(
 	}
 
 	const lines = unifiedDiff.split(/\r?\n/u);
-
-	let currentHeader = "";
-	let currentLines: DiffLineView[] = [];
-	let currentPointer: number | null = null;
-	let headLine = 0;
-
-	const flushSnippet = (): DiffSnippet | null => {
-		if (currentHeader && currentPointer !== null) {
-			return {
-				header: currentHeader,
-				lines: currentLines,
-				pointerIndex: currentPointer,
-			};
-		}
-		return null;
+	const state: SnippetState = {
+		currentHeader: "",
+		currentLines: [],
+		currentPointer: null,
+		headLine: 0,
 	};
 
 	for (const line of lines) {
 		if (line.startsWith("@@")) {
-			const maybeSnippet = flushSnippet();
+			const maybeSnippet = flushSnippet(state);
 			if (maybeSnippet) {
 				return maybeSnippet;
 			}
 
-			currentHeader = line;
-			currentLines = [];
-			currentPointer = null;
-			const match = UNIFIED_HEADER_PATTERN.exec(line);
-			headLine = match ? Number.parseInt(match[1] ?? "0", 10) : 0;
+			state.currentHeader = line;
+			state.currentLines = [];
+			state.currentPointer = null;
+			state.headLine = parseDiffHeader(line);
 			continue;
 		}
 
-		if (!currentHeader) {
+		if (!state.currentHeader) {
 			continue;
 		}
 
-		const symbol = line.length > 0 ? line[0] : undefined;
-		let headLineNumber: number | null = null;
-
-		if (symbol === "+" || symbol === " ") {
-			headLineNumber = headLine;
-			headLine += 1;
-		} else if (symbol === "-") {
-			// Удаленные строки не увеличивают headLine
-		} else {
-			// Строки вида "\ No newline at end of file" и другие служебные
-		}
-
-		const content = symbol ? line.slice(1) : line;
-		currentLines.push({
-			raw: line,
-			symbol: symbol as DiffLineView["symbol"],
-			headLineNumber,
-			content,
-		});
-
-		if (headLineNumber === targetLine) {
-			currentPointer = currentLines.length - 1;
+		const result = processDiffLine(
+			line,
+			state.headLine,
+			targetLine,
+			state.currentLines,
+		);
+		state.headLine = result.newHeadLine;
+		if (result.foundTarget) {
+			state.currentPointer = state.currentLines.length - 1;
 		}
 	}
 
-	return flushSnippet();
+	return flushSnippet(state);
 }
 
 /**

@@ -12,6 +12,7 @@ import {
 	visualColumnAt,
 } from "../diff/index.js";
 import type {
+	DiffLineView,
 	DiffRangeConfig,
 	DiffSnippet,
 	ExecError,
@@ -47,47 +48,49 @@ function refineHighlightRange(
 	return { start, end };
 }
 
-/**
- * Получает блок git diff для сообщения об ошибке с подсветкой проблемного места.
- *
- * @param message Сообщение об ошибке с информацией о файле и строке
- * @param range Конфигурация диапазона для git diff
- * @param contextLines Количество строк контекста вокруг изменения
- * @returns Блок git diff с форматированием или null, если diff недоступен
- */
-export async function getGitDiffBlock(
+// CHANGE: Extracted helper to create diff attempts config
+// WHY: Reduces line count of getGitDiffBlock
+// QUOTE(LINT): "Function has too many lines (190). Maximum allowed is 50"
+// REF: ESLint max-lines-per-function
+// SOURCE: n/a
+function createDiffAttempts(
 	message: LintMessage & { filePath: string },
-	range: DiffRangeConfig,
+	rangeConfig: DiffRangeConfig,
 	contextLines: number,
-): Promise<GitDiffBlock | null> {
-	const normalizedContext = contextLines > 0 ? contextLines : 3;
-
-	// CHANGE: Added fallback git diff commands for workspace and index
-	// WHY: Errors may come from uncommitted changes that are not present in upstream...HEAD diff
-	// QUOTE(SPEC): "Ensure git diff shows local modifications as well"
-	// REF: REQ-20250210-LINT-DIFF
-	// SOURCE: n/a
-	const attempts: Array<{
-		readonly descriptor: string;
-		readonly command: string;
-	}> = [
+): ReadonlyArray<{ readonly descriptor: string; readonly command: string }> {
+	return [
 		{
-			descriptor: range.label,
-			command: `git diff --unified=${normalizedContext} ${range.diffArg} -- "${message.filePath}"`,
+			descriptor: rangeConfig.label,
+			command: `git diff --unified=${contextLines} ${rangeConfig.diffArg} -- "${message.filePath}"`,
 		},
 		{
 			descriptor: "workspace",
-			command: `git diff --unified=${normalizedContext} -- "${message.filePath}"`,
+			command: `git diff --unified=${contextLines} -- "${message.filePath}"`,
 		},
 		{
 			descriptor: "index",
-			command: `git diff --cached --unified=${normalizedContext} -- "${message.filePath}"`,
+			command: `git diff --cached --unified=${contextLines} -- "${message.filePath}"`,
 		},
 	];
+}
 
+// CHANGE: Extracted helper to execute diff attempts
+// WHY: Reduces complexity and line count of getGitDiffBlock
+// QUOTE(LINT): "Function has too many lines (190). Maximum allowed is 50"
+// REF: ESLint max-lines-per-function
+// SOURCE: n/a
+async function executeDiffAttempts(
+	attempts: ReadonlyArray<{
+		readonly descriptor: string;
+		readonly command: string;
+	}>,
+	targetLine: number,
+): Promise<{
+	readonly snippet: DiffSnippet;
+	readonly descriptor: string;
+} | null> {
 	const diffOutputs: string[] = [];
 	const descriptors: string[] = [];
-	let selection: { snippet: DiffSnippet; descriptor: string } | null = null;
 
 	for (const attempt of attempts) {
 		let diffOutput = "";
@@ -110,38 +113,35 @@ export async function getGitDiffBlock(
 		diffOutputs.push(diffOutput);
 		descriptors.push(attempt.descriptor);
 
-		const pickResult = pickSnippetForLine(diffOutputs, message.line);
+		const pickResult = pickSnippetForLine(diffOutputs, targetLine);
 		if (pickResult) {
 			const descriptorIndex = pickResult.index;
 			const descriptor = descriptors[descriptorIndex] ?? attempt.descriptor;
-			selection = {
+			return {
 				snippet: pickResult.snippet,
 				descriptor,
 			};
-			break;
 		}
 	}
 
-	if (!selection) {
-		return null;
-	}
+	return null;
+}
 
-	const { snippet, descriptor } = selection;
-	const pointerIndex = snippet.pointerIndex;
-	if (pointerIndex === null) {
-		return null;
-	}
-
-	const pointerLine = snippet.lines[pointerIndex];
-	if (!pointerLine) {
-		return null;
-	}
-
+// CHANGE: Extracted helper to compute column positions
+// WHY: Reduces line count of getGitDiffBlock
+// QUOTE(LINT): "Function has too many lines (190). Maximum allowed is 50"
+// REF: ESLint max-lines-per-function
+// SOURCE: n/a
+function computeColumnPositions(
+	message: LintMessage & { filePath: string },
+	pointerLine: DiffLineView,
+): { readonly startColumn: number; readonly endColumn: number } {
 	const visualStart = Math.max(0, message.column - 1);
 	const startColumn = computeRealColumnFromVisual(
 		pointerLine.content,
 		visualStart,
 	);
+
 	let endVisual = visualStart + 1;
 	if (
 		"endColumn" in message &&
@@ -152,6 +152,20 @@ export async function getGitDiffBlock(
 	}
 	const endColumn = computeRealColumnFromVisual(pointerLine.content, endVisual);
 
+	return { startColumn, endColumn };
+}
+
+// CHANGE: Extracted helper to clamp and refine range
+// WHY: Reduces line count of getGitDiffBlock
+// QUOTE(LINT): "Function has too many lines (190). Maximum allowed is 50"
+// REF: ESLint max-lines-per-function
+// SOURCE: n/a
+function clampAndRefineRange(
+	startColumn: number,
+	endColumn: number,
+	pointerLine: DiffLineView,
+	message: LintMessage,
+): { readonly rangeStart: number; readonly rangeEnd: number } {
 	const clampedStart = Math.min(startColumn, pointerLine.content.length);
 	const clampedEnd = Math.max(
 		clampedStart + 1,
@@ -164,6 +178,7 @@ export async function getGitDiffBlock(
 		clampedEnd,
 		message,
 	);
+
 	const rangeStart = Math.max(
 		0,
 		Math.min(refinedRange.start, pointerLine.content.length),
@@ -173,11 +188,18 @@ export async function getGitDiffBlock(
 		Math.min(pointerLine.content.length, refinedRange.end),
 	);
 
-	// CHANGE: Limit diff output to 2-3 lines before/after error
-	// WHY: User wants compact diff output (max 5-7 lines), not entire hunk
-	// QUOTE(USER): "У нас диф должен быть максимум 5 строчек. А не целый километр"
-	// REF: user-request-compact-diff
-	// SOURCE: n/a
+	return { rangeStart, rangeEnd };
+}
+
+// CHANGE: Extracted helper to format diff lines
+// WHY: Reduces line count of getGitDiffBlock
+// QUOTE(LINT): "Function has too many lines (190). Maximum allowed is 50"
+// REF: ESLint max-lines-per-function
+// SOURCE: n/a
+function formatDiffLines(
+	snippet: DiffSnippet,
+	pointerIndex: number,
+): { readonly lines: string[]; readonly headLineNumbers: Set<number> } {
 	const headLineNumbers = new Set<number>();
 	const formattedLines: string[] = [];
 
@@ -214,10 +236,19 @@ export async function getGitDiffBlock(
 		formattedLines.push("       ... (later lines omitted)");
 	}
 
-	// CHANGE: Adjust caret insertion index for truncated output
-	// WHY: pointerIndex is relative to full snippet, but we now show truncated range
-	// REF: user-request-compact-diff
-	// SOURCE: n/a
+	return { lines: formattedLines, headLineNumbers };
+}
+
+// CHANGE: Extracted helper to create caret line
+// WHY: Reduces line count of getGitDiffBlock
+// QUOTE(LINT): "Function has too many lines (190). Maximum allowed is 50"
+// REF: ESLint max-lines-per-function
+// SOURCE: n/a
+function createCaretLine(
+	pointerLine: DiffLineView,
+	rangeStart: number,
+	rangeEnd: number,
+): string {
 	const pointerLabel = "    ";
 	const pointerExpanded = expandTabs(pointerLine.content, TAB_WIDTH);
 	const visualStartColumn = Math.max(
@@ -232,16 +263,108 @@ export async function getGitDiffBlock(
 	const caretBase = `${" ".repeat(Math.min(visualStartColumn, pointerExpanded.length))}${"^".repeat(Math.max(1, cappedEnd - visualStartColumn))}`;
 	const caretOverlay = caretBase.padEnd(pointerExpanded.length, " ");
 	const caretLinePrefixLength = 1 + 1 + pointerLabel.length + 1 + 1 + 1; // symbol, space, label, space, '|', space
-	const caretLine = `${" ".repeat(caretLinePrefixLength)}${caretOverlay}`;
+	return `${" ".repeat(caretLinePrefixLength)}${caretOverlay}`;
+}
+
+// CHANGE: Extracted context type for buildFinalDiffBlock
+// WHY: Reduces parameter count from 6 to 2 to satisfy max-params rule
+// QUOTE(LINT): "Function has too many parameters (6). Maximum allowed is 5"
+// REF: ESLint max-params
+// SOURCE: n/a
+interface DiffBlockContext {
+	readonly snippet: DiffSnippet;
+	readonly descriptor: string;
+	readonly pointerIndex: number;
+	readonly pointerLine: DiffLineView;
+	readonly message: LintMessage & { filePath: string };
+	readonly normalizedContext: number;
+}
+
+// CHANGE: Extracted helper to build final diff block with context object
+// WHY: Reduces parameter count to satisfy max-params rule
+// QUOTE(LINT): "Function has too many parameters (6). Maximum allowed is 5"
+// REF: ESLint max-params
+// SOURCE: n/a
+function buildFinalDiffBlock(context: DiffBlockContext): GitDiffBlock {
+	const columns = computeColumnPositions(context.message, context.pointerLine);
+	const highlightRange = clampAndRefineRange(
+		columns.startColumn,
+		columns.endColumn,
+		context.pointerLine,
+		context.message,
+	);
+
+	const { lines: formattedLines, headLineNumbers } = formatDiffLines(
+		context.snippet,
+		context.pointerIndex,
+	);
+
+	const caretLine = createCaretLine(
+		context.pointerLine,
+		highlightRange.rangeStart,
+		highlightRange.rangeEnd,
+	);
 
 	// Adjust insertion index: pointerIndex is in full snippet, but formattedLines is truncated
-	const adjustedPointerIndex = pointerIndex - start + (start > 0 ? 1 : 0); // +1 for ellipsis line if present
+	const contextBefore = 2;
+	const start = Math.max(0, context.pointerIndex - contextBefore);
+	const adjustedPointerIndex =
+		context.pointerIndex - start + (start > 0 ? 1 : 0);
 	formattedLines.splice(adjustedPointerIndex + 1, 0, caretLine);
 
 	return {
-		heading: `--- git diff (${descriptor}, U=${normalizedContext}) -------------------------`,
-		lines: [snippet.header, ...formattedLines],
+		heading: `--- git diff (${context.descriptor}, U=${context.normalizedContext}) -------------------------`,
+		lines: [context.snippet.header, ...formattedLines],
 		footer: "   |-----------------------------------------------------------",
 		headLineNumbers,
 	};
+}
+
+/**
+ * Получает блок git diff для сообщения об ошибке с подсветкой проблемного места.
+ *
+ * CHANGE: Refactored to reduce complexity and line count using helper functions
+ * WHY: Original function had 190 lines and complexity 22
+ * QUOTE(LINT): "Function has too many lines/complexity"
+ * REF: ESLint max-lines-per-function, complexity
+ * SOURCE: n/a
+ *
+ * @param message Сообщение об ошибке с информацией о файле и строке
+ * @param rangeConfig Конфигурация диапазона для git diff
+ * @param contextLines Количество строк контекста вокруг изменения
+ * @returns Блок git diff с форматированием или null, если diff недоступен
+ */
+export async function getGitDiffBlock(
+	message: LintMessage & { filePath: string },
+	rangeConfig: DiffRangeConfig,
+	contextLines: number,
+): Promise<GitDiffBlock | null> {
+	const normalizedContext = contextLines > 0 ? contextLines : 3;
+
+	const attempts = createDiffAttempts(message, rangeConfig, normalizedContext);
+	const selection = await executeDiffAttempts(attempts, message.line);
+
+	if (!selection) {
+		return null;
+	}
+
+	const { snippet, descriptor } = selection;
+	const pointerIndex = snippet.pointerIndex;
+	if (pointerIndex === null) {
+		return null;
+	}
+
+	const pointerLine = snippet.lines[pointerIndex];
+	if (!pointerLine) {
+		return null;
+	}
+
+	return buildFinalDiffBlock({
+		snippet,
+		descriptor,
+		pointerIndex,
+		pointerLine,
+		message,
+		normalizedContext,
+	});
 }

@@ -45,8 +45,104 @@ export async function generateSarifReport(): Promise<string> {
 	return sarifPath;
 }
 
+// CHANGE: Extracted helper to parse duplicate location from message
+// WHY: Reduces complexity and line count of parseSarifReport
+// QUOTE(LINT): "Function has a complexity of 17. Maximum allowed is 8"
+// REF: ESLint complexity, max-lines-per-function
+// SOURCE: n/a
+function parseDuplicateLocation(messageText: string): DuplicateInfo | null {
+	const locationMatch = messageText.match(
+		/Clone detected in typescript, - (.+?)\[(\d+):(\d+) - (\d+):(\d+)\] and (.+?)\[(\d+):(\d+) - (\d+):(\d+)\]/,
+	);
+
+	if (!locationMatch) {
+		return null;
+	}
+
+	const [, fileA, startLineA, , endLineA, , fileB, startLineB, , endLineB] =
+		locationMatch;
+
+	if (
+		!fileA ||
+		!startLineA ||
+		!endLineA ||
+		!fileB ||
+		!startLineB ||
+		!endLineB
+	) {
+		return null;
+	}
+
+	return {
+		fileA,
+		fileB,
+		startA: Number.parseInt(startLineA, 10),
+		endA: Number.parseInt(endLineA, 10),
+		startB: Number.parseInt(startLineB, 10),
+		endB: Number.parseInt(endLineB, 10),
+	};
+}
+
+// CHANGE: Extracted helper to load SARIF content
+// WHY: Reduces line count of parseSarifReport
+// QUOTE(LINT): "Function has too many lines (58). Maximum allowed is 50"
+// REF: ESLint max-lines-per-function
+// SOURCE: n/a
+function loadSarifContent(sarifPath: string): SarifReport | null {
+	if (!fs.existsSync(sarifPath)) {
+		return null;
+	}
+
+	try {
+		const sarifContent = fs.readFileSync(sarifPath, "utf8");
+		return JSON.parse(sarifContent) as SarifReport;
+	} catch {
+		return null;
+	}
+}
+
+function validateSarifStructure(sarif: SarifReport | null): boolean {
+	return !!sarif?.runs?.[0]?.results;
+}
+
+function isValidResult(result: {
+	locations?: ReadonlyArray<{ physicalLocation?: object }>;
+	message?: { text: string };
+}): boolean {
+	return !!(
+		result.locations &&
+		Array.isArray(result.locations) &&
+		result.locations.length > 0 &&
+		result.message
+	);
+}
+
+function extractDuplicatesFromResults(
+	results: ReadonlyArray<{
+		locations?: ReadonlyArray<{ physicalLocation?: object }>;
+		message?: { text: string };
+	}>,
+): DuplicateInfo[] {
+	const duplicates: DuplicateInfo[] = [];
+
+	for (const result of results) {
+		if (!isValidResult(result) || !result.message) continue;
+
+		const duplicate = parseDuplicateLocation(result.message.text);
+		if (duplicate) duplicates.push(duplicate);
+	}
+
+	return duplicates;
+}
+
 /**
  * Парсит SARIF отчет и извлекает информацию о дубликатах.
+ *
+ * CHANGE: Refactored to reduce complexity from 11 to <8
+ * WHY: Original function had complexity 11
+ * QUOTE(LINT): "Function has a complexity of 11. Maximum allowed is 8"
+ * REF: ESLint complexity
+ * SOURCE: n/a
  *
  * @param sarifPath Путь к SARIF файлу
  * @returns Массив информации о дубликатах
@@ -55,70 +151,83 @@ export function parseSarifReport(
 	sarifPath: string,
 ): ReadonlyArray<DuplicateInfo> {
 	try {
-		if (!fs.existsSync(sarifPath)) {
+		const sarif = loadSarifContent(sarifPath);
+		if (!validateSarifStructure(sarif) || !sarif?.runs?.[0]?.results) {
 			return [];
 		}
 
-		const sarifContent = fs.readFileSync(sarifPath, "utf8");
-		const sarif = JSON.parse(sarifContent) as SarifReport;
-		const duplicates: DuplicateInfo[] = [];
-
-		if (!sarif.runs || !sarif.runs[0] || !sarif.runs[0].results) {
-			return [];
-		}
-
-		for (const result of sarif.runs[0].results) {
-			if (result.locations && result.locations.length > 0 && result.message) {
-				// Parse message to extract the second location when available
-				const messageText = result.message.text;
-				const locationMatch = messageText.match(
-					/Clone detected in typescript, - (.+?)\[(\d+):(\d+) - (\d+):(\d+)\] and (.+?)\[(\d+):(\d+) - (\d+):(\d+)\]/,
-				);
-
-				if (locationMatch) {
-					const [
-						,
-						fileA,
-						startLineA,
-						,
-						endLineA,
-						,
-						fileB,
-						startLineB,
-						,
-						endLineB,
-					] = locationMatch;
-
-					if (
-						fileA &&
-						startLineA &&
-						endLineA &&
-						fileB &&
-						startLineB &&
-						endLineB
-					) {
-						duplicates.push({
-							fileA,
-							fileB,
-							startA: Number.parseInt(startLineA, 10),
-							endA: Number.parseInt(endLineA, 10),
-							startB: Number.parseInt(startLineB, 10),
-							endB: Number.parseInt(endLineB, 10),
-						});
-					}
-				}
-			}
-		}
-
-		return duplicates;
+		const results = sarif.runs[0].results;
+		return extractDuplicatesFromResults(results);
 	} catch (error) {
 		console.error("Error parsing SARIF report:", error);
 		return [];
 	}
 }
 
+// CHANGE: Extracted helper to display single duplicate
+// WHY: Reduces line count of displayClonesFromSarif
+// QUOTE(LINT): "Function has too many lines (56). Maximum allowed is 50"
+// REF: ESLint max-lines-per-function
+// SOURCE: n/a
+function displaySingleDuplicate(
+	dup: DuplicateInfo,
+	dupNum: number,
+	width: number,
+): void {
+	console.log(
+		`\n=========================== DUPLICATE #${dupNum} ===========================`,
+	);
+	console.log(
+		`A: ${dup.fileA}:${dup.startA}-${dup.endA}                 │ B: ${dup.fileB}:${dup.startB}-${dup.endB}`,
+	);
+	console.log(
+		"-------------------------------------------┆------------------------------------------",
+	);
+
+	try {
+		const fileAContent = fs.readFileSync(dup.fileA, "utf8").split("\n");
+		const fileBContent = fs.readFileSync(dup.fileB, "utf8").split("\n");
+
+		const linesA = dup.endA - dup.startA + 1;
+		const linesB = dup.endB - dup.startB + 1;
+		const minLines = Math.min(linesA, linesB);
+
+		const availableWidth = width - 20;
+		const halfWidth = Math.floor(availableWidth / 2);
+
+		for (let lineIdx = 0; lineIdx < minLines; lineIdx += 1) {
+			const lineNumA = dup.startA + lineIdx;
+			const lineNumB = dup.startB + lineIdx;
+
+			const contentA = fileAContent[lineNumA - 1] || "";
+			const contentB = fileBContent[lineNumB - 1] || "";
+
+			const truncatedA =
+				contentA.length > halfWidth
+					? `${contentA.substring(0, halfWidth - 1)}…`
+					: contentA;
+			const truncatedB =
+				contentB.length > halfWidth
+					? `${contentB.substring(0, halfWidth - 1)}…`
+					: contentB;
+
+			console.log(
+				`${lineNumA.toString().padStart(3)} │ ${truncatedA.padEnd(halfWidth)} │ ${lineNumB.toString().padStart(3)} │ ${truncatedB}`,
+			);
+		}
+	} catch {
+		console.log(`⚠ cannot read ${dup.fileA} or ${dup.fileB}`);
+	}
+}
+
 /**
  * Отображает дубликаты кода из SARIF отчета.
+ *
+ * CHANGE: Refactored to reduce line count
+ * WHY: Original function had 56 lines
+ * QUOTE(LINT): "Function has too many lines (56). Maximum allowed is 50"
+ * REF: ESLint max-lines-per-function
+ * SOURCE: n/a
  *
  * @param duplicates Массив информации о дубликатах
  * @param maxClones Максимальное количество дубликатов для отображения
@@ -136,59 +245,7 @@ export function displayClonesFromSarif(
 		if (!dup) {
 			continue;
 		}
-		const dupNum = i + 1;
-
-		console.log(
-			`\n=========================== DUPLICATE #${dupNum} ===========================`,
-		);
-		console.log(
-			`A: ${dup.fileA}:${dup.startA}-${dup.endA}                 │ B: ${dup.fileB}:${dup.startB}-${dup.endB}`,
-		);
-		console.log(
-			"-------------------------------------------┆------------------------------------------",
-		);
-
-		try {
-			// Read both files to display code blocks side by side
-			const fileAContent = fs.readFileSync(dup.fileA, "utf8").split("\n");
-			const fileBContent = fs.readFileSync(dup.fileB, "utf8").split("\n");
-
-			// Calculate the range to display
-			const linesA = dup.endA - dup.startA + 1;
-			const linesB = dup.endB - dup.startB + 1;
-			const minLines = Math.min(linesA, linesB); // Show minimum common lines
-
-			for (let lineIdx = 0; lineIdx < minLines; lineIdx += 1) {
-				const lineNumA = dup.startA + lineIdx;
-				const lineNumB = dup.startB + lineIdx;
-
-				const contentA = fileAContent[lineNumA - 1] || "";
-				const contentB = fileBContent[lineNumB - 1] || "";
-
-				// Truncate lines to fit the terminal width
-				const availableWidth = width - 20; // Reserve space for line numbers and separators
-				const halfWidth = Math.floor(availableWidth / 2);
-
-				// CHANGE: Use template literals instead of string concatenation
-				// WHY: Biome prefers template literals for better readability
-				// REF: lint/style/useTemplate
-				// SOURCE: https://biomejs.dev/linter/rules/lint/style/useTemplate
-				const truncatedA =
-					contentA.length > halfWidth
-						? `${contentA.substring(0, halfWidth - 1)}…`
-						: contentA;
-				const truncatedB =
-					contentB.length > halfWidth
-						? `${contentB.substring(0, halfWidth - 1)}…`
-						: contentB;
-
-				console.log(
-					`${lineNumA.toString().padStart(3)} │ ${truncatedA.padEnd(halfWidth)} │ ${lineNumB.toString().padStart(3)} │ ${truncatedB}`,
-				);
-			}
-		} catch {
-			console.log(`⚠ cannot read ${dup.fileA} or ${dup.fileB}`);
-		}
+		displaySingleDuplicate(dup, i + 1, width);
 	}
 
 	if (duplicates.length >= maxClones) {

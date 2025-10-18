@@ -24,52 +24,88 @@ const execAsync = promisify(exec);
  *
  * @invariant targetPath не пустой
  */
+// CHANGE: Extracted helper to parse single TypeScript error line
+// WHY: Reduces complexity and max-depth of getTypeScriptDiagnostics
+// QUOTE(LINT): "Function has a complexity of 13, max-depth of 5"
+// REF: ESLint complexity, max-depth
+// SOURCE: n/a
+function parseTypeScriptErrorLine(line: string): TypeScriptMessage | null {
+	const match = line.match(
+		/^(.+?)\((\d+),(\d+)\):\s+(error|warning)\s+TS(\d+):\s+(.+)$/,
+	);
+
+	if (!match) {
+		return null;
+	}
+
+	const [, filePath, lineStr, colStr, , code, message] = match;
+
+	if (!filePath || !lineStr || !colStr || !code || !message) {
+		return null;
+	}
+
+	return {
+		code: `TS${code}`,
+		severity: 2,
+		message,
+		line: Number.parseInt(lineStr, 10),
+		column: Number.parseInt(colStr, 10),
+		source: "typescript",
+		filePath,
+	};
+}
+
+// CHANGE: Extracted helper to parse stdout from tsc
+// WHY: Reduces complexity of getTypeScriptDiagnostics
+// QUOTE(LINT): "Function has a complexity of 13. Maximum allowed is 8"
+// REF: ESLint complexity
+// SOURCE: n/a
+function parseTypeScriptOutput(stdout: string): TypeScriptMessage[] {
+	const messages: TypeScriptMessage[] = [];
+	const lines = stdout.split("\n");
+
+	for (const line of lines) {
+		const parsed = parseTypeScriptErrorLine(line);
+		if (parsed) {
+			messages.push(parsed);
+		}
+	}
+
+	return messages;
+}
+
+/**
+ * Получает диагностику TypeScript.
+ *
+ * CHANGE: Refactored to reduce complexity and max-depth
+ * WHY: Original function had complexity 13 and max-depth 5
+ * QUOTE(LINT): "Function has a complexity of 13, max-depth of 5"
+ * REF: ESLint complexity, max-depth
+ * SOURCE: n/a
+ *
+ * @param targetPath Путь для проверки (используется для фильтрации)
+ * @returns Promise с массивом сообщений
+ *
+ * @invariant targetPath не пустой
+ */
 export async function getTypeScriptDiagnostics(
 	targetPath: string,
 ): Promise<ReadonlyArray<TypeScriptMessage>> {
 	try {
-		// CHANGE: Always compile the entire project for complete type validation
-		// WHY: Running tsc on individual files loses type context and hides incompatibility errors
-		// QUOTE(SPEC): "TS2322 in bcsUnified.ts is missed unless the whole project is type-checked"
-		// REF: user-msg-lint-missing-type-errors
-		// SOURCE: TypeScript compiler behavior
 		const command = `npx tsc --noEmit --pretty false`;
 		await execAsync(command);
-		return []; // No errors if tsc succeeds
+		return [];
 	} catch (error) {
-		const messages: TypeScriptMessage[] = [];
-
-		// TypeScript outputs errors to stdout, not stderr
-		if (error && typeof error === "object" && "stdout" in error) {
-			const stdout = (error as ExecError).stdout;
-			if (!stdout) {
-				return [];
-			}
-			const lines = stdout.split("\n");
-
-			for (const line of lines) {
-				// Parse TypeScript error/warning format: "file.ts(line,col): error TS2554: message" or "file.ts(line,col): warning TS1234: message"
-				const match = line.match(
-					/^(.+?)\((\d+),(\d+)\):\s+(error|warning)\s+TS(\d+):\s+(.+)$/,
-				);
-				if (match) {
-					const [, filePath, lineStr, colStr, , code, message] = match;
-					if (filePath && lineStr && colStr && code && message) {
-						messages.push({
-							code: `TS${code}`,
-							severity: 2, // TypeScript errors and warnings are displayed as errors
-							message,
-							line: Number.parseInt(lineStr, 10),
-							column: Number.parseInt(colStr, 10),
-							source: "typescript",
-							filePath,
-						});
-					}
-				}
-			}
+		if (!error || typeof error !== "object" || !("stdout" in error)) {
+			return [];
 		}
 
-		// Filter messages based on target path
+		const stdout = (error as ExecError).stdout;
+		if (!stdout) {
+			return [];
+		}
+
+		const messages = parseTypeScriptOutput(stdout);
 		return filterMessagesByPath(messages, targetPath);
 	}
 }
