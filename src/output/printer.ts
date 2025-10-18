@@ -12,11 +12,11 @@ import {
 	topologicalSort,
 } from "../analysis/index.js";
 import { makeRuleLevelMap, ruleIdOf } from "../config/index.js";
+import { expandTabs } from "../diff/index.js";
 import {
 	detectDiffRange,
-	getGitBlameBlock,
+	getCommitDiffBlocks,
 	getGitDiffBlock,
-	getGitHistoryBlock,
 } from "../git/index.js";
 import type {
 	CLIOptions,
@@ -299,49 +299,45 @@ async function printMessages(
 			}
 		}
 
-		const historyBlock = await getGitHistoryBlock(filePath, line, 3);
-		const historyLines = historyBlock ? historyBlock.lines : null;
-		const fallbackSnippet = historyBlock?.latestSnippet;
-		const blameInfo = await getGitBlameBlock(filePath, line, {
-			historyCount: historyBlock?.totalCommits,
-			fallbackSnippet,
-		});
+		const commitDiffBlocks = await getCommitDiffBlocks(
+			filePath,
+			line,
+			3,
+			diffContext,
+		);
 
-		const currentShortHash = blameInfo?.shortHash ?? null;
-		if (blameInfo) {
-			for (const blameLine of blameInfo.lines) {
-				console.log(`    ${blameLine}`);
-			}
-		}
+		if (commitDiffBlocks) {
+			for (const block of commitDiffBlocks) {
+				console.log(`\n    ${block.heading}`);
+				console.log(
+					`    ${block.newerCommit.shortHash} (${block.newerCommit.date}) by ${block.newerCommit.author}: ${block.newerCommit.summary}`,
+				);
+				console.log(
+					`    ${block.olderCommit.shortHash} (${block.olderCommit.date}) by ${block.olderCommit.author}: ${block.olderCommit.summary}`,
+				);
 
-		if (historyLines) {
-			let skipBlock = false;
-			for (const historyLine of historyLines) {
-				if (historyLine.startsWith("--- commit ")) {
-					const match = historyLine.match(/--- commit\s+([0-9a-fA-F]+)/);
-					const historyHash = match ? match[1] : null;
-					skipBlock = Boolean(
-						currentShortHash &&
-							historyHash &&
-							historyHash.startsWith(currentShortHash),
-					);
-					if (skipBlock) continue;
-				}
-
-				if (skipBlock) {
-					const trimmed = historyLine.trimStart();
-					if (trimmed.startsWith("Total commits")) {
-						skipBlock = false;
-						console.log(`    ${historyLine}`);
-					} else if (trimmed.startsWith("Full list")) {
-						skipBlock = false;
-						console.log(`    ${historyLine}`);
+				if (block.diffSnippet) {
+					console.log(`    ${block.diffSnippet.header}`);
+					for (const diffLine of block.diffSnippet.lines) {
+						const lineNumber =
+							diffLine.headLineNumber !== null
+								? String(diffLine.headLineNumber).padStart(4)
+								: "    ";
+						const symbol = diffLine.symbol ?? " ";
+						console.log(
+							`    ${symbol} ${lineNumber} | ${expandTabs(diffLine.content, 8)}`,
+						);
 					}
-					continue;
+					console.log(
+						"    ---------------------------------------------------------------",
+					);
+				} else {
+					console.log("    (no changes in this commit)");
 				}
-
-				console.log(`    ${historyLine}`);
 			}
+
+			const relativePath = filePath.replace(/\\/g, "/");
+			console.log(`\n    Full list: git log --follow -- ${relativePath} | cat`);
 		}
 
 		if (source === "biome") {

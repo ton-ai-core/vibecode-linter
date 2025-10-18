@@ -6,8 +6,28 @@
 
 import * as path from "path";
 
-import type { ExecError, GitHistoryBlock } from "../types/index.js";
+import { extractDiffSnippet } from "../diff/index.js";
+import type {
+	DiffSnippet,
+	ExecError,
+	GitHistoryBlock,
+} from "../types/index.js";
 import { execGitCommand, getCommitSnippetForLine } from "./utils.js";
+
+export interface CommitInfo {
+	readonly hash: string;
+	readonly shortHash: string;
+	readonly date: string;
+	readonly author: string;
+	readonly summary: string;
+}
+
+export interface CommitDiffBlock {
+	readonly heading: string;
+	readonly newerCommit: CommitInfo;
+	readonly olderCommit: CommitInfo;
+	readonly diffSnippet: DiffSnippet | null;
+}
 
 /**
  * Получает историю изменений указанной строки файла.
@@ -113,4 +133,137 @@ export async function getGitHistoryBlock(
 		return { lines: result, totalCommits, latestSnippet };
 	}
 	return null;
+}
+
+/**
+ * Парсит информацию о коммите из git log output.
+ *
+ * @param segment Сегмент git log для одного коммита
+ * @returns Информация о коммите или null
+ */
+function parseCommitInfo(segment: string): CommitInfo | null {
+	const lines = segment.split(/\r?\n/u);
+	const commitLine = lines.find((row) => row.startsWith("commit "));
+	if (!commitLine) return null;
+
+	const hash = commitLine.slice("commit ".length).trim();
+	const shortHash = hash.slice(0, 12);
+
+	const authorLine = lines.find((row) => row.startsWith("Author:"));
+	const author = authorLine
+		? (authorLine.slice("Author:".length).trim().split("<")[0]?.trim() ??
+			"unknown")
+		: "unknown";
+
+	const dateLine = lines.find((row) => row.startsWith("Date:"));
+	const date = dateLine
+		? (dateLine.slice("Date:".length).trim().split(" ")[0] ?? "unknown-date")
+		: "unknown-date";
+
+	const messageLine = lines.find((row) => row.startsWith("    "));
+	const summaryRaw = messageLine ? messageLine.trim() : "(no subject)";
+	const summary =
+		summaryRaw.length > 80 ? `${summaryRaw.slice(0, 77)}...` : summaryRaw;
+
+	return { hash, shortHash, date, author, summary };
+}
+
+/**
+ * Получает блоки diff между последовательными коммитами для указанной строки.
+ *
+ * @param filePath Путь к файлу
+ * @param line Номер строки (1-based)
+ * @param limit Максимальное количество diff блоков (пар коммитов)
+ * @param contextLines Количество строк контекста в unified diff
+ * @returns Массив блоков diff или null при ошибке
+ */
+export async function getCommitDiffBlocks(
+	filePath: string,
+	line: number,
+	limit: number,
+	contextLines = 3,
+): Promise<ReadonlyArray<CommitDiffBlock> | null> {
+	const historyCommand = `git log -L ${line},${line}:${filePath} --date=short`;
+	let historyOutput = "";
+
+	try {
+		const { stdout } = await execGitCommand(historyCommand, 5 * 1024 * 1024);
+		historyOutput = stdout;
+	} catch (error) {
+		const execError = error as ExecError;
+		if (execError.stdout) {
+			historyOutput = execError.stdout;
+		} else {
+			return null;
+		}
+	}
+
+	const trimmed = historyOutput.trim();
+	if (trimmed.length === 0) return null;
+
+	// Parse commits from git log output
+	const segments: string[] = [];
+	let currentSegment = "";
+	const historyLines = trimmed.split(/\r?\n/u);
+
+	for (const row of historyLines) {
+		if (row.startsWith("commit ") && currentSegment.length > 0) {
+			segments.push(currentSegment.trimEnd());
+			currentSegment = `${row}\n`;
+		} else {
+			currentSegment += `${row}\n`;
+		}
+	}
+	if (currentSegment.trim().length > 0) {
+		segments.push(currentSegment.trimEnd());
+	}
+
+	const commits: CommitInfo[] = [];
+	for (const segment of segments.slice(0, limit + 1)) {
+		const commitInfo = parseCommitInfo(segment);
+		if (commitInfo) commits.push(commitInfo);
+	}
+
+	if (commits.length < 2) return null;
+
+	// Generate diff blocks for each pair of consecutive commits
+	const diffBlocks: CommitDiffBlock[] = [];
+	const relativePath = path
+		.relative(process.cwd(), filePath)
+		.replace(/\\/g, "/");
+
+	for (let i = 0; i < Math.min(commits.length - 1, limit); i += 1) {
+		const newer = commits[i];
+		const older = commits[i + 1];
+		if (!newer || !older) continue;
+
+		const diffCommand = `git diff --unified=${contextLines} ${older.hash}..${newer.hash} -- "${filePath}"`;
+		let diffOutput = "";
+
+		try {
+			const { stdout } = await execGitCommand(diffCommand, 10 * 1024 * 1024);
+			diffOutput = stdout;
+		} catch (error) {
+			const execError = error as ExecError;
+			if (execError.stdout) {
+				diffOutput = execError.stdout;
+			}
+		}
+
+		const diffSnippet =
+			diffOutput.trim().length > 0
+				? extractDiffSnippet(diffOutput, line)
+				: null;
+
+		const heading = `--- git diff ${older.shortHash}..${newer.shortHash} -- ${relativePath} | cat ---`;
+
+		diffBlocks.push({
+			heading,
+			newerCommit: newer,
+			olderCommit: older,
+			diffSnippet,
+		});
+	}
+
+	return diffBlocks.length > 0 ? diffBlocks : null;
 }

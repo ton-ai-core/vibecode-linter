@@ -6,7 +6,12 @@
 
 export { getGitBlameBlock } from "./blame.js";
 export { getGitDiffBlock } from "./diff.js";
-export { getGitHistoryBlock } from "./history.js";
+export {
+	type CommitDiffBlock,
+	type CommitInfo,
+	getCommitDiffBlocks,
+	getGitHistoryBlock,
+} from "./history.js";
 export {
 	detectDiffRange,
 	execGitCommand,
