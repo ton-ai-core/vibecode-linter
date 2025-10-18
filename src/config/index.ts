@@ -8,6 +8,6 @@ export { parseCLIArgs } from "./cli.js";
 export {
 	loadLinterConfig,
 	makeRuleLevelMap,
-	type RuleLevelMap,
 	ruleIdOf,
+	type RuleLevelMap,
 } from "./loader.js";
