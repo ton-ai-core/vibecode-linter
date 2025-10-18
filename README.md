@@ -25,15 +25,6 @@ npx @ton-ai-core/vibecode-linter src/
 
 # Lint a specific file
 npx @ton-ai-core/vibecode-linter src/main.ts
-
-# Skip auto-fix (only report errors)
-npx @ton-ai-core/vibecode-linter src/ --no-fix
-
-# Set maximum duplicate code blocks to show
-npx @ton-ai-core/vibecode-linter src/ --max-clones 10
-
-# Set terminal width for output
-npx @ton-ai-core/vibecode-linter src/ --width 120
 ```
 
 ## 📊 Example Output
