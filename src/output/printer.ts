@@ -15,7 +15,11 @@ import {
 	buildProgram,
 	topologicalSort,
 } from "../analysis/index.js";
-import { makeRuleLevelMap, ruleIdOf } from "../config/index.js";
+import {
+	makeRuleLevelMap,
+	ruleIdOf,
+	type RuleLevelMap,
+} from "../config/index.js";
 import { expandTabs } from "../diff/index.js";
 import {
 	detectDiffRange,
@@ -31,20 +35,52 @@ import type {
 
 function getPriorityLevel(
 	m: LintMessageWithFile,
-	ruleLevelMap: Map<string, { level: number; name: string }> | null,
+	ruleLevelMap: RuleLevelMap | null,
 ): number {
+	// CHANGE: Support "all" keyword for catch-all rule matching
+	// WHY: User wants to define default level for all unspecified rules
+	// REF: user-request-all-keyword
+	// SOURCE: n/a
 	if (!ruleLevelMap) return 2;
-	const rule = ruleLevelMap.get(ruleIdOf(m));
-	return rule ? rule.level : 2;
+
+	const ruleId = ruleIdOf(m);
+
+	// 1. Check explicit rules first
+	const explicitRule = ruleLevelMap.explicitRules.get(ruleId);
+	if (explicitRule) {
+		return explicitRule.level;
+	}
+
+	// 2. Use "all" level if defined
+	if (ruleLevelMap.allLevel) {
+		return ruleLevelMap.allLevel.level;
+	}
+
+	// 3. Fallback to level 2
+	return 2;
 }
 
 function getPriorityName(
 	m: LintMessageWithFile,
-	ruleLevelMap: Map<string, { level: number; name: string }> | null,
+	ruleLevelMap: RuleLevelMap | null,
 ): string {
 	if (!ruleLevelMap) return "Critical Compiler Errors";
-	const rule = ruleLevelMap.get(ruleIdOf(m));
-	return rule ? rule.name : "Critical Compiler Errors";
+
+	const ruleId = ruleIdOf(m);
+
+	// 1. Check explicit rules first
+	const explicitRule = ruleLevelMap.explicitRules.get(ruleId);
+	if (explicitRule) {
+		return explicitRule.name;
+	}
+
+	// 2. Use "all" level name if defined
+	if (ruleLevelMap.allLevel) {
+		return ruleLevelMap.allLevel.name;
+	}
+
+	// 3. Fallback
+	return "Critical Compiler Errors";
 }
 
 /**

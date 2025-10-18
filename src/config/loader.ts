@@ -199,19 +199,58 @@ export function ruleIdOf(m: {
 }
 
 /**
+ * Результат создания карты правил с поддержкой "all".
+ */
+export interface RuleLevelMap {
+	readonly explicitRules: Map<string, { level: number; name: string }>;
+	readonly allLevel: { level: number; name: string } | null;
+}
+
+/**
  * Создает карту правил с их уровнями приоритета.
+ * Поддерживает специальное значение "all" для указания "все правила кроме явно перечисленных".
  *
  * @param cfg Конфигурация линтера
- * @returns Карта: ruleId -> { level, name }
+ * @returns Объект с картой явных правил и уровнем "all"
+ *
+ * @example
+ * // Конфиг:
+ * {
+ *   priorityLevels: [
+ *     {level: 1, rules: ["error1", "error2"]},
+ *     {level: 2, rules: ["all"]},  // Все кроме error1, error2, error3
+ *     {level: 3, rules: ["error3"]}
+ *   ]
+ * }
+ * // Результат:
+ * // error1 → level 1
+ * // error2 → level 1
+ * // error3 → level 3
+ * // все остальные → level 2 (from "all")
  */
-export function makeRuleLevelMap(
-	cfg: LinterConfig,
-): Map<string, { level: number; name: string }> {
-	const map = new Map<string, { level: number; name: string }>();
+export function makeRuleLevelMap(cfg: LinterConfig): RuleLevelMap {
+	// CHANGE: Support "all" keyword to match all rules except explicitly listed ones
+	// WHY: User wants flexible priority system where "all" acts as catch-all for unlisted rules
+	// QUOTE(USER): "чем больше ошибок будет описано тем больше они не отображаются на уровне all"
+	// REF: user-request-all-keyword
+	// SOURCE: n/a
+	const explicitRules = new Map<string, { level: number; name: string }>();
+	let allLevel: { level: number; name: string } | null = null;
+
+	// Collect all explicit rules and find "all" level
 	for (const pl of cfg.priorityLevels) {
 		for (const r of pl.rules) {
-			map.set(r, { level: pl.level, name: pl.name });
+			if (r === "all") {
+				// Remember first "all" occurrence
+				if (!allLevel) {
+					allLevel = { level: pl.level, name: pl.name };
+				}
+			} else {
+				// Collect explicit rule
+				explicitRules.set(r, { level: pl.level, name: pl.name });
+			}
 		}
 	}
-	return map;
+
+	return { explicitRules, allLevel };
 }

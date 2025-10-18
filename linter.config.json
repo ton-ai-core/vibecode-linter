@@ -9,6 +9,18 @@
 				"@ton-ai-core/suggest-members/suggest-module-paths",
 				"@typescript-eslint/no-explicit-any"
 			]
+		},
+		{
+			"level": 2,
+			"name": "Important Errors",
+			"rules": ["all"]
+		},
+		{
+			"level": 3,
+			"name": "Low Priority",
+			"rules": [
+				"assist/source/organizeimports"
+			]
 		}
 	]
 }

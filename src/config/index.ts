@@ -5,4 +5,9 @@
 // SOURCE: n/a
 
 export { parseCLIArgs } from "./cli.js";
-export { loadLinterConfig, makeRuleLevelMap, ruleIdOf } from "./loader.js";
+export {
+	loadLinterConfig,
+	makeRuleLevelMap,
+	ruleIdOf,
+	type RuleLevelMap,
+} from "./loader.js";
