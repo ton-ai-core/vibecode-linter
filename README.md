@@ -16,13 +16,13 @@ Advanced TypeScript linter with Git integration, dependency analysis, and compre
 ## 🚀 Installation
 
 ```bash
-npm install -g vibecode-linter
+npm install -g @ton-ai-core/vibecode-linter
 ```
 
 Or use directly with `npx`:
 
 ```bash
-npx vibecode-linter src/
+npx @ton-ai-core/vibecode-linter src/
 ```
 
 ## 📖 Usage
@@ -31,19 +31,19 @@ npx vibecode-linter src/
 
 ```bash
 # Lint a directory
-vibecode-linter src/
+npx @ton-ai-core/vibecode-linter src/
 
 # Lint a specific file
-vibecode-linter src/telegram/bot.ts
+npx @ton-ai-core/vibecode-linter src/telegram/bot.ts
 
 # Skip auto-fix (only report errors)
-vibecode-linter src/ --no-fix
+npx @ton-ai-core/vibecode-linter src/ --no-fix
 
 # Set maximum duplicate code blocks to show
-vibecode-linter src/ --max-clones 10
+npx @ton-ai-core/vibecode-linter src/ --max-clones 10
 
 # Set terminal width for output
-vibecode-linter src/ --width 120
+npx @ton-ai-core/vibecode-linter src/ --width 120
 ```
 
 ### With npm scripts
@@ -53,9 +53,9 @@ Add to your `package.json`:
 ```json
 {
   "scripts": {
-    "lint": "vibecode-linter src/",
-    "lint:file": "vibecode-linter",
-    "lint:no-fix": "vibecode-linter src/ --no-fix"
+    "lint": "@ton-ai-core/vibecode-linter src/",
+    "lint:file": "@ton-ai-core/vibecode-linter",
+    "lint:no-fix": "@ton-ai-core/vibecode-linter src/ --no-fix"
   }
 }
 ```

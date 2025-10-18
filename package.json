@@ -1,9 +1,20 @@
 {
-	"name": "vibecode-linter",
+	"name": "@ton-ai-core/vibecode-linter",
 	"version": "0.1.0",
-	"description": "TypeScript console project with strict typing and linting",
-	"main": "dist/index.js",
+	"description": "Advanced TypeScript linter with Git integration, dependency analysis, and comprehensive error reporting",
+	"main": "dist/main.js",
+	"bin": {
+		"vibecode-linter": "dist/main.js"
+	},
 	"type": "module",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/ton-ai-core/vibecode-linter.git"
+	},
+	"bugs": {
+		"url": "https://github.com/ton-ai-core/vibecode-linter/issues"
+	},
+	"homepage": "https://github.com/ton-ai-core/vibecode-linter#readme",
 	"scripts": {
 		"build": "tsc",
 		"start": "node dist/index.js",
@@ -14,12 +25,21 @@
 		"clean": "rm -rf dist coverage"
 	},
 	"keywords": [
+		"linter",
 		"typescript",
-		"console",
-		"strict-typing"
+		"eslint",
+		"biome",
+		"git-integration",
+		"code-quality",
+		"static-analysis",
+		"dependency-analysis",
+		"commit-history"
 	],
-	"author": "",
+	"author": "ton-ai-core",
 	"license": "MIT",
+	"publishConfig": {
+		"access": "public"
+	},
 	"devDependencies": {
 		"@biomejs/biome": "2.2.4",
 		"@eslint-community/eslint-plugin-eslint-comments": "^4.5.0",
