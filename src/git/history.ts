@@ -255,33 +255,11 @@ export async function getCommitDiffBlocks(
 			}
 		}
 
-		// Try to find snippet for target line, or closest hunk within 20 lines
-		let diffSnippet: DiffSnippet | null = null;
-		if (diffOutput.trim().length > 0) {
-			diffSnippet = extractDiffSnippet(diffOutput, line);
-			
-			// If target line not in this commit, find closest hunk
-			if (!diffSnippet) {
-				const hunkMatches = Array.from(diffOutput.matchAll(/@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@/g));
-				if (hunkMatches.length > 0) {
-					let closestHunk: { line: number; distance: number } | null = null;
-					
-					for (const match of hunkMatches) {
-						const hunkLine = Number.parseInt(match[1] ?? "1", 10);
-						const distance = Math.abs(hunkLine - line);
-						
-						if (!closestHunk || distance < closestHunk.distance) {
-							closestHunk = { line: hunkLine, distance };
-						}
-					}
-					
-					// Only show if within 20 lines of target
-					if (closestHunk && closestHunk.distance <= 20) {
-						diffSnippet = extractDiffSnippet(diffOutput, closestHunk.line);
-					}
-				}
-			}
-		}
+		// Only show diff if target line was actually changed in this commit
+		const diffSnippet =
+			diffOutput.trim().length > 0
+				? extractDiffSnippet(diffOutput, line)
+				: null;
 
 		const heading = `--- git diff ${older.shortHash}..${newer.shortHash} -- ${relativePath} | cat ---`;
 
