@@ -17,12 +17,13 @@
 		},
 		{
 			"level": 3,
-			"name": "Critical Compiler Errors (Code must follow Clean Code and best practices.)",
+			"name": "Critical Compiler Errors (Code must follow Clean Code and best practices)",
 			"rules": [
 				"complexity",
 				"max-lines-per-function",
 				"max-params",
-				"max-depth"
+				"max-depth",
+				"max-lines"
 			]
 		}
 	]
