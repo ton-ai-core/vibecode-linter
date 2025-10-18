@@ -77,17 +77,39 @@ export async function getBiomeDiagnostics(
 	targetPath: string,
 ): Promise<ReadonlyArray<BiomeResult>> {
 	try {
-		const { stdout } = await execAsync(
+		const { stdout, stderr } = await execAsync(
 			`npx biome check "${targetPath}" --reporter=json`,
 		);
+
+		// CHANGE: Log Biome output for debugging
+		// WHY: User wants to understand why fallback happens
+		// REF: user-question-why-biome-silent
+		if (stderr && stderr.trim().length > 0) {
+			console.log("⚠️  Biome stderr:", stderr.trim());
+		}
+
 		const results = parseBiomeOutput(stdout);
+
+		if (results.length === 0 && stdout.trim().length > 0) {
+			console.log("ℹ️  Biome returned empty results but had output:");
+			console.log("   Output length:", stdout.length, "bytes");
+			try {
+				const parsed = JSON.parse(stdout) as BiomeOutput;
+				console.log("   Diagnostics count:", parsed.diagnostics?.length ?? 0);
+			} catch {
+				console.log("   (Failed to parse as JSON)");
+			}
+		}
+
 		return handleBiomeResults(results, targetPath);
 	} catch (error) {
 		const stdout = extractStdoutFromError(error as Error);
 		if (!stdout) {
-			console.error("Biome diagnostics failed:", error);
+			console.error("❌ Biome diagnostics failed:", error);
 			return [];
 		}
+
+		console.log("⚠️  Biome threw error but had stdout, parsing...");
 		const results = parseBiomeOutput(stdout);
 		return handleBiomeResults(results, targetPath);
 	}
@@ -165,10 +187,10 @@ function parseBiomeOutput(stdout: string): ReadonlyArray<BiomeResult> {
 					title?: string;
 				};
 
-				// Skip information-level diagnostics, only show errors and warnings
-				if (diagnostic.severity === "information") {
-					continue;
-				}
+				// CHANGE: Map information-level to severity 0 (lowest priority)
+				// WHY: Show information only after errors and warnings are fixed
+				// REF: user-request-smart-priority-system
+				// Do not skip information - map to severity 0 instead
 
 				// Extract file path from diagnostic - Biome uses different structure
 				const filePath = diagnostic.location?.path?.file || "";
@@ -272,9 +294,19 @@ function parseBiomeOutput(stdout: string): ReadonlyArray<BiomeResult> {
 					column = p.column;
 				}
 
+				// Map severity: error=2, warning=1, information=0
+				let severityNumber = 1;
+				if (diagnostic.severity === "error") {
+					severityNumber = 2;
+				} else if (diagnostic.severity === "warning") {
+					severityNumber = 1;
+				} else if (diagnostic.severity === "information") {
+					severityNumber = 0;
+				}
+				
 				const resultMessage = {
 					ruleId: diagnostic.category || null,
-					severity: diagnostic.severity === "error" ? 2 : 1,
+					severity: severityNumber,
 					message: messageText.trim() || "Biome diagnostic",
 					line,
 					column,
