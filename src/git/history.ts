@@ -255,18 +255,30 @@ export async function getCommitDiffBlocks(
 			}
 		}
 
-		// Try to find snippet for target line, but if not found, use first hunk
+		// Try to find snippet for target line, or closest hunk within 20 lines
 		let diffSnippet: DiffSnippet | null = null;
 		if (diffOutput.trim().length > 0) {
 			diffSnippet = extractDiffSnippet(diffOutput, line);
 			
-			// If target line not in this commit, extract first hunk instead
+			// If target line not in this commit, find closest hunk
 			if (!diffSnippet) {
-				// Find first @@ hunk
-				const hunkMatch = diffOutput.match(/@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@/);
-				if (hunkMatch) {
-					const firstChangedLine = Number.parseInt(hunkMatch[1] ?? "1", 10);
-					diffSnippet = extractDiffSnippet(diffOutput, firstChangedLine);
+				const hunkMatches = Array.from(diffOutput.matchAll(/@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@/g));
+				if (hunkMatches.length > 0) {
+					let closestHunk: { line: number; distance: number } | null = null;
+					
+					for (const match of hunkMatches) {
+						const hunkLine = Number.parseInt(match[1] ?? "1", 10);
+						const distance = Math.abs(hunkLine - line);
+						
+						if (!closestHunk || distance < closestHunk.distance) {
+							closestHunk = { line: hunkLine, distance };
+						}
+					}
+					
+					// Only show if within 20 lines of target
+					if (closestHunk && closestHunk.distance <= 20) {
+						diffSnippet = extractDiffSnippet(diffOutput, closestHunk.line);
+					}
 				}
 			}
 		}

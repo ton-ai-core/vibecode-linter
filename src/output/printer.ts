@@ -318,27 +318,30 @@ async function printMessages(
 
 				if (block.diffSnippet) {
 					console.log(`    ${block.diffSnippet.header}`);
-					
+
 					// Find removed (-) and added (+) lines
 					const pointerIndex = block.diffSnippet.pointerIndex;
 					let startIdx = 0;
 					let endIdx = block.diffSnippet.lines.length;
-					
+
 					// If pointer exists, show context around it; otherwise show all
 					if (pointerIndex !== null) {
 						const contextSize = 3;
 						startIdx = Math.max(0, pointerIndex - contextSize);
-						endIdx = Math.min(block.diffSnippet.lines.length, pointerIndex + contextSize + 1);
+						endIdx = Math.min(
+							block.diffSnippet.lines.length,
+							pointerIndex + contextSize + 1,
+						);
 					}
-					
-					const removedLines: typeof block.diffSnippet.lines[0][] = [];
-					const addedLines: typeof block.diffSnippet.lines[0][] = [];
-					const contextLines: typeof block.diffSnippet.lines[0][] = [];
-					
+
+					const removedLines: (typeof block.diffSnippet.lines)[0][] = [];
+					const addedLines: (typeof block.diffSnippet.lines)[0][] = [];
+					const contextLines: (typeof block.diffSnippet.lines)[0][] = [];
+
 					for (let i = startIdx; i < endIdx; i += 1) {
 						const diffLine = block.diffSnippet.lines[i];
 						if (!diffLine) continue;
-						
+
 						if (diffLine.symbol === "-") {
 							removedLines.push(diffLine);
 						} else if (diffLine.symbol === "+") {
@@ -347,18 +350,17 @@ async function printMessages(
 							contextLines.push(diffLine);
 						}
 					}
-					
+
 					// Show context before changes (2-3 lines)
 					const contextBefore = contextLines.slice(0, 3);
 					for (const line of contextBefore) {
-						const lineNumber = line.headLineNumber !== null
-							? String(line.headLineNumber).padStart(4)
-							: "    ";
-						console.log(
-							`      ${lineNumber} | ${expandTabs(line.content, 8)}`,
-						);
+						const lineNumber =
+							line.headLineNumber !== null
+								? String(line.headLineNumber).padStart(4)
+								: "    ";
+						console.log(`      ${lineNumber} | ${expandTabs(line.content, 8)}`);
 					}
-					
+
 					// Show removed lines (old code) - up to 5 lines
 					if (removedLines.length > 0) {
 						for (const line of removedLines.slice(0, 5)) {
@@ -368,36 +370,43 @@ async function printMessages(
 							);
 						}
 						if (removedLines.length > 5) {
-							console.log("          ... (see full diff with git command above)");
+							console.log(
+								"          ... (see full diff with git command above)",
+							);
 						}
 					}
-					
+
 					// Show added lines (new code) - up to 5 lines
 					if (addedLines.length > 0) {
 						for (const line of addedLines.slice(0, 5)) {
-							const lineNumber = line.headLineNumber !== null
-								? String(line.headLineNumber).padStart(4)
-								: "    ";
+							const lineNumber =
+								line.headLineNumber !== null
+									? String(line.headLineNumber).padStart(4)
+									: "    ";
 							console.log(
 								`    + ${lineNumber} | ${expandTabs(line.content, 8)}`,
 							);
 						}
 						if (addedLines.length > 5) {
-							console.log("          ... (see full diff with git command above)");
+							console.log(
+								"          ... (see full diff with git command above)",
+							);
 						}
 					}
-					
+
 					// Show context after changes (2-3 lines)
-					const contextAfter = contextLines.slice(contextBefore.length, contextBefore.length + 3);
+					const contextAfter = contextLines.slice(
+						contextBefore.length,
+						contextBefore.length + 3,
+					);
 					for (const line of contextAfter) {
-						const lineNumber = line.headLineNumber !== null
-							? String(line.headLineNumber).padStart(4)
-							: "    ";
-						console.log(
-							`      ${lineNumber} | ${expandTabs(line.content, 8)}`,
-						);
+						const lineNumber =
+							line.headLineNumber !== null
+								? String(line.headLineNumber).padStart(4)
+								: "    ";
+						console.log(`      ${lineNumber} | ${expandTabs(line.content, 8)}`);
 					}
-					
+
 					console.log(
 						"    ---------------------------------------------------------------",
 					);
