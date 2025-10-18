@@ -18,19 +18,12 @@
 		{
 			"level": 3,
 			"name": "Critical Compiler Errors (Code must follow Clean Code and best practices)",
-			"rules": [
-				"max-lines-per-function",
-				"max-lines"
-			]
+			"rules": ["max-lines-per-function", "max-lines"]
 		},
 		{
 			"level": 4,
 			"name": "Critical Compiler Errors (Code must follow Clean Code and best practices)",
-			"rules": [
-				"complexity",
-				"max-params",
-				"max-depth"
-			]
+			"rules": ["complexity", "max-params", "max-depth"]
 		}
 	]
 }
