@@ -233,35 +233,44 @@ export async function getCommitDiffBlocks(
 		.relative(process.cwd(), filePath)
 		.replace(/\\/g, "/");
 
-	// CHANGE: Show file creation info when only 1 commit exists
-	// WHY: Files with 1 commit (newly created) should also show history context
-	// REF: user-question-why-no-history-for-some-files
+	// CHANGE: Show real git diff for file creation (1 commit files)
+	// WHY: User wants to see real code with git diff format, not synthetic placeholder
+	// REF: user-request-show-real-git-diff-for-creation
 	if (commits.length < 2) {
 		// Show file creation block for single-commit files
 		if (commits.length === 1) {
 			const creation = commits[0];
 			if (!creation) return null;
 
-			const heading = `--- file created in ${creation.shortHash} -- ${relativePath} | cat ---`;
-			const diffSnippet: DiffSnippet = {
-				header: `@@ File created @@`,
-				lines: [
-					{
-						raw: `+ Created in: ${creation.summary}`,
-						symbol: "+",
-						headLineNumber: line,
-						content: `Created in: ${creation.summary}`,
-					},
-				],
-				pointerIndex: 0,
-			};
+			// Use empty tree hash to diff against "nothing" (file creation)
+			const emptyTree = "4b825dc642cb6eb9a060e54bf8d69288fbee4904";
+			const diffCommand = `git diff --unified=${contextLines} ${emptyTree}..${creation.hash} -- "${filePath}"`;
+			let diffOutput = "";
+
+			try {
+				const { stdout } = await execGitCommand(diffCommand, 10 * 1024 * 1024);
+				diffOutput = stdout;
+			} catch (error) {
+				const execError = error as ExecError;
+				if (execError.stdout) {
+					diffOutput = execError.stdout;
+				}
+			}
+
+			// Parse real git diff
+			const diffSnippet =
+				diffOutput.trim().length > 0
+					? extractDiffSnippet(diffOutput, line)
+					: null;
+
+			const heading = `--- git diff ${emptyTree.slice(0, 12)}..${creation.shortHash} -- ${relativePath} | cat ---`;
 
 			return [
 				{
 					heading,
 					newerCommit: creation,
 					olderCommit: {
-						hash: "0000000000000000000000000000000000000000",
+						hash: emptyTree,
 						shortHash: "(initial)",
 						date: creation.date,
 						author: creation.author,
