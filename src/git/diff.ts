@@ -173,9 +173,29 @@ export async function getGitDiffBlock(
 		Math.min(pointerLine.content.length, refinedRange.end),
 	);
 
+	// CHANGE: Limit diff output to 2-3 lines before/after error
+	// WHY: User wants compact diff output (max 5-7 lines), not entire hunk
+	// QUOTE(USER): "У нас диф должен быть максимум 5 строчек. А не целый километр"
+	// REF: user-request-compact-diff
+	// SOURCE: n/a
 	const headLineNumbers = new Set<number>();
 	const formattedLines: string[] = [];
-	snippet.lines.forEach((line) => {
+
+	const contextBefore = 2;
+	const contextAfter = 2;
+	const start = Math.max(0, pointerIndex - contextBefore);
+	const end = Math.min(snippet.lines.length, pointerIndex + contextAfter + 1);
+
+	// Add ellipsis if lines were skipped at the beginning
+	if (start > 0) {
+		formattedLines.push("       ... (earlier lines omitted)");
+	}
+
+	// Format only the relevant lines around the error
+	for (let i = start; i < end; i += 1) {
+		const line = snippet.lines[i];
+		if (!line) continue;
+
 		const lineNumber =
 			line.headLineNumber !== null
 				? String(line.headLineNumber).padStart(4)
@@ -187,8 +207,17 @@ export async function getGitDiffBlock(
 		formattedLines.push(
 			`${symbol} ${lineNumber} | ${expandTabs(line.content, TAB_WIDTH)}`,
 		);
-	});
+	}
 
+	// Add ellipsis if lines were skipped at the end
+	if (end < snippet.lines.length) {
+		formattedLines.push("       ... (later lines omitted)");
+	}
+
+	// CHANGE: Adjust caret insertion index for truncated output
+	// WHY: pointerIndex is relative to full snippet, but we now show truncated range
+	// REF: user-request-compact-diff
+	// SOURCE: n/a
 	const pointerLabel = "    ";
 	const pointerExpanded = expandTabs(pointerLine.content, TAB_WIDTH);
 	const visualStartColumn = Math.max(
@@ -204,7 +233,10 @@ export async function getGitDiffBlock(
 	const caretOverlay = caretBase.padEnd(pointerExpanded.length, " ");
 	const caretLinePrefixLength = 1 + 1 + pointerLabel.length + 1 + 1 + 1; // symbol, space, label, space, '|', space
 	const caretLine = `${" ".repeat(caretLinePrefixLength)}${caretOverlay}`;
-	formattedLines.splice(pointerIndex + 1, 0, caretLine);
+
+	// Adjust insertion index: pointerIndex is in full snippet, but formattedLines is truncated
+	const adjustedPointerIndex = pointerIndex - start + (start > 0 ? 1 : 0); // +1 for ellipsis line if present
+	formattedLines.splice(adjustedPointerIndex + 1, 0, caretLine);
 
 	return {
 		heading: `--- git diff (${descriptor}, U=${normalizedContext}) -------------------------`,
