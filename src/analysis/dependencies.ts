@@ -13,7 +13,7 @@ import * as path from "node:path";
 
 import ts from "typescript";
 
-import type { LintMessageWithFile } from "../types/index.js";
+import type { LintMessageWithFile } from "../types/index";
 import {
 	createMessageId,
 	type DependencyContext,
@@ -22,7 +22,7 @@ import {
 	getPosition,
 	groupMessagesByFile,
 	type MsgId,
-} from "./dependency-helpers.js";
+} from "./dependency-helpers";
 
 /**
  * Создает TypeScript Program из tsconfig.json.

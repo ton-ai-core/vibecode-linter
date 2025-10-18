@@ -14,8 +14,8 @@ import type {
 	ExecError,
 	GitBlameOptions,
 	GitBlameResult,
-} from "../types/index.js";
-import { execGitCommand } from "./utils.js";
+} from "../types/index";
+import { execGitCommand } from "./utils";
 
 // CHANGE: Extracted helper to execute git blame command
 // WHY: Reduces complexity of getGitBlameBlock

@@ -13,7 +13,7 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { promisify } from "node:util";
 
-import type { DuplicateInfo, SarifReport } from "../types/index.js";
+import type { DuplicateInfo, SarifReport } from "../types/index";
 
 const execAsync = promisify(exec);
 

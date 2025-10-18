@@ -7,15 +7,15 @@ import {
 	buildDependencyEdges,
 	buildProgram,
 	topologicalSort,
-} from "../analysis/index.js";
-import { type RuleLevelMap, ruleIdOf } from "../config/index.js";
-import { getCommitDiffBlocks, getGitDiffBlock } from "../git/index.js";
+} from "../analysis/index";
+import { type RuleLevelMap, ruleIdOf } from "../config/index";
+import { getCommitDiffBlocks, getGitDiffBlock } from "../git/index";
 import type {
 	DiffRangeConfig,
 	GitDiffBlock,
 	LintMessageWithFile,
-} from "../types/index.js";
-import { printCommitDiffSnippet, printFileContext } from "./printer-context.js";
+} from "../types/index";
+import { printCommitDiffSnippet, printFileContext } from "./printer-context";
 
 export function getPriorityLevel(
 	m: LintMessageWithFile,

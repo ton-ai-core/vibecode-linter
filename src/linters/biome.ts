@@ -12,13 +12,9 @@ import { exec } from "node:child_process";
 import * as fs from "node:fs";
 import { promisify } from "node:util";
 
-import type { LintResult } from "../types/index.js";
-import { extractStdoutFromError } from "../types/index.js";
-import type {
-	BiomeMessagePart,
-	BiomeOutput,
-	BiomeSpan,
-} from "./biome-types.js";
+import type { LintResult } from "../types/index";
+import { extractStdoutFromError } from "../types/index";
+import type { BiomeMessagePart, BiomeOutput, BiomeSpan } from "./biome-types";
 
 const execAsync = promisify(exec);
 

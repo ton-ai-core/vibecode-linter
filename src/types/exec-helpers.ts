@@ -4,7 +4,7 @@
 // REF: REQ-20250210-MODULAR-ARCH
 // SOURCE: n/a
 
-import type { ExecError } from "./config.js";
+import type { ExecError } from "./config";
 
 /**
  * Обрабатывает ошибку выполнения команды, возвращая stdout если доступен.

@@ -1,6 +1,6 @@
 import * as path from "node:path";
 
-import type { ExecError, GitHistoryBlock } from "../types/index.js";
+import type { ExecError, GitHistoryBlock } from "../types/index";
 import {
 	buildDiffBlocks,
 	type CommitDiffBlock,
@@ -9,8 +9,8 @@ import {
 	handleSingleCommit,
 	parseGitLogSegments,
 	processCommitSegment,
-} from "./history-helpers.js";
-import { execGitCommand } from "./utils.js";
+} from "./history-helpers";
+import { execGitCommand } from "./utils";
 
 export type { CommitInfo, CommitDiffBlock };
 

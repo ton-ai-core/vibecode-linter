@@ -4,20 +4,20 @@
 // REF: REQ-20250210-MODULAR-ARCH
 // SOURCE: lint.ts lines 1558-1813
 
-import { makeRuleLevelMap } from "../config/index.js";
-import { detectDiffRange } from "../git/index.js";
+import { makeRuleLevelMap } from "../config/index";
+import { detectDiffRange } from "../git/index";
 import type {
 	CLIOptions,
 	LinterConfig,
 	LintMessageWithFile,
-} from "../types/index.js";
+} from "../types/index";
 import {
 	groupByLevel,
 	groupBySections,
 	printMessage,
 	printStatistics,
 	sortMessages,
-} from "./printer-helpers.js";
+} from "./printer-helpers";
 
 async function printSections(
 	sections: Map<string, LintMessageWithFile[]>,

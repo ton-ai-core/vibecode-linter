@@ -24,14 +24,14 @@
 		"allowUnusedLabels": false,
 		"allowUnreachableCode": false,
 
-		// Module settings for Node.js ES Modules
-		// CHANGE: Use NodeNext for proper ES Module resolution
-		// WHY: Node.js ES Modules require .js extensions in imports
-		// QUOTE(REVIEWER): "все относительные импорты должны содержать полное расширение файла"
-		// REF: ERR_MODULE_NOT_FOUND issue
+		// Module settings for CommonJS
+		// CHANGE: Use CommonJS for better npx compatibility
+		// WHY: npx works better with CommonJS modules than ESM
+		// QUOTE(USER): "можем ли мы изменить на commonjs?"
+		// REF: REQ-NPX-COMPATIBILITY
 		"target": "ES2022",
-		"module": "NodeNext",
-		"moduleResolution": "NodeNext",
+		"module": "CommonJS",
+		"moduleResolution": "node",
 		"esModuleInterop": true,
 		"allowSyntheticDefaultImports": true,
 		"resolveJsonModule": true,

@@ -10,7 +10,7 @@ import {
 	pickSnippetForLine,
 	TAB_WIDTH,
 	visualColumnAt,
-} from "../diff/index.js";
+} from "../diff/index";
 import type {
 	DiffLineView,
 	DiffRangeConfig,
@@ -18,8 +18,8 @@ import type {
 	ExecError,
 	GitDiffBlock,
 	LintMessage,
-} from "../types/index.js";
-import { execGitCommand } from "./utils.js";
+} from "../types/index";
+import { execGitCommand } from "./utils";
 
 /**
  * Уточняет диапазон подсветки на основе текста сообщения об ошибке.

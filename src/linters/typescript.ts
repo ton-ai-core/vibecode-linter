@@ -12,7 +12,7 @@ import { exec } from "node:child_process";
 import * as path from "node:path";
 import { promisify } from "node:util";
 
-import type { ExecError, TypeScriptMessage } from "../types/index.js";
+import type { ExecError, TypeScriptMessage } from "../types/index";
 
 const execAsync = promisify(exec);
 

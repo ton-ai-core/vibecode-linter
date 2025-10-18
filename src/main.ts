@@ -5,25 +5,25 @@
 // REF: REQ-20250210-MODULAR-ARCH
 // SOURCE: lint.ts main logic
 
-import { loadLinterConfig, parseCLIArgs } from "./config/index.js";
+import { loadLinterConfig, parseCLIArgs } from "./config/index";
 import {
 	getBiomeDiagnostics,
 	getESLintResults,
 	getTypeScriptDiagnostics,
 	runBiomeFix,
 	runESLintFix,
-} from "./linters/index.js";
+} from "./linters/index";
 import {
 	displayClonesFromSarif,
 	generateSarifReport,
 	parseSarifReport,
 	processResults,
-} from "./output/index.js";
-import type { LintMessageWithFile } from "./types/index.js";
+} from "./output/index";
+import type { LintMessageWithFile } from "./types/index";
 import {
 	checkDependencies,
 	reportMissingDependencies,
-} from "./utils/dependencies.js";
+} from "./utils/dependencies";
 
 // CHANGE: Extracted helper to collect all lint messages
 // WHY: Reduces complexity and line count of main
@@ -140,7 +140,12 @@ export async function main(): Promise<void> {
 }
 
 // Run main function if this file is executed directly
-if (import.meta.url === `file://${process.argv[1]}`) {
+// CHANGE: Use CommonJS require.main check instead of import.meta.url
+// WHY: import.meta.url is ESM-only, CommonJS uses require.main
+// QUOTE(USER): "можем ли мы изменить на commonjs?"
+// REF: REQ-NPX-COMPATIBILITY
+// SOURCE: n/a
+if (require.main === module) {
 	main().catch((error) => {
 		console.error("Fatal error:", error);
 		process.exit(1);

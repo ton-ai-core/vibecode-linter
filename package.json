@@ -6,7 +6,6 @@
 	"bin": {
 		"vibecode-linter": "dist/main.js"
 	},
-	"type": "module",
 	"files": [
 		"dist",
 		"README.md",

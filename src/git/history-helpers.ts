@@ -2,9 +2,9 @@
 // WHY: Reduces line count of history.ts to under 300
 // REF: ESLint max-lines
 
-import { extractDiffSnippet } from "../diff/index.js";
-import type { DiffSnippet, ExecError } from "../types/index.js";
-import { execGitCommand, getCommitSnippetForLine } from "./utils.js";
+import { extractDiffSnippet } from "../diff/index";
+import type { DiffSnippet, ExecError } from "../types/index";
+import { execGitCommand, getCommitSnippetForLine } from "./utils";
 
 export interface CommitInfo {
 	readonly hash: string;

@@ -4,17 +4,17 @@
 // REF: REQ-20250210-MODULAR-ARCH
 // SOURCE: n/a
 
-export { getGitBlameBlock } from "./blame.js";
-export { getGitDiffBlock } from "./diff.js";
+export { getGitBlameBlock } from "./blame";
+export { getGitDiffBlock } from "./diff";
 export {
 	type CommitDiffBlock,
 	type CommitInfo,
 	getCommitDiffBlocks,
 	getGitHistoryBlock,
-} from "./history.js";
+} from "./history";
 export {
 	detectDiffRange,
 	execGitCommand,
 	getCommitSnippetForLine,
 	getWorkspaceSnippet,
-} from "./utils.js";
+} from "./utils";
