@@ -209,7 +209,7 @@ export async function getGitDiffBlock(
 	return {
 		heading: `--- git diff (${descriptor}, U=${normalizedContext}) -------------------------`,
 		lines: [snippet.header, ...formattedLines],
-		footer: "---------------------------------------------------------------",
+		footer: "   |-----------------------------------------------------------",
 		headLineNumbers,
 	};
 }

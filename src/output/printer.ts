@@ -309,7 +309,9 @@ async function printMessages(
 
 		const currentShortHash = blameInfo?.shortHash ?? null;
 		if (blameInfo) {
-			for (const blameLine of blameInfo.lines) console.log(blameLine);
+			for (const blameLine of blameInfo.lines) {
+				console.log(`    ${blameLine}`);
+			}
 		}
 
 		if (historyLines) {
@@ -330,15 +332,15 @@ async function printMessages(
 					const trimmed = historyLine.trimStart();
 					if (trimmed.startsWith("Total commits")) {
 						skipBlock = false;
-						console.log(historyLine);
+						console.log(`    ${historyLine}`);
 					} else if (trimmed.startsWith("Full list")) {
 						skipBlock = false;
-						console.log(historyLine);
+						console.log(`    ${historyLine}`);
 					}
 					continue;
 				}
 
-				console.log(historyLine);
+				console.log(`    ${historyLine}`);
 			}
 		}
 

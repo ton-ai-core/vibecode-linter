@@ -64,8 +64,6 @@ export async function getGitBlameBlock(
 	const summary = summaryLine
 		? summaryLine.slice("summary ".length).trim()
 		: "(no summary)";
-	const sourceLine = rows.find((row) => row.startsWith("\t"));
-	const codeText = sourceLine ? sourceLine.slice(1) : "";
 
 	const dateString = Number.isFinite(authorEpoch)
 		? new Date(authorEpoch * 1000).toISOString().slice(0, 10)
@@ -95,21 +93,11 @@ export async function getGitBlameBlock(
 	const lines: string[] = [
 		baseHeading,
 		`commit ${shortHash} (${dateString})  Author: ${author}`,
+		`summary: ${summary}`,
 	];
-	lines.push(`summary: ${summary}`);
-	lines.push(`${line}) ${codeText}`);
 
 	if (typeof options?.historyCount === "number") {
 		lines.push(`Total commits for line: ${options.historyCount}`);
-	}
-
-	lines.push(`Commands: git blame -L ${line},${line} -- ${relativePath} | cat`);
-
-	if (options?.fallbackSnippet && options.fallbackSnippet.length > 0) {
-		lines.push("Code context:");
-		for (const snippetLine of options.fallbackSnippet) {
-			lines.push(snippetLine);
-		}
 	}
 
 	return {
