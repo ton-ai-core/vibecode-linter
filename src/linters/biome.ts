@@ -45,30 +45,25 @@ export async function runBiomeFix(targetPath: string): Promise<void> {
 	// REF: user-request-auto-apply-all-fixes
 	// SOURCE: n/a
 	const maxAttempts = 3;
-	let attempt = 0;
 
-	while (attempt < maxAttempts) {
-		attempt += 1;
+	// CHANGE: Run Biome 3 times unconditionally to handle cascading fixes
+	// WHY: Biome returns success when it fixes files, so we can't detect if more passes are needed
+	// REF: user-request-auto-apply-all-fixes
+	// SOURCE: n/a
+	for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
 		try {
 			await execAsync(`npx biome check --write "${targetPath}"`);
-			// If no error, all fixes applied successfully
-			break;
 		} catch (error) {
-			if (error && typeof error === "object" && "stdout" in error) {
-				// Biome found and fixed issues, may need another pass
-				if (attempt < maxAttempts) {
-					continue;
-				}
-			} else {
+			// Biome returns non-zero exit code when it finds issues, even if it fixes them
+			// This is expected behavior, continue to next pass
+			if (!(error && typeof error === "object" && "stdout" in error)) {
 				console.error(`❌ Biome auto-fix failed:`, error);
 				break;
 			}
 		}
 	}
 
-	console.log(
-		`✅ Biome auto-fix completed (${attempt} pass${attempt > 1 ? "es" : ""})`,
-	);
+	console.log(`✅ Biome auto-fix completed (${maxAttempts} passes)`);
 }
 
 /**
