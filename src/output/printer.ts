@@ -348,9 +348,9 @@ async function printMessages(
 						}
 					}
 					
-					// Show context before
-					if (contextLines.length > 0 && contextLines[0]) {
-						const line = contextLines[0];
+					// Show context before changes (2-3 lines)
+					const contextBefore = contextLines.slice(0, 3);
+					for (const line of contextBefore) {
 						const lineNumber = line.headLineNumber !== null
 							? String(line.headLineNumber).padStart(4)
 							: "    ";
@@ -385,6 +385,17 @@ async function printMessages(
 						if (addedLines.length > 5) {
 							console.log("          ... (see full diff with git command above)");
 						}
+					}
+					
+					// Show context after changes (2-3 lines)
+					const contextAfter = contextLines.slice(contextBefore.length, contextBefore.length + 3);
+					for (const line of contextAfter) {
+						const lineNumber = line.headLineNumber !== null
+							? String(line.headLineNumber).padStart(4)
+							: "    ";
+						console.log(
+							`      ${lineNumber} | ${expandTabs(line.content, 8)}`,
+						);
 					}
 					
 					console.log(
