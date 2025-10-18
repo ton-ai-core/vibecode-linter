@@ -299,6 +299,11 @@ async function printMessages(
 			}
 		}
 
+		// CHANGE: Show only commits that modified the target line
+		// WHY: git log -L now filters commits, so all blocks have diffSnippet !== null
+		// QUOTE(USER): "Можем мы сделать что бы не отображать (no changes in this commit)"
+		// REF: user-request-filter-commits-by-line-changes
+		// SOURCE: n/a
 		const commitDiffBlocks = await getCommitDiffBlocks(
 			filePath,
 			line,
@@ -410,13 +415,20 @@ async function printMessages(
 					console.log(
 						"    ---------------------------------------------------------------",
 					);
-				} else {
-					console.log("    (no changes in this commit)");
 				}
 			}
 
 			const relativePath = filePath.replace(/\\/g, "/");
-			console.log(`\n    Full list: git log --follow -- ${relativePath} | cat`);
+			console.log(
+				`\n    Full list: git log -L ${line},${line}:${relativePath} | cat`,
+			);
+		} else {
+			// CHANGE: Show message when no commits modified the target line
+			// WHY: User wants to know if there are no commits changing the line
+			// QUOTE(USER): "Если таких комитов нету то написать что комитов изменяющих это место нету"
+			// REF: user-request-filter-commits-by-line-changes
+			// SOURCE: n/a
+			console.log("\n    (no commits changing this line found)");
 		}
 
 		if (source === "biome") {

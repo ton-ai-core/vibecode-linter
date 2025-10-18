@@ -183,12 +183,12 @@ export async function getCommitDiffBlocks(
 	limit: number,
 	contextLines = 3,
 ): Promise<ReadonlyArray<CommitDiffBlock> | null> {
-	// CHANGE: Use git log without -L to get recent commits affecting the file
-	// WHY: git log -L only shows commits that modified the exact line, may return too few commits
-	// QUOTE(USER): "Мы отображаем последние 3 комита?"
-	// REF: user-feedback-only-1-commit-shown
-	// SOURCE: n/a
-	const historyCommand = `git log -n ${limit + 1} --date=short --pretty=format:"commit %H%nAuthor: %an <%ae>%nDate: %ad%n%n    %s%n" -- "${filePath}"`;
+	// CHANGE: Use git log -L to find ONLY commits that modified the target line
+	// WHY: User wants to see only commits where the target line was actually changed, not all file commits
+	// QUOTE(USER): "Можем мы сделать что бы не отображать (no changes in this commit) А искать комиты которые имеют совпадения"
+	// REF: user-request-filter-commits-by-line-changes
+	// SOURCE: git log -L documentation
+	const historyCommand = `git log -L ${line},${line}:${filePath} --date=short --pretty=format:"commit %H%nAuthor: %an <%ae>%nDate: %ad%n%n    %s%n"`;
 	let historyOutput = "";
 
 	try {
