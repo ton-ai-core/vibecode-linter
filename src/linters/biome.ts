@@ -77,29 +77,11 @@ export async function getBiomeDiagnostics(
 	targetPath: string,
 ): Promise<ReadonlyArray<BiomeResult>> {
 	try {
-		const { stdout, stderr } = await execAsync(
+		const { stdout } = await execAsync(
 			`npx biome check "${targetPath}" --reporter=json`,
 		);
 
-		// CHANGE: Log Biome output for debugging
-		// WHY: User wants to understand why fallback happens
-		// REF: user-question-why-biome-silent
-		if (stderr && stderr.trim().length > 0) {
-			console.log("⚠️  Biome stderr:", stderr.trim());
-		}
-
 		const results = parseBiomeOutput(stdout);
-
-		if (results.length === 0 && stdout.trim().length > 0) {
-			console.log("ℹ️  Biome returned empty results but had output:");
-			console.log("   Output length:", stdout.length, "bytes");
-			try {
-				const parsed = JSON.parse(stdout) as BiomeOutput;
-				console.log("   Diagnostics count:", parsed.diagnostics?.length ?? 0);
-			} catch {
-				console.log("   (Failed to parse as JSON)");
-			}
-		}
 
 		return handleBiomeResults(results, targetPath);
 	} catch (error) {
@@ -109,7 +91,6 @@ export async function getBiomeDiagnostics(
 			return [];
 		}
 
-		console.log("⚠️  Biome threw error but had stdout, parsing...");
 		const results = parseBiomeOutput(stdout);
 		return handleBiomeResults(results, targetPath);
 	}
@@ -303,7 +284,7 @@ function parseBiomeOutput(stdout: string): ReadonlyArray<BiomeResult> {
 				} else if (diagnostic.severity === "information") {
 					severityNumber = 0;
 				}
-				
+
 				const resultMessage = {
 					ruleId: diagnostic.category || null,
 					severity: severityNumber,
