@@ -69,6 +69,30 @@ function isArray(value: JSONValue): value is ReadonlyArray<JSONValue> {
 }
 
 /**
+ * Type representing a priority level object from JSON.
+ */
+type PriorityLevelJSON = {
+	readonly level: JSONValue;
+	readonly name: JSONValue;
+	readonly rules: JSONValue;
+};
+
+/**
+ * Type guard to check if value is a PriorityLevelJSON object.
+ *
+ * @param value Value to check
+ * @returns True if value has required priority level fields
+ */
+function isPriorityLevelJSON(value: JSONValue): value is PriorityLevelJSON {
+	return (
+		isJSONObject(value) &&
+		"level" in value &&
+		"name" in value &&
+		"rules" in value
+	);
+}
+
+/**
  * Валидирует и нормализует уровень приоритета.
  *
  * @param value Значение для валидации
@@ -77,22 +101,15 @@ function isArray(value: JSONValue): value is ReadonlyArray<JSONValue> {
  * @invariant value должен быть объектом с полями level, name, rules
  */
 function validatePriorityLevel(value: JSONValue): PriorityLevel | null {
-	if (!isJSONObject(value)) {
+	if (!isPriorityLevelJSON(value)) {
 		return null;
 	}
 
-	const level = value["level"];
-	const name = value["name"];
-	const rules = value["rules"];
+	const level = value.level;
+	const name = value.name;
+	const rules = value.rules;
 
-	if (
-		level === undefined ||
-		name === undefined ||
-		rules === undefined ||
-		!isNumber(level) ||
-		!isString(name) ||
-		!isArray(rules)
-	) {
+	if (!isNumber(level) || !isString(name) || !isArray(rules)) {
 		return null;
 	}
 
@@ -115,6 +132,23 @@ function validatePriorityLevel(value: JSONValue): PriorityLevel | null {
  *
  * @invariant configPath должен указывать на валидный JSON файл
  */
+/**
+ * Type representing the config JSON structure.
+ */
+type ConfigJSON = {
+	readonly priorityLevels: JSONValue;
+};
+
+/**
+ * Type guard to check if value is a ConfigJSON object.
+ *
+ * @param value Value to check
+ * @returns True if value has priorityLevels field
+ */
+function isConfigJSON(value: JSONValue): value is ConfigJSON {
+	return isJSONObject(value) && "priorityLevels" in value;
+}
+
 export function loadLinterConfig(
 	configPath = path.resolve(process.cwd(), "linter.config.json"),
 ): LinterConfig | null {
@@ -122,12 +156,12 @@ export function loadLinterConfig(
 		const raw = fs.readFileSync(configPath, "utf8");
 		const parsed = JSON.parse(raw) as JSONValue;
 
-		if (!isJSONObject(parsed)) {
+		if (!isConfigJSON(parsed)) {
 			return null;
 		}
 
-		const priorityLevels = parsed["priorityLevels"];
-		if (priorityLevels === undefined || !isArray(priorityLevels)) {
+		const priorityLevels = parsed.priorityLevels;
+		if (!isArray(priorityLevels)) {
 			return null;
 		}
 
