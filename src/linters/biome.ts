@@ -57,26 +57,6 @@ export async function runBiomeFix(targetPath: string): Promise<void> {
  *
  * @invariant targetPath не пустой
  */
-/**
- * Обрабатывает результаты Biome с fallback на проверку отдельных файлов.
- */
-async function handleBiomeResults(
-	results: ReadonlyArray<BiomeResult>,
-	targetPath: string,
-): Promise<ReadonlyArray<BiomeResult>> {
-	if (results.length > 0) {
-		return results;
-	}
-
-	// If no results and path is directory, try individual files
-	if (!targetPath.endsWith(".ts") && !targetPath.endsWith(".tsx")) {
-		console.log("🔄 Biome: Falling back to individual file checking...");
-		return getBiomeDiagnosticsPerFile(targetPath);
-	}
-
-	return results;
-}
-
 export async function getBiomeDiagnostics(
 	targetPath: string,
 ): Promise<ReadonlyArray<BiomeResult>> {
@@ -85,9 +65,12 @@ export async function getBiomeDiagnostics(
 			`npx biome check "${targetPath}" --reporter=json`,
 		);
 
-		const results = parseBiomeOutput(stdout);
-
-		return handleBiomeResults(results, targetPath);
+		// CHANGE: Return results directly if Biome executed successfully
+		// WHY: Empty results (0 errors) is a valid success case, not a failure requiring fallback
+		// QUOTE(USER): "А почему я опять получаю? Biome: Falling back to individual file checking..."
+		// REF: user-request-remove-unnecessary-fallback
+		// SOURCE: n/a
+		return parseBiomeOutput(stdout);
 	} catch (error) {
 		const stdout = extractStdoutFromError(error as Error);
 		if (!stdout) {
@@ -96,7 +79,21 @@ export async function getBiomeDiagnostics(
 		}
 
 		const results = parseBiomeOutput(stdout);
-		return handleBiomeResults(results, targetPath);
+
+		// CHANGE: Only fallback when Biome command actually failed AND returned empty results
+		// WHY: Fallback should only trigger on real execution errors, not on "no lint errors found"
+		// REF: user-request-remove-unnecessary-fallback
+		// SOURCE: n/a
+		if (
+			results.length === 0 &&
+			!targetPath.endsWith(".ts") &&
+			!targetPath.endsWith(".tsx")
+		) {
+			console.log("🔄 Biome: Falling back to individual file checking...");
+			return getBiomeDiagnosticsPerFile(targetPath);
+		}
+
+		return results;
 	}
 }
 
