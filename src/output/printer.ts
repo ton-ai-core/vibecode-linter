@@ -319,14 +319,17 @@ async function printMessages(
 				if (block.diffSnippet) {
 					console.log(`    ${block.diffSnippet.header}`);
 					
-					// Find removed (-) and added (+) lines around target
+					// Find removed (-) and added (+) lines
 					const pointerIndex = block.diffSnippet.pointerIndex;
-					const contextSize = 3;
-					const startIdx = Math.max(0, (pointerIndex ?? 0) - contextSize);
-					const endIdx = Math.min(
-						block.diffSnippet.lines.length,
-						(pointerIndex ?? 0) + contextSize + 1,
-					);
+					let startIdx = 0;
+					let endIdx = block.diffSnippet.lines.length;
+					
+					// If pointer exists, show context around it; otherwise show all
+					if (pointerIndex !== null) {
+						const contextSize = 3;
+						startIdx = Math.max(0, pointerIndex - contextSize);
+						endIdx = Math.min(block.diffSnippet.lines.length, pointerIndex + contextSize + 1);
+					}
 					
 					const removedLines: typeof block.diffSnippet.lines[0][] = [];
 					const addedLines: typeof block.diffSnippet.lines[0][] = [];
