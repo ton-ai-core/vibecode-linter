@@ -356,22 +356,22 @@ async function printMessages(
 						);
 					}
 					
-					// Show removed lines (old code)
+					// Show removed lines (old code) - up to 5 lines
 					if (removedLines.length > 0) {
-						for (const line of removedLines.slice(0, 2)) {
+						for (const line of removedLines.slice(0, 5)) {
 							const lineNumber = "    ";
 							console.log(
 								`    - ${lineNumber} | ${expandTabs(line.content, 8)}`,
 							);
 						}
-						if (removedLines.length > 2) {
+						if (removedLines.length > 5) {
 							console.log("          ... (see full diff with git command above)");
 						}
 					}
 					
-					// Show added lines (new code)
+					// Show added lines (new code) - up to 5 lines
 					if (addedLines.length > 0) {
-						for (const line of addedLines.slice(0, 2)) {
+						for (const line of addedLines.slice(0, 5)) {
 							const lineNumber = line.headLineNumber !== null
 								? String(line.headLineNumber).padStart(4)
 								: "    ";
@@ -379,7 +379,7 @@ async function printMessages(
 								`    + ${lineNumber} | ${expandTabs(line.content, 8)}`,
 							);
 						}
-						if (addedLines.length > 2) {
+						if (addedLines.length > 5) {
 							console.log("          ... (see full diff with git command above)");
 						}
 					}
