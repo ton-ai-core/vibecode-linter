@@ -19,11 +19,26 @@ import {
 	processResults,
 } from "./output/index.js";
 import type { LintMessageWithFile } from "./types/index.js";
+import {
+	checkDependencies,
+	reportMissingDependencies,
+} from "./utils/dependencies.js";
 
 /**
  * Главная функция линтера.
  */
 export async function main(): Promise<void> {
+	// CHANGE: Check required dependencies before running linter
+	// WHY: Fail early with clear message if tools are not installed
+	// QUOTE(USER): "Надо проверять установлены ли они. Если не установлены говорить об их установке"
+	// REF: user-request-check-dependencies
+	// SOURCE: n/a
+	const depCheck = await checkDependencies();
+	if (!depCheck.allAvailable) {
+		reportMissingDependencies(depCheck.missing);
+		process.exit(1);
+	}
+
 	const cliOptions = parseCLIArgs();
 	console.log(`🔍 Linting directory: ${cliOptions.targetPath}`);
 
