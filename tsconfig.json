@@ -24,10 +24,14 @@
 		"allowUnusedLabels": false,
 		"allowUnreachableCode": false,
 
-		// Module settings
+		// Module settings for Node.js ES Modules
+		// CHANGE: Use NodeNext for proper ES Module resolution
+		// WHY: Node.js ES Modules require .js extensions in imports
+		// QUOTE(REVIEWER): "все относительные импорты должны содержать полное расширение файла"
+		// REF: ERR_MODULE_NOT_FOUND issue
 		"target": "ES2022",
-		"module": "ESNext",
-		"moduleResolution": "node",
+		"module": "NodeNext",
+		"moduleResolution": "NodeNext",
 		"esModuleInterop": true,
 		"allowSyntheticDefaultImports": true,
 		"resolveJsonModule": true,
