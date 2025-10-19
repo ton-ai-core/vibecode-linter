@@ -106,7 +106,11 @@ export async function detectDiffRange(): Promise<DiffRangeConfig> {
 		}
 	} catch (error) {
 		const execError = error as ExecError;
-		if (execError.stderr) {
+		// CHANGE: Avoid truthiness check on nullable string stderr
+		// WHY: strict-boolean-expressions — handle nullish/empty explicitly
+		// QUOTE(ТЗ): "Исправить все ошибки линтера"
+		// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
+		if (typeof execError.stderr === "string" && execError.stderr.length > 0) {
 			// Upstream is missing — fall back to local comparison
 		}
 	}

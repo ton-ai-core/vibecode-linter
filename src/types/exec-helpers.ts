@@ -15,12 +15,20 @@ import type { ExecError } from "./config";
 export function extractStdoutFromError(
 	error: Error | { stdout?: string },
 ): string | null {
-	if (error && typeof error === "object" && "stdout" in error) {
-		const stdout = (error as ExecError).stdout;
-		if (!stdout || stdout.trim() === "") {
-			return null;
-		}
-		return stdout;
+	// CHANGE: Avoid truthiness and handle object/field presence explicitly
+	// WHY: strict-boolean-expressions — forbid using objects/nullable strings in conditionals
+	// QUOTE(ТЗ): "Исправить все ошибки линтера"
+	// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
+	const hasStdout =
+		typeof error === "object" &&
+		error !== null &&
+		"stdout" in (error as { stdout?: string });
+	if (!hasStdout) {
+		return null;
 	}
-	return null;
+	const stdout = (error as ExecError).stdout;
+	if (typeof stdout !== "string" || stdout.trim().length === 0) {
+		return null;
+	}
+	return stdout;
 }

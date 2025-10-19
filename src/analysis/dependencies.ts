@@ -73,8 +73,12 @@ function getNodeAtPosition(
 	visit(sourceFile);
 
 	// Walk up to a meaningful ancestor node
+	// CHANGE: Make parent check explicit instead of truthiness
+	// WHY: strict-boolean-expressions — object in conditional is always true/false; we must compare to undefined
+	// QUOTE(ТЗ): "Исправить все ошибки линтера"
+	// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
 	while (
-		node.parent &&
+		node.parent !== undefined &&
 		!ts.isIdentifier(node) &&
 		!ts.isCallExpression(node) &&
 		!ts.isPropertyAccessExpression(node) &&
@@ -190,7 +194,11 @@ export function buildDependencyEdges(
 
 	for (const [file, msgs] of byFile) {
 		const sourceFile = program.getSourceFile(file);
-		if (!sourceFile) {
+		// CHANGE: Use explicit undefined check for SourceFile
+		// WHY: strict-boolean-expressions — avoid object truthiness
+		// QUOTE(ТЗ): "Исправить все ошибки линтера"
+		// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
+		if (sourceFile === undefined) {
 			continue;
 		}
 
@@ -275,9 +283,13 @@ function performKahnsAlgorithm(
 	const queue = ids.filter((id) => (inDegree.get(id) ?? 0) === 0).sort();
 	const order: MsgId[] = [];
 
+	// CHANGE: Handle possibly undefined shift() result explicitly
+	// WHY: strict-boolean-expressions — avoid nullable string in conditional
+	// QUOTE(ТЗ): "Исправить все ошибки линтера"
+	// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
 	while (queue.length > 0) {
 		const u = queue.shift();
-		if (!u) break;
+		if (u === undefined) break;
 		order.push(u);
 
 		for (const v of successors.get(u) ?? []) {

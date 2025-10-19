@@ -31,8 +31,11 @@ export function calculateColumnPosition(
 			break;
 		}
 
-		const char = currentLine[charIndex];
-		if (char) visualColumn = calculateVisualWidth(char, visualColumn);
+		const ch = currentLine.charAt(charIndex);
+		// CHANGE: Avoid truthiness on possibly undefined char
+		// WHY: strict-boolean-expressions — handle empty explicitly
+		// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
+		if (ch !== "") visualColumn = calculateVisualWidth(ch, visualColumn);
 	}
 
 	if (visualColumn < targetVisualColumn) realColumn = currentLine.length;
@@ -42,8 +45,11 @@ export function calculateColumnPosition(
 function skipWhitespace(line: string, start: number): number {
 	let pos = start;
 	while (pos < line.length) {
-		const char = line[pos];
-		if (!char || !/\s/.test(char)) break;
+		const ch = line.charAt(pos);
+		// CHANGE: Avoid truthiness on possibly undefined char
+		// WHY: strict-boolean-expressions — explicit empty check
+		// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
+		if (ch === "" || !/\s/.test(ch)) break;
 		pos += 1;
 	}
 	return pos;
@@ -69,8 +75,11 @@ function calculateFunctionArgsEnd(
 }
 
 function calculateWordEnd(currentLine: string, startCol: number): number {
-	const charAtPos = currentLine[startCol];
-	if (!charAtPos || !/[a-zA-Z_$]/.test(charAtPos)) return startCol + 1;
+	const charAtPos = currentLine.charAt(startCol);
+	// CHANGE: Avoid truthiness on char; check empty explicitly
+	// WHY: strict-boolean-expressions
+	// REF: REQ-LINT-FIX
+	if (charAtPos === "" || !/[a-zA-Z_$]/.test(charAtPos)) return startCol + 1;
 
 	const remainingLine = currentLine.substring(startCol);
 	const wordMatch = remainingLine.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*/);
@@ -88,7 +97,14 @@ export function calculateHighlightRange(
 	const { source, message } = m;
 
 	let endCol: number;
-	if ("endColumn" in m && m.endColumn) {
+	// CHANGE: Avoid truthiness on numeric endColumn
+	// WHY: strict-boolean-expressions — explicit numeric guard
+	// REF: REQ-LINT-FIX
+	if (
+		"endColumn" in m &&
+		typeof m.endColumn === "number" &&
+		Number.isFinite(m.endColumn)
+	) {
 		endCol = Math.min(m.endColumn - 1, currentLine.length);
 	} else if (source === "typescript") {
 		if (message.includes("Expected") && message.includes("arguments")) {
@@ -111,17 +127,16 @@ export function printFileContext(
 	const { line, column } = m;
 	const start = Math.max(line - 3, 0);
 	const end = Math.min(line + 2, lines.length);
-	const diffLineNumbers = diffBlock
-		? new Set(diffBlock.headLineNumbers)
-		: new Set<number>();
+	const diffLineNumbers =
+		diffBlock !== null ? new Set(diffBlock.headLineNumbers) : new Set<number>();
 
 	for (let i = start; i < end; i += 1) {
-		const printedFromDiff = diffBlock && diffLineNumbers.has(i + 1);
+		const printedFromDiff = diffBlock !== null && diffLineNumbers.has(i + 1);
 		if (printedFromDiff) continue;
 
 		const prefix = i === line - 1 ? ">" : " ";
 		const num = String(i + 1).padStart(4);
-		const currentLine = lines[i] || "";
+		const currentLine = lines.at(i) ?? "";
 		const lineContent = ` ${prefix} ${num} | ${currentLine}`;
 		console.log(lineContent);
 
@@ -175,7 +190,10 @@ function categorizeDiffLines(
 
 	for (let i = startIdx; i < endIdx; i += 1) {
 		const line = lines[i];
-		if (!line || !line.symbol) continue;
+		// CHANGE: Avoid truthiness on possibly undefined line and symbol
+		// WHY: strict-boolean-expressions — explicit undefined checks
+		// REF: REQ-LINT-FIX
+		if (line === undefined || line.symbol === undefined) continue;
 
 		if (line.symbol === "-") removed.push(line);
 		else if (line.symbol === "+") added.push(line);
@@ -186,7 +204,10 @@ function categorizeDiffLines(
 }
 
 export function printCommitDiffSnippet(block: CommitDiffBlock): void {
-	if (!block.diffSnippet) return;
+	// CHANGE: Avoid truthiness on nullable diffSnippet
+	// WHY: strict-boolean-expressions — explicit null check
+	// REF: REQ-LINT-FIX
+	if (block.diffSnippet === null) return;
 
 	console.log(`    ${block.diffSnippet.header}`);
 

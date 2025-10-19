@@ -66,14 +66,31 @@ export function getPosition(
 		Math.max(0, message.line - 1),
 		Math.max(0, message.column - 1),
 	);
-	const end =
-		message.endLine && message.endColumn
-			? ts.getPositionOfLineAndCharacter(
-					sourceFile,
-					message.endLine - 1,
-					Math.max(0, message.endColumn - 1),
-				)
-			: start;
+	// CHANGE: Use explicit numeric guard for end position instead of truthiness
+	// WHY: strict-boolean-expressions — must handle nullish/zero/NaN explicitly; end positions are positive integers
+	// QUOTE(TЗ): "Исправить все ошибки линтера"
+	// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
+	// CHANGE: Use helper for end position validation to lower function complexity
+	// WHY: reduce cyclomatic complexity; keep strict checks centralized
+	// QUOTE(TЗ): "Исправить все ошибки линтера"
+	// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
+	const hasEndPosition = isValidEndPosition(message);
+	// CHANGE: Avoid referencing possibly undefined fields directly; compute via locals under guard
+	// WHY: TS flagged 'message.endLine'/'message.endColumn' possibly undefined even after boolean guard
+	// QUOTE(TЗ): "Исправить все ошибки линтера"
+	// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
+	let end: number;
+	if (hasEndPosition) {
+		const endLine: number = message.endLine ?? 0;
+		const endColumn: number = message.endColumn ?? 0;
+		end = ts.getPositionOfLineAndCharacter(
+			sourceFile,
+			endLine - 1,
+			Math.max(0, endColumn - 1),
+		);
+	} else {
+		end = start;
+	}
 	return { start, end };
 }
 
@@ -103,7 +120,11 @@ export function getDefinitionSymbols(
 		symbol0.getFlags() & ts.SymbolFlags.Alias
 			? checker.getAliasedSymbol(symbol0)
 			: symbol0;
-	return symbol ? [symbol] : [];
+	// CHANGE: Avoid object truthiness check; symbol is non-nullable here
+	// WHY: strict-boolean-expressions — object in conditional is always truthy; after the early return, symbol is a ts.Symbol
+	// QUOTE(TЗ): "Исправить все ошибки линтера"
+	// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
+	return [symbol];
 }
 
 /**
@@ -156,4 +177,29 @@ export function findDeclarationMessage(
 
 	if (!found) return null;
 	return { file: declFile, message: found };
+}
+
+/**
+ * Validates that endLine and endColumn are present and positive finite integers.
+ *
+ * @param msg Object possibly containing endLine/endColumn
+ * @returns Type predicate ensuring both fields are valid numbers
+ * @invariant endLine > 0 and endColumn > 0
+ */
+// CHANGE: Centralize end position validation
+// WHY: Maintain single source of truth and reduce getPosition complexity
+// QUOTE(TЗ): "Исправить все ошибки линтера"
+// REF: REQ-LINT-FIX
+export function isValidEndPosition(msg: {
+	endLine?: number;
+	endColumn?: number;
+}): msg is { endLine: number; endColumn: number } {
+	return (
+		typeof msg.endLine === "number" &&
+		typeof msg.endColumn === "number" &&
+		Number.isFinite(msg.endLine) &&
+		Number.isFinite(msg.endColumn) &&
+		msg.endLine > 0 &&
+		msg.endColumn > 0
+	);
 }

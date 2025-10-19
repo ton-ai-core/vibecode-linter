@@ -39,7 +39,11 @@ function refineHighlightRange(
 	const text = message.message;
 	const identMatch = text.match(/["']([A-Za-z0-9_$]+)["']/);
 	const identifier = identMatch?.[1];
-	if (identifier) {
+	// CHANGE: Avoid truthiness check on possibly undefined string
+	// WHY: strict-boolean-expressions — handle undefined explicitly
+	// QUOTE(ТЗ): "Исправить все ошибки линтера"
+	// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
+	if (identifier !== undefined) {
 		const foundIdx = content.indexOf(identifier);
 		if (foundIdx !== -1) {
 			return { start: foundIdx, end: foundIdx + identifier.length };
@@ -99,8 +103,13 @@ async function executeDiffAttempts(
 			diffOutput = stdout;
 		} catch (error) {
 			const execError = error as ExecError;
-			if (execError.stdout) {
-				diffOutput = execError.stdout;
+			// CHANGE: Avoid truthiness check on nullable string stdout
+			// WHY: strict-boolean-expressions — handle nullish/empty explicitly
+			// QUOTE(ТЗ): "Исправить все ошибки линтера"
+			// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
+			const out = typeof execError.stdout === "string" ? execError.stdout : "";
+			if (out.length > 0) {
+				diffOutput = out;
 			} else {
 				continue;
 			}
@@ -114,7 +123,7 @@ async function executeDiffAttempts(
 		descriptors.push(attempt.descriptor);
 
 		const pickResult = pickSnippetForLine(diffOutputs, targetLine);
-		if (pickResult) {
+		if (pickResult !== null) {
 			const descriptorIndex = pickResult.index;
 			const descriptor = descriptors[descriptorIndex] ?? attempt.descriptor;
 			return {
@@ -216,7 +225,11 @@ function formatDiffLines(
 	// Format only the relevant lines around the error
 	for (let i = start; i < end; i += 1) {
 		const line = snippet.lines[i];
-		if (!line) continue;
+		// CHANGE: Avoid truthiness check on possibly undefined element
+		// WHY: strict-boolean-expressions — handle undefined explicitly
+		// QUOTE(ТЗ): "Исправить все ошибки линтера"
+		// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
+		if (line === undefined) continue;
 
 		const lineNumber =
 			line.headLineNumber !== null
@@ -344,7 +357,7 @@ export async function getGitDiffBlock(
 	const attempts = createDiffAttempts(message, rangeConfig, normalizedContext);
 	const selection = await executeDiffAttempts(attempts, message.line);
 
-	if (!selection) {
+	if (selection === null) {
 		return null;
 	}
 
@@ -355,7 +368,7 @@ export async function getGitDiffBlock(
 	}
 
 	const pointerLine = snippet.lines[pointerIndex];
-	if (!pointerLine) {
+	if (pointerLine === undefined) {
 		return null;
 	}
 

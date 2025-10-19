@@ -46,7 +46,16 @@ export async function runESLintFix(targetPath: string): Promise<void> {
 		await execAsync(eslintCommand);
 		console.log(`✅ ESLint auto-fix completed`);
 	} catch (error) {
-		if (error && typeof error === "object" && "stdout" in error) {
+		// CHANGE: Robust stdout detection without using any/unknown
+		// WHY: strict-boolean-expressions — explicit object guards; .clinerules forbid any/unknown
+		// QUOTE(ТЗ): "Никогда не использовать any, unknown"
+		// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
+		let hasStdout = false;
+		if (typeof error === "object" && error !== null) {
+			const maybe = error as { stdout?: string };
+			hasStdout = typeof maybe.stdout === "string";
+		}
+		if (hasStdout) {
 			console.log(`✅ ESLint auto-fix completed with warnings`);
 		} else {
 			console.error(`❌ ESLint auto-fix failed:`, error);
@@ -88,7 +97,10 @@ export async function getESLintResults(
 		return JSON.parse(stdout) as ReadonlyArray<ESLintResult>;
 	} catch (error) {
 		const stdout = extractStdoutFromError(error as Error);
-		if (!stdout) {
+		// CHANGE: Avoid truthiness check on string
+		// WHY: strict-boolean-expressions — check type and length explicitly
+		// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
+		if (typeof stdout !== "string" || stdout.length === 0) {
 			throw error;
 		}
 		try {

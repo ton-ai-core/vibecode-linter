@@ -52,7 +52,20 @@ export async function runBiomeFix(targetPath: string): Promise<void> {
 		} catch (error) {
 			// Biome returns non-zero exit code when it finds issues, even if it fixes them
 			// This is expected behavior, continue to next pass
-			if (!(error && typeof error === "object" && "stdout" in error)) {
+			// CHANGE: Avoid using possibly-any in boolean context; compute explicit flag
+			// WHY: strict-boolean-expressions — require explicit checks
+			// QUOTE(ТЗ): "Исправить все ошибки линтера"
+			// REF: REQ-LINT-FIX
+			// CHANGE: Robust stdout detection without using unknown
+			// WHY: strict-boolean-expressions — explicit checks; .clinerules forbid 'unknown'
+			// QUOTE(ТЗ): "Никогда не использовать any, unknown"
+			// REF: REQ-LINT-FIX
+			let hasStdout = false;
+			if (typeof error === "object" && error !== null) {
+				const maybe = error as { stdout?: string };
+				hasStdout = typeof maybe.stdout === "string";
+			}
+			if (!hasStdout) {
 				console.error(`❌ Biome auto-fix failed:`, error);
 				break;
 			}
@@ -86,7 +99,10 @@ export async function getBiomeDiagnostics(
 		return parseBiomeOutput(stdout);
 	} catch (error) {
 		const stdout = extractStdoutFromError(error as Error);
-		if (!stdout) {
+		// CHANGE: Avoid truthiness check on string
+		// WHY: strict-boolean-expressions — check type and length explicitly
+		// REF: REQ-LINT-FIX
+		if (typeof stdout !== "string" || stdout.length === 0) {
 			console.error("❌ Biome diagnostics failed:", error);
 			return [];
 		}
@@ -140,7 +156,10 @@ async function getBiomeDiagnosticsPerFile(
 				allResults.push(...results);
 			} catch (fileError) {
 				const stdout = extractStdoutFromError(fileError as Error);
-				if (stdout) {
+				// CHANGE: Avoid truthiness check on string
+				// WHY: strict-boolean-expressions — check type and length explicitly
+				// REF: REQ-LINT-FIX
+				if (typeof stdout === "string" && stdout.length > 0) {
 					const results = parseBiomeOutput(stdout);
 					allResults.push(...results);
 				}
@@ -182,11 +201,14 @@ function parseMessageText(diagnostic: BiomeDiagnostic): string {
 		return diagnostic.description;
 	}
 
-	if (diagnostic.message) {
+	if (
+		Array.isArray(diagnostic.message) ||
+		typeof diagnostic.message === "string"
+	) {
 		if (Array.isArray(diagnostic.message)) {
 			return diagnostic.message
 				.map((m: string | BiomeMessagePart) =>
-					typeof m === "string" ? m : m.content || "",
+					typeof m === "string" ? m : (m.content ?? ""),
 				)
 				.join(" ");
 		}
@@ -195,7 +217,7 @@ function parseMessageText(diagnostic: BiomeDiagnostic): string {
 		}
 	}
 
-	if (diagnostic.title) {
+	if (typeof diagnostic.title === "string" && diagnostic.title.length > 0) {
 		return diagnostic.title;
 	}
 
@@ -317,7 +339,13 @@ function processDiagnostic(
 	diagnostic: BiomeDiagnostic,
 	results: BiomeResult[],
 ): void {
-	const filePath = diagnostic.location?.path?.file || "";
+	// CHANGE: Avoid truthiness fallback for file path
+	// WHY: strict-boolean-expressions — check type explicitly
+	// REF: REQ-LINT-FIX
+	const filePath =
+		typeof diagnostic.location?.path?.file === "string"
+			? diagnostic.location.path.file
+			: "";
 	const messageText = parseMessageText(diagnostic);
 	const { line, column, endLine, endColumn } = calculatePositions(
 		diagnostic,
@@ -326,9 +354,16 @@ function processDiagnostic(
 
 	const severityNumber = 2;
 	const resultMessage = {
-		ruleId: diagnostic.category || null,
+		// CHANGE: Avoid truthiness on possibly empty string
+		// WHY: strict-boolean-expressions — check string content explicitly
+		// REF: REQ-LINT-FIX
+		ruleId:
+			typeof diagnostic.category === "string" && diagnostic.category.length > 0
+				? diagnostic.category
+				: null,
 		severity: severityNumber,
-		message: messageText.trim() || "Biome diagnostic",
+		message:
+			messageText.trim().length > 0 ? messageText.trim() : "Biome diagnostic",
 		line,
 		column,
 		endLine,
@@ -360,7 +395,7 @@ function parseBiomeOutput(stdout: string): ReadonlyArray<BiomeResult> {
 		const biomeOutput = JSON.parse(stdout) as BiomeOutput;
 		const results: BiomeResult[] = [];
 
-		if (biomeOutput.diagnostics && Array.isArray(biomeOutput.diagnostics)) {
+		if (Array.isArray(biomeOutput.diagnostics)) {
 			for (const item of biomeOutput.diagnostics) {
 				const diagnostic = item as BiomeDiagnostic;
 				processDiagnostic(diagnostic, results);

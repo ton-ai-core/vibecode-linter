@@ -112,8 +112,12 @@ export function parseCLIArgs(): CLIOptions {
 	};
 
 	for (let i = 0; i < args.length; i++) {
-		const arg = args[i];
-		if (!arg) continue;
+		const arg: string = args.at(i) ?? "";
+		// CHANGE: Avoid truthiness check on string
+		// WHY: strict-boolean-expressions — handle empty string explicitly
+		// QUOTE(ТЗ): "Исправить все ошибки линтера"
+		// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
+		if (arg.length === 0) continue;
 
 		const result = processArgument(arg, args, i, state);
 		state = result;

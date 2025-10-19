@@ -38,7 +38,11 @@ function processDiffLine(
 		newHeadLine = headLine + 1;
 	}
 
-	const content = symbol ? line.slice(1) : line;
+	// CHANGE: Avoid truthiness check on nullable string `symbol`
+	// WHY: strict-boolean-expressions — handle undefined explicitly
+	// QUOTE(ТЗ): "Исправить все ошибки линтера"
+	// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
+	const content = symbol !== undefined ? line.slice(1) : line;
 	currentLines.push({
 		raw: line,
 		symbol: symbol as DiffLineView["symbol"],
@@ -190,8 +194,16 @@ export function pickSnippetForLine(
 	}
 
 	for (let i = 0; i < candidates.length; i += 1) {
-		const diff = candidates[i];
-		if (!diff || diff.trim().length === 0) {
+		// CHANGE: Avoid possibly-undefined indexed access under noUncheckedIndexedAccess
+		// WHY: candidates[i] has type string | undefined; normalize to string for safe use
+		// QUOTE(ТЗ): "Исправить все ошибки линтера"
+		// REF: REQ-LINT-FIX
+		const diff: string = candidates.at(i) ?? "";
+		// CHANGE: Avoid truthiness check on string `diff`
+		// WHY: strict-boolean-expressions — check length explicitly
+		// QUOTE(ТЗ): "Исправить все ошибки линтера"
+		// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
+		if (diff.trim().length === 0) {
 			continue;
 		}
 		const snippet = extractDiffSnippet(diff, targetLine);

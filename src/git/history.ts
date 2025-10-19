@@ -37,7 +37,11 @@ async function buildHistoryResult(
 			line,
 			relativePath,
 		);
-		if (!processed) {
+		// CHANGE: Avoid truthiness on nullable object
+		// WHY: strict-boolean-expressions — explicit null check
+		// QUOTE(ТЗ): "Исправить все ошибки линтера"
+		// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
+		if (processed === null) {
 			continue;
 		}
 
@@ -45,7 +49,11 @@ async function buildHistoryResult(
 			result.push(line);
 		}
 
-		if (!latestSnippet && processed.snippet) {
+		// CHANGE: Avoid truthiness checks on undefined values
+		// WHY: strict-boolean-expressions — check undefined explicitly
+		// QUOTE(ТЗ): "Исправить все ошибки линтера"
+		// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
+		if (latestSnippet === undefined && processed.snippet !== undefined) {
 			latestSnippet = processed.snippet;
 		}
 
@@ -74,8 +82,13 @@ export async function getGitHistoryBlock(
 		historyOutput = stdout;
 	} catch (error) {
 		const execError = error as ExecError;
-		if (execError.stdout) {
-			historyOutput = execError.stdout;
+		// CHANGE: Avoid truthiness on nullable string stdout
+		// WHY: strict-boolean-expressions — handle nullish/empty explicitly
+		// QUOTE(ТЗ): "Исправить все ошибки линтера"
+		// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
+		const out = typeof execError.stdout === "string" ? execError.stdout : "";
+		if (out.length > 0) {
+			historyOutput = out;
 		} else {
 			return null;
 		}
@@ -116,7 +129,11 @@ export async function getCommitDiffBlocks(
 	contextLines = 3,
 ): Promise<ReadonlyArray<CommitDiffBlock> | null> {
 	const commits = await fetchCommitHistoryForLine(filePath, line, limit);
-	if (!commits) return null;
+	// CHANGE: Avoid truthiness on nullable array
+	// WHY: strict-boolean-expressions — explicit null check
+	// QUOTE(ТЗ): "Исправить все ошибки линтера"
+	// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
+	if (commits === null) return null;
 
 	const relativePath = path
 		.relative(process.cwd(), filePath)
@@ -125,7 +142,11 @@ export async function getCommitDiffBlocks(
 	if (commits.length < 2) {
 		if (commits.length === 1) {
 			const creation = commits[0];
-			if (!creation) return null;
+			// CHANGE: Avoid truthiness on possibly undefined element
+			// WHY: strict-boolean-expressions — explicit undefined check
+			// QUOTE(ТЗ): "Исправить все ошибки линтера"
+			// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
+			if (creation === undefined) return null;
 			return handleSingleCommit(
 				creation,
 				filePath,

@@ -142,6 +142,7 @@ export default tseslint.config(
 			"@typescript-eslint/no-unnecessary-type-assertion": "error",
 			"@typescript-eslint/prefer-readonly": "error",
     		"@typescript-eslint/prefer-as-const": "error",
+			"@typescript-eslint/strict-boolean-expressions": "error",
 			"@typescript-eslint/ban-ts-comment": [
 				"error",
 				{

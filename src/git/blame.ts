@@ -34,7 +34,12 @@ async function executeBlameCommand(
 		return stdout;
 	} catch (error) {
 		const execError = error as ExecError;
-		return execError.stdout || null;
+		// CHANGE: Avoid truthiness on stdout; handle nullish/empty explicitly
+		// WHY: strict-boolean-expressions — nullable string
+		// QUOTE(ТЗ): "Исправить все ошибки линтера"
+		// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
+		const out = typeof execError.stdout === "string" ? execError.stdout : "";
+		return out.length > 0 ? out : null;
 	}
 }
 
@@ -50,6 +55,49 @@ interface BlameInfo {
 	readonly summary: string;
 }
 
+/**
+ * CHANGE: Extract helpers to reduce complexity of parseBlameOutput
+ * WHY: Keep parseBlameOutput under complexity threshold by delegating field extraction
+ * QUOTE(ТЗ): "Исправить все ошибки линтера"
+ * REF: REQ-LINT-FIX
+ */
+function findRowStarting(
+	rows: readonly string[],
+	prefix: string,
+): string | null {
+	const line = rows.find((row) => row.startsWith(prefix));
+	return typeof line === "string" && line.length > 0 ? line : null;
+}
+
+function extractAuthorFromRows(rows: readonly string[]): string {
+	const line = findRowStarting(rows, "author ");
+	// CHANGE: Avoid truthiness on nullable string
+	// WHY: strict-boolean-expressions — handle null explicitly
+	// QUOTE(ТЗ): "Исправить все ошибки линтера"
+	// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
+	return line !== null ? line.slice("author ".length).trim() : "unknown";
+}
+
+function extractEpochFromRows(rows: readonly string[]): number {
+	const line = findRowStarting(rows, "author-time ");
+	// CHANGE: Avoid truthiness on nullable string
+	// WHY: strict-boolean-expressions — handle null explicitly
+	// QUOTE(ТЗ): "Исправить все ошибки линтера"
+	// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
+	return line !== null
+		? Number.parseInt(line.slice("author-time ".length), 10)
+		: Number.NaN;
+}
+
+function extractSummaryFromRows(rows: readonly string[]): string {
+	const line = findRowStarting(rows, "summary ");
+	// CHANGE: Avoid truthiness on nullable string
+	// WHY: strict-boolean-expressions — handle null explicitly
+	// QUOTE(ТЗ): "Исправить все ошибки линтера"
+	// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
+	return line !== null ? line.slice("summary ".length).trim() : "(no summary)";
+}
+
 function parseBlameOutput(output: string): BlameInfo | null {
 	const trimmed = output.trim();
 	if (trimmed.length === 0) {
@@ -60,20 +108,9 @@ function parseBlameOutput(output: string): BlameInfo | null {
 	const headerTokens = rows[0]?.split(" ") ?? [];
 	const commitHash = headerTokens[0] ?? "";
 
-	const authorLine = rows.find((row) => row.startsWith("author "));
-	const author = authorLine
-		? authorLine.slice("author ".length).trim()
-		: "unknown";
-
-	const authorTimeLine = rows.find((row) => row.startsWith("author-time "));
-	const authorEpoch = authorTimeLine
-		? Number.parseInt(authorTimeLine.slice("author-time ".length), 10)
-		: Number.NaN;
-
-	const summaryLine = rows.find((row) => row.startsWith("summary "));
-	const summary = summaryLine
-		? summaryLine.slice("summary ".length).trim()
-		: "(no summary)";
+	const author = extractAuthorFromRows(rows);
+	const authorEpoch = extractEpochFromRows(rows);
+	const summary = extractSummaryFromRows(rows);
 
 	return { commitHash, author, authorEpoch, summary };
 }
@@ -156,7 +193,11 @@ export async function getGitBlameBlock(
 	const endLine = line + contextSize;
 
 	const blameOutput = await executeBlameCommand(filePath, startLine, endLine);
-	if (!blameOutput) {
+	// CHANGE: Avoid truthiness on nullable string
+	// WHY: strict-boolean-expressions — handle nullish/empty explicitly
+	// QUOTE(ТЗ): "Исправить все ошибки линтера"
+	// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
+	if (blameOutput === null || blameOutput.length === 0) {
 		return null;
 	}
 

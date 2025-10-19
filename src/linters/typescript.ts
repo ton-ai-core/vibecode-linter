@@ -38,9 +38,22 @@ function parseTypeScriptErrorLine(line: string): TypeScriptMessage | null {
 		return null;
 	}
 
-	const [, filePath, lineStr, colStr, , code, message] = match;
+	// CHANGE: Avoid destructuring to possibly undefined groups; normalize explicitly
+	// WHY: noUncheckedIndexedAccess + strict types — groups may be undefined
+	// QUOTE(ТЗ): "Исправить все ошибки линтера"
+	// REF: REQ-LINT-FIX
+	const filePath = match[1] ?? "";
+	const lineStr = match[2] ?? "";
+	const colStr = match[3] ?? "";
+	const code = match[5] ?? "";
+	const message = match[6] ?? "";
 
-	if (!filePath || !lineStr || !colStr || !code || !message) {
+	// CHANGE: Replace multiple string emptiness checks with aggregate predicate
+	// WHY: Reduce cyclomatic complexity per rule threshold while preserving invariants
+	// QUOTE(ТЗ): "Исправить все ошибки линтера"
+	// REF: REQ-LINT-FIX, ESLint complexity
+	const fields = [filePath, lineStr, colStr, code, message];
+	if (fields.some((f) => f.length === 0)) {
 		return null;
 	}
 
@@ -96,12 +109,19 @@ export async function getTypeScriptDiagnostics(
 		await execAsync(command);
 		return [];
 	} catch (error) {
-		if (!error || typeof error !== "object" || !("stdout" in error)) {
+		// CHANGE: Explicitly check for stdout without using any/unknown
+		// WHY: strict-boolean-expressions + .clinerules forbid any/unknown
+		// REF: REQ-LINT-FIX
+		const hasStdout =
+			typeof error === "object" &&
+			error !== null &&
+			"stdout" in (error as { stdout?: string });
+		if (!hasStdout) {
 			return [];
 		}
 
 		const stdout = (error as ExecError).stdout;
-		if (!stdout) {
+		if (typeof stdout !== "string" || stdout.length === 0) {
 			return [];
 		}
 

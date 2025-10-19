@@ -238,9 +238,14 @@ export async function printMessage(
 
 	if (source === "biome") {
 		const biomeRuleId = "ruleId" in m ? m.ruleId : null;
-		if (biomeRuleId)
+		// CHANGE: Avoid truthiness check on possibly nullable string
+		// WHY: strict-boolean-expressions — require explicit nullish/empty handling
+		// QUOTE(ТЗ): "Исправить все ошибки линтера"
+		// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
+		if (typeof biomeRuleId === "string" && biomeRuleId.length > 0) {
 			console.log(
 				`   📖 docs: https://biomejs.dev/linter/rules/${biomeRuleId}`,
 			);
+		}
 	}
 }

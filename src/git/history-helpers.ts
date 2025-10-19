@@ -48,16 +48,24 @@ function extractCommitBasicInfo(lines: readonly string[]): {
 	summary: string;
 } | null {
 	const commitLine = lines.find((row) => row.startsWith("commit "));
-	if (!commitLine) return null;
+	// CHANGE: Avoid truthiness on possibly undefined string
+	// WHY: strict-boolean-expressions — explicit undefined check
+	// QUOTE(ТЗ): "Исправить все ошибки линтера"
+	// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
+	if (commitLine === undefined) return null;
 
 	const hash = commitLine.slice("commit ".length).trim();
 	const shortHash = hash.slice(0, 12);
 	const dateLine = lines.find((row) => row.startsWith("Date:"));
-	const date = dateLine
-		? (dateLine.slice("Date:".length).trim().split(" ")[0] ?? "unknown-date")
-		: "unknown-date";
+	const date =
+		typeof dateLine === "string" && dateLine.length > 0
+			? (dateLine.slice("Date:".length).trim().split(" ")[0] ?? "unknown-date")
+			: "unknown-date";
 	const messageLine = lines.find((row) => row.startsWith("    "));
-	const summaryRaw = messageLine ? messageLine.trim() : "(no subject)";
+	const summaryRaw =
+		typeof messageLine === "string" && messageLine.length > 0
+			? messageLine.trim()
+			: "(no subject)";
 	const summary =
 		summaryRaw.length > 100 ? `${summaryRaw.slice(0, 97)}...` : summaryRaw;
 
@@ -75,10 +83,19 @@ export async function processCommitSegment(
 } | null> {
 	const lines = segment.split(/\r?\n/u);
 	const info = extractCommitBasicInfo(lines);
-	if (!info) return null;
+	// CHANGE: Avoid truthiness on nullable object
+	// WHY: strict-boolean-expressions — explicit null check
+	// QUOTE(ТЗ): "Исправить все ошибки линтера"
+	// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
+	if (info === null) return null;
 
 	const snippet = await getCommitSnippetForLine(info.hash, filePath, line, 2);
-	const snippetLines = snippet && snippet.length > 0 ? snippet : undefined;
+	// CHANGE: Avoid truthiness on nullable array
+	// WHY: strict-boolean-expressions — check null and length explicitly
+	// QUOTE(ТЗ): "Исправить все ошибки линтера"
+	// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
+	const snippetLines =
+		snippet !== null && snippet.length > 0 ? snippet : undefined;
 
 	const resultLines: string[] = [];
 	resultLines.push(
@@ -87,7 +104,7 @@ export async function processCommitSegment(
 	resultLines.push(`summary: ${info.summary}`);
 	resultLines.push(`git show ${info.shortHash} -- ${relativePath} | cat`);
 
-	if (snippetLines) {
+	if (snippetLines !== undefined) {
 		for (const snippetLine of snippetLines) {
 			resultLines.push(snippetLine);
 		}
@@ -100,29 +117,54 @@ export async function processCommitSegment(
 
 function extractAuthor(lines: readonly string[]): string {
 	const authorLine = lines.find((row) => row.startsWith("Author:"));
-	return authorLine
-		? (authorLine.slice("Author:".length).trim().split("<")[0]?.trim() ??
-				"unknown")
-		: "unknown";
+	// CHANGE: Avoid truthiness on possibly undefined string
+	// WHY: strict-boolean-expressions — explicit nullish/empty handling
+	// QUOTE(ТЗ): "Исправить все ошибки линтера"
+	// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
+	if (typeof authorLine === "string" && authorLine.length > 0) {
+		return (
+			authorLine.slice("Author:".length).trim().split("<")[0]?.trim() ??
+			"unknown"
+		);
+	}
+	return "unknown";
 }
 
 function extractDate(lines: readonly string[]): string {
 	const dateLine = lines.find((row) => row.startsWith("Date:"));
-	return dateLine
-		? (dateLine.slice("Date:".length).trim().split(" ")[0] ?? "unknown-date")
-		: "unknown-date";
+	// CHANGE: Avoid truthiness on possibly undefined string
+	// WHY: strict-boolean-expressions — explicit nullish/empty handling
+	// QUOTE(ТЗ): "Исправить все ошибки линтера"
+	// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
+	if (typeof dateLine === "string" && dateLine.length > 0) {
+		return (
+			dateLine.slice("Date:".length).trim().split(" ")[0] ?? "unknown-date"
+		);
+	}
+	return "unknown-date";
 }
 
 function extractSummary(lines: readonly string[]): string {
 	const messageLine = lines.find((row) => row.startsWith("    "));
-	const summaryRaw = messageLine ? messageLine.trim() : "(no subject)";
+	// CHANGE: Avoid truthiness on possibly undefined string
+	// WHY: strict-boolean-expressions — explicit nullish/empty handling
+	// QUOTE(ТЗ): "Исправить все ошибки линтера"
+	// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
+	const summaryRaw =
+		typeof messageLine === "string" && messageLine.length > 0
+			? messageLine.trim()
+			: "(no subject)";
 	return summaryRaw.length > 80 ? `${summaryRaw.slice(0, 77)}...` : summaryRaw;
 }
 
 export function parseCommitInfo(segment: string): CommitInfo | null {
 	const lines = segment.split(/\r?\n/u);
 	const commitLine = lines.find((row) => row.startsWith("commit "));
-	if (!commitLine) return null;
+	// CHANGE: Avoid truthiness on possibly undefined string
+	// WHY: strict-boolean-expressions — explicit undefined check
+	// QUOTE(ТЗ): "Исправить все ошибки линтера"
+	// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
+	if (commitLine === undefined) return null;
 
 	const hash = commitLine.slice("commit ".length).trim();
 	const shortHash = hash.slice(0, 12);
@@ -146,8 +188,13 @@ export async function fetchCommitHistoryForLine(
 		historyOutput = stdout;
 	} catch (error) {
 		const execError = error as ExecError;
-		if (execError.stdout) {
-			historyOutput = execError.stdout;
+		// CHANGE: Avoid truthiness on nullable string stdout
+		// WHY: strict-boolean-expressions — handle nullish/empty explicitly
+		// QUOTE(ТЗ): "Исправить все ошибки линтера"
+		// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
+		const out = typeof execError.stdout === "string" ? execError.stdout : "";
+		if (out.length > 0) {
+			historyOutput = out;
 		} else {
 			return null;
 		}
@@ -160,7 +207,11 @@ export async function fetchCommitHistoryForLine(
 	const commits: CommitInfo[] = [];
 	for (const segment of segments.slice(0, limit + 1)) {
 		const commitInfo = parseCommitInfo(segment);
-		if (commitInfo) commits.push(commitInfo);
+		// CHANGE: Avoid truthiness on nullable object
+		// WHY: strict-boolean-expressions — explicit null check
+		// QUOTE(ТЗ): "Исправить все ошибки линтера"
+		// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
+		if (commitInfo !== null) commits.push(commitInfo);
 	}
 
 	return commits;
@@ -182,8 +233,13 @@ export async function handleSingleCommit(
 		diffOutput = stdout;
 	} catch (error) {
 		const execError = error as ExecError;
-		if (execError.stdout) {
-			diffOutput = execError.stdout;
+		// CHANGE: Avoid truthiness on nullable string stdout
+		// WHY: strict-boolean-expressions — handle nullish/empty explicitly
+		// QUOTE(ТЗ): "Исправить все ошибки линтера"
+		// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
+		const out = typeof execError.stdout === "string" ? execError.stdout : "";
+		if (out.length > 0) {
+			diffOutput = out;
 		}
 	}
 
@@ -219,7 +275,11 @@ export async function buildDiffBlocks(
 	for (let i = 0; i < Math.min(commits.length - 1, limit); i += 1) {
 		const newer = commits[i];
 		const older = commits[i + 1];
-		if (!newer || !older) continue;
+		// CHANGE: Avoid truthiness on possibly undefined entries
+		// WHY: strict-boolean-expressions — handle undefined explicitly
+		// QUOTE(ТЗ): "Исправить все ошибки линтера"
+		// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
+		if (newer === undefined || older === undefined) continue;
 
 		const diffCommand = `git diff --unified=${contextLines} ${older.hash}..${newer.hash} -- "${fileInfo.path}"`;
 		let diffOutput = "";
@@ -229,8 +289,13 @@ export async function buildDiffBlocks(
 			diffOutput = stdout;
 		} catch (error) {
 			const execError = error as ExecError;
-			if (execError.stdout) {
-				diffOutput = execError.stdout;
+			// CHANGE: Avoid truthiness on nullable string stdout
+			// WHY: strict-boolean-expressions — handle nullish/empty explicitly
+			// QUOTE(ТЗ): "Исправить все ошибки линтера"
+			// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
+			const out = typeof execError.stdout === "string" ? execError.stdout : "";
+			if (out.length > 0) {
+				diffOutput = out;
 			}
 		}
 
