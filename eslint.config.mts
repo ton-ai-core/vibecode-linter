@@ -19,13 +19,15 @@ export default tseslint.config(
 	// Игноры
 	{
 		ignores: [
-			"dist",
+			"dist/**",
 			"build/**",
 			".api",
 			"*.json",
 			"*.yml",
 			"*.yaml",
-			"lint.ts",
+			"*.config.js",
+			"*.config.ts",
+			"reports/**",
 		],
 	},
 
@@ -63,7 +65,10 @@ export default tseslint.config(
 		settings: {
 			// Резолверы для import-x: TS-алиасы + node:* core-модули
 			"import-x/resolver": {
-				typescript: { alwaysTryTypes: true },
+				typescript: { 
+					alwaysTryTypes: true, 
+					project: './tsconfig.json'
+			    },
 				node: {
 					extensions: [".ts", ".tsx", ".d.ts", ".js", ".jsx", ".json", ".node"],
 					preferBuiltins: true,
@@ -102,16 +107,41 @@ export default tseslint.config(
 					skipComments: true,
 				},
 			],
+			'import-x/no-cycle': ['error', { maxDepth: 10 }], // maxDepth - ограничение глубины поиска цикла
+			'no-restricted-imports': ['error', {
+			"patterns": [
+				// Запрет прямых импортов из domain в UI (пример)
+				"src/domain/**"
+			],
+			"paths": [
+				// Доп. наглядное правило с сообщением
+				{ "name": "src/domain", "message": "Domain layer must not be imported by UI layer. Use domain/public-api instead."}
+			]
+			}],
 			// TS строгие правила
-			"@typescript-eslint/no-unused-vars": "off",
+			"@typescript-eslint/no-unused-vars": [
+				"error",
+				{
+				  "argsIgnorePattern": "^_",
+				  "varsIgnorePattern": "^_"
+				}
+			  ],
 			"@typescript-eslint/no-explicit-any": "error",
 			"@typescript-eslint/no-unused-expressions": "error",
 			"@typescript-eslint/explicit-function-return-type": "error",
+			"@typescript-eslint/explicit-module-boundary-types": "error",
 			"@typescript-eslint/no-unsafe-assignment": "error",
 			"@typescript-eslint/no-unsafe-member-access": "error",
 			"@typescript-eslint/no-unsafe-call": "error",
 			"@typescript-eslint/no-unsafe-return": "error",
 			"@typescript-eslint/switch-exhaustiveness-check": "error",
+			"@typescript-eslint/no-floating-promises": "error",
+			"@typescript-eslint/await-thenable": "error",
+			"@typescript-eslint/no-misused-promises": "error",
+			"@typescript-eslint/require-await": "error",
+			"@typescript-eslint/no-unnecessary-type-assertion": "error",
+			"@typescript-eslint/prefer-readonly": "error",
+    		"@typescript-eslint/prefer-as-const": "error",
 			"@typescript-eslint/ban-ts-comment": [
 				"error",
 				{
@@ -214,15 +244,7 @@ export default tseslint.config(
 
 			// Чистка мусора
 			"unused-imports/no-unused-imports": "error",
-			"unused-imports/no-unused-vars": [
-				"error",
-				{
-					vars: "all",
-					varsIgnorePattern: "^_",
-					args: "after-used",
-					argsIgnorePattern: "^_",
-				},
-			],
+			"unused-imports/no-unused-vars": "off",
 
 			// Промисы
 			"promise/param-names": "error",
