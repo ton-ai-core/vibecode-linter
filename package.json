@@ -20,11 +20,12 @@
 	},
 	"homepage": "https://github.com/ton-ai-core/vibecode-linter#readme",
 	"scripts": {
-		"build": "tsc",
+		"build": "tsc -p tsconfig.src.json",
 		"prepack": "npm run build",
 		"prepublishOnly": "npm run build",
 		"release": "npm run build && npm run lint && npm version patch && npm publish --access public",
-		"lint": "npx tsx src/main.ts src/"
+		"lint": "npx tsx src/main.ts src/",
+		"test": "npx tsx src/main.ts test/ && jest"
 	},
 	"keywords": [
 		"linter",
@@ -43,13 +44,13 @@
 		"access": "public"
 	},
 	"dependencies": {
-		"jscpd": "^3.5.10",
-		"jscpd-sarif-reporter": "^4.0.3",
 		"ajv": "^8.17.1",
-		"jiti": "^2.5.1"
+		"jiti": "^2.5.1",
+		"jscpd": "^3.5.10",
+		"jscpd-sarif-reporter": "^4.0.3"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "2.2.4",
+		"@biomejs/biome": "^2.2.6",
 		"@eslint-community/eslint-plugin-eslint-comments": "^4.5.0",
 		"@eslint/js": "^9.35.0",
 		"@ton-ai-core/eslint-plugin-suggest-members": "^1.6.4",

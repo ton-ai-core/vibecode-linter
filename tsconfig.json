@@ -1,60 +1,12 @@
 {
-	"compilerOptions": {
-		// CHANGE: Strict type checking enabled
-		// WHY: Required by .clinerules to avoid any/unknown
-		// QUOTE(TЗ): "Никогда не использовать any, unknown"
-		// REF: REQ-001
-		"strict": true,
-		"noImplicitAny": true,
-		"strictNullChecks": true,
-		"strictFunctionTypes": true,
-		"strictBindCallApply": true,
-		"strictPropertyInitialization": true,
-		"noImplicitThis": true,
-		"alwaysStrict": true,
-
-		// Additional strict checks
-		"noUnusedLocals": true,
-		"noUnusedParameters": true,
-		"noImplicitReturns": true,
-		"noFallthroughCasesInSwitch": true,
-		"noUncheckedIndexedAccess": true,
-		"noImplicitOverride": true,
-		"noPropertyAccessFromIndexSignature": true,
-		"allowUnusedLabels": false,
-		"allowUnreachableCode": false,
-
-		// Module settings for CommonJS
-		// CHANGE: Use CommonJS for better npx compatibility
-		// WHY: npx works better with CommonJS modules than ESM
-		// QUOTE(USER): "можем ли мы изменить на commonjs?"
-		// REF: REQ-NPX-COMPATIBILITY
-		"target": "ES2022",
-		"module": "CommonJS",
-		"moduleResolution": "node",
-		"esModuleInterop": true,
-		"allowSyntheticDefaultImports": true,
-		"resolveJsonModule": true,
-		"isolatedModules": true,
-
-		// Output settings
-		"outDir": "./dist",
-		"rootDir": "./src",
-		"declaration": true,
-		"declarationMap": true,
-		"sourceMap": true,
-		"removeComments": false,
-
-		// Type checking
-		"skipLibCheck": true,
-		"forceConsistentCasingInFileNames": true,
-
-		// Path mapping
-		"baseUrl": ".",
-		"paths": {
-			"@/*": ["src/*"]
-		}
-	},
-	"include": ["src/**/*"],
-	"exclude": ["node_modules", "dist", "test", "**/*.test.ts", "**/*.spec.ts"]
+  // CHANGE: Convert root tsconfig to solution-style with project references (src + test)
+  // WHY: Senior practice — a single canonical tsconfig for tools (ESLint), with isolated build profile
+  // QUOTE(ТЗ): "Давать проверяемые решения через формализацию и строгую типизацию"
+  // REF: REQ-TS-SOLUTION-STYLE
+  "extends": "./tsconfig.base.json",
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.src.json" },
+    { "path": "./tsconfig.test.json" }
+  ]
 }

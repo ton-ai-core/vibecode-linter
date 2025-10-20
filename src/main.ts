@@ -1,10 +1,12 @@
 #!/usr/bin/env node
+
 // CHANGE: Main coordination logic extracted from lint.ts
 // WHY: Separation of CLI entry point from business logic
 // QUOTE(ТЗ): "Разбить lint.ts на подфайлы, каждый файл желательно должен быть не больше 300 строчек кода"
 // REF: REQ-20250210-MODULAR-ARCH
 // SOURCE: lint.ts main logic
 
+import { checkAndReportPreflight } from "./analysis/preflight";
 import { loadLinterConfig, parseCLIArgs } from "./config/index";
 import {
 	getBiomeDiagnostics,
@@ -100,6 +102,59 @@ function handleDuplicates(
 	return hasDuplicates;
 }
 
+// CHANGE: Extract helper to perform preflight and optionally suggest fixes
+// WHY: Reduce main() complexity by moving branching logic out
+// QUOTE(LINT): "Function has a complexity of 12. Maximum allowed is 8"
+// REF: ESLint complexity
+// SOURCE: n/a
+function maybeExitOnPreflight(
+	cliOptions: ReturnType<typeof parseCLIArgs>,
+): void {
+	if (cliOptions.noPreflight) return;
+	const pre = checkAndReportPreflight(process.cwd());
+	if (!pre.ok) {
+		// Optional aggregated remediation if user asked for it
+		if (cliOptions.fixPeers) {
+			const needsTs = pre.issues.includes("missingTypescript");
+			const needsBiome = pre.issues.includes("missingBiome");
+			const pkgs: string[] = [];
+			if (needsTs) pkgs.push("typescript");
+			if (needsBiome) pkgs.push("@biomejs/biome");
+			if (pkgs.length > 0) {
+				console.error("Suggested install command:");
+				console.error(`  npm install --save-dev ${pkgs.join(" ")}`);
+			}
+		}
+		process.exit(1);
+	}
+}
+
+// CHANGE: Extract helper to enforce presence of generic CLI tools
+// WHY: Keep main() linear and readable
+// QUOTE(LINT): "Function has a complexity of 12. Maximum allowed is 8"
+// REF: ESLint complexity
+// SOURCE: n/a
+async function ensureCLIDependenciesOrExit(): Promise<void> {
+	const depCheck = await checkDependencies();
+	if (!depCheck.allAvailable) {
+		reportMissingDependencies(depCheck.missing);
+		process.exit(1);
+	}
+}
+
+// CHANGE: Extract helper to optionally run auto-fixes
+// WHY: Reduce branching in main()
+// QUOTE(LINT): "Function has a complexity of 12. Maximum allowed is 8"
+// REF: ESLint complexity
+// SOURCE: n/a
+async function maybeRunAutoFix(
+	targetPath: string,
+	noFix: boolean,
+): Promise<void> {
+	if (noFix) return;
+	await Promise.all([runESLintFix(targetPath), runBiomeFix(targetPath)]);
+}
+
 /**
  * Главная функция линтера.
  *
@@ -110,21 +165,25 @@ function handleDuplicates(
  * SOURCE: n/a
  */
 export async function main(): Promise<void> {
-	const depCheck = await checkDependencies();
-	if (!depCheck.allAvailable) {
-		reportMissingDependencies(depCheck.missing);
-		process.exit(1);
-	}
-
 	const cliOptions = parseCLIArgs();
+
+	// CHANGE: Pre-run environment validation extracted to helper
+	// WHY: Reduce cyclomatic complexity of main()
+	// QUOTE(LINT): "Function has a complexity of 12. Maximum allowed is 8"
+	// REF: ESLint complexity
+	maybeExitOnPreflight(cliOptions);
+
+	// CHANGE: Generic CLI dependency check extracted
+	// WHY: Keep main() linear and readable
+	// QUOTE(LINT): "Function has a complexity of 12. Maximum allowed is 8"
+	// REF: ESLint complexity
+	await ensureCLIDependenciesOrExit();
+
 	console.log(`🔍 Linting directory: ${cliOptions.targetPath}`);
 
-	if (!cliOptions.noFix) {
-		await Promise.all([
-			runESLintFix(cliOptions.targetPath),
-			runBiomeFix(cliOptions.targetPath),
-		]);
-	}
+	// CHANGE: Optional auto-fix execution extracted
+	// WHY: Reduce branching in main()
+	await maybeRunAutoFix(cliOptions.targetPath, cliOptions.noFix);
 
 	const allMessages = await collectLintMessages(cliOptions.targetPath);
 	const sarifPath = await generateSarifReport();

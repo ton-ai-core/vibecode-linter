@@ -41,6 +41,8 @@ export interface CLIOptions {
 	readonly width: number;
 	readonly context?: number;
 	readonly noFix: boolean;
+	readonly noPreflight: boolean;
+	readonly fixPeers: boolean;
 }
 
 /**

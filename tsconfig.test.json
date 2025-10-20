@@ -1,0 +1,15 @@
+{
+  // CHANGE: Solution-style test config (noEmit) for test/**/*.ts
+  // WHY: Senior practice — separate test profile; ESLint can use root references; tsc build remains isolated to src
+  // QUOTE(ТЗ): "Давать проверяемые решения через формализацию и строгую типизацию"
+  // REF: REQ-TS-SOLUTION-STYLE
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": ["test/**/*.ts"],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
+}

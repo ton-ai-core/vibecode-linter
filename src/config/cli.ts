@@ -16,6 +16,8 @@ interface ArgProcessResult {
 	readonly width: number;
 	readonly context: number | undefined;
 	readonly noFix: boolean;
+	readonly noPreflight: boolean;
+	readonly fixPeers: boolean;
 	readonly targetPath: string;
 	readonly skipNext: boolean;
 }
@@ -70,9 +72,23 @@ function processArgument(
 		if (result) return result;
 	}
 
-	// Handle boolean flag
+	// Handle boolean flags
 	if (arg === "--no-fix") {
 		return { ...current, noFix: true, skipNext: false };
+	}
+	if (arg === "--no-preflight") {
+		// CHANGE: Add --no-preflight flag to bypass environment checks
+		// WHY: Allow CI or advanced users to skip preflight explicitly
+		// QUOTE(ТЗ): "Добавить CLI флаги"
+		// REF: REQ-CLI-PREFLIGHT-PEERS
+		return { ...current, noPreflight: true, skipNext: false };
+	}
+	if (arg === "--fix-peers") {
+		// CHANGE: Add --fix-peers flag to print suggested install commands for missing peers
+		// WHY: Provide actionable remediation guidance
+		// QUOTE(ТЗ): "Писать внятно что необходимо сделать"
+		// REF: REQ-CLI-PREFLIGHT-PEERS
+		return { ...current, fixPeers: true, skipNext: false };
 	}
 
 	// Handle positional argument
@@ -109,6 +125,8 @@ export function parseCLIArgs(): CLIOptions {
 		width: process.stdout.columns || 120,
 		context: undefined,
 		noFix: false,
+		noPreflight: false,
+		fixPeers: false,
 	};
 
 	for (let i = 0; i < args.length; i++) {
