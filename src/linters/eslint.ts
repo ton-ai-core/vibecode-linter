@@ -32,16 +32,10 @@ export type ESLintResult = LintResult;
 export async function runESLintFix(targetPath: string): Promise<void> {
 	console.log(`🔧 Running ESLint auto-fix on: ${targetPath}`);
 	try {
-		// CHANGE: Special handling for DatabaseManager with functional rules disabled
-		// WHY: TypeORM relies on an imperative model with state mutations
-		// QUOTE(SPEC): "TypeORM requires an imperative approach with state mutations"
-		// REF: linter-error
-		// SOURCE: TypeORM documentation
-		const isManagerFile =
-			targetPath.includes("manager.ts") || targetPath.includes("src/db");
-		const eslintCommand = isManagerFile
-			? `npx eslint "${targetPath}" --ext .ts,.tsx --fix --fix-type directive,problem,suggestion,layout --rule "functional/immutable-data: off" --rule "functional/no-try-statements: off" --rule "functional/functional-parameters: off" --rule "@eslint-community/eslint-comments/no-use: off"`
-			: `npx eslint "${targetPath}" --ext .ts,.tsx --fix --fix-type directive,problem,suggestion,layout`;
+		// CHANGE: Removed special handling for manager files
+		// WHY: Unnecessary conditional logic removed per user request
+		// REF: user-request-remove-manager-check
+		const eslintCommand = `npx eslint "${targetPath}" --ext .ts,.tsx --fix --fix-type directive,problem,suggestion,layout`;
 
 		await execAsync(eslintCommand);
 		console.log(`✅ ESLint auto-fix completed`);
@@ -76,16 +70,10 @@ export async function getESLintResults(
 		// QUOTE(SPEC): "Failed to parse ESLint output. Parse error: SyntaxError: Unterminated string in JSON"
 		// REF: user-msg-fix-json-parse-error
 		// SOURCE: n/a
-		// CHANGE: Special handling for DatabaseManager with functional rules disabled
-		// WHY: TypeORM expects an imperative style with state mutations
-		// QUOTE(SPEC): "TypeORM is ORM library requiring imperative approach with state mutations"
-		// REF: linter-error
-		// SOURCE: TypeORM documentation
-		const isManagerFile =
-			targetPath.includes("manager.ts") || targetPath.includes("src/db");
-		const eslintCommand = isManagerFile
-			? `npx eslint "${targetPath}" --ext .ts,.tsx --format json --rule "functional/immutable-data: off" --rule "functional/no-try-statements: off" --rule "functional/functional-parameters: off" --rule "@eslint-community/eslint-comments/no-use: off"`
-			: `npx eslint "${targetPath}" --ext .ts,.tsx --format json`;
+		// CHANGE: Removed special handling for manager files
+		// WHY: Unnecessary conditional logic removed per user request
+		// REF: user-request-remove-manager-check
+		const eslintCommand = `npx eslint "${targetPath}" --ext .ts,.tsx --format json`;
 
 		const { stdout } = await execAsync(eslintCommand, {
 			maxBuffer: 10 * 1024 * 1024,
