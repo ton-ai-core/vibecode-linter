@@ -42,3 +42,10 @@ yarn-error.log*
 *.tmp
 *.temp
 .cache/
+
+# TypeScript incremental build metadata
+# CHANGE: Ignore .tsbuildinfo files to avoid dirty working tree on release
+# WHY: tsc with composite/incremental writes .tsbuildinfo; we now route it to dist/.tsbuildinfo
+# REF: tsconfig.src.json "tsBuildInfoFile"
+*.tsbuildinfo
+dist/.tsbuildinfo
