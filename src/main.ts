@@ -186,7 +186,7 @@ export async function main(): Promise<void> {
 	await maybeRunAutoFix(cliOptions.targetPath, cliOptions.noFix);
 
 	const allMessages = await collectLintMessages(cliOptions.targetPath);
-	const sarifPath = await generateSarifReport();
+	const sarifPath = await generateSarifReport(cliOptions.targetPath);
 
 	const config = loadLinterConfig();
 	const hasLintErrors = await processResults(allMessages, config, cliOptions);

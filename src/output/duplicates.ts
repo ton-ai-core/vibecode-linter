@@ -13,36 +13,97 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { promisify } from "node:util";
 
-import type { DuplicateInfo, SarifReport } from "../types/index";
+import type {
+	DuplicateInfo,
+	SarifLocation,
+	SarifReport,
+	SarifResult,
+} from "../types/index";
 
 const execAsync = promisify(exec);
+
+// CHANGE: Ensure reports directories exist
+// WHY: Remove duplication and reduce complexity in generateSarifReport
+// QUOTE(ТЗ): "Любое решение строится на инвариантах"
+// REF: REQ-DUP-SARIF-OUT
+function ensureReportsDir(): string {
+	const base = "reports";
+	const dir = path.join(base, "jscpd");
+	if (!fs.existsSync(base)) {
+		fs.mkdirSync(base);
+	}
+	if (!fs.existsSync(dir)) {
+		fs.mkdirSync(dir);
+	}
+	return dir;
+}
+
+// CHANGE: Discover SARIF artifact name in a robust way
+// WHY: Different reporter versions may produce different filenames
+// QUOTE(ТЗ): "Решение должно быть устойчивым к версиям инструмента"
+// REF: REQ-DUP-SARIF-OUT
+function discoverSarifArtifact(reportsDir: string): string {
+	const candidates: ReadonlyArray<string> = [
+		path.join(reportsDir, "jscpd-sarif.json"),
+		path.join(reportsDir, "jscpd-report.sarif"),
+		path.join(reportsDir, "report.sarif"),
+	];
+
+	for (const c of candidates) {
+		if (fs.existsSync(c)) {
+			return c;
+		}
+	}
+
+	try {
+		const files = fs.readdirSync(reportsDir);
+		const sarifFile =
+			files.find((f) => f.toLowerCase().endsWith(".sarif")) ??
+			files.find((f) => f.toLowerCase().endsWith(".json"));
+		if (sarifFile !== undefined) {
+			return path.join(reportsDir, sarifFile);
+		}
+	} catch {
+		// ignore
+	}
+
+	// Default legacy path (may not exist)
+	return path.join(reportsDir, "jscpd-sarif.json");
+}
 
 /**
  * Генерирует SARIF отчет с помощью jscpd.
  *
  * @returns Путь к сгенерированному SARIF файлу
  */
-export async function generateSarifReport(): Promise<string> {
-	// Generate SARIF report using jscpd
-	const reportsDir = "reports/jscpd";
-	const sarifPath = path.join(reportsDir, "jscpd-sarif.json");
-
-	// Ensure reports directory exists
-	if (!fs.existsSync("reports")) {
-		fs.mkdirSync("reports");
-	}
-	if (!fs.existsSync(reportsDir)) {
-		fs.mkdirSync(reportsDir);
-	}
+/**
+ * Генерирует SARIF отчет с помощью jscpd для заданного пути.
+ *
+ * Инварианты:
+ * - Выходной каталог reports/jscpd существует после вызова
+ * - Используется SARIF-репортер, артефакт сохраняется в reports/jscpd
+ * - Не полагаемся на exit code jscpd (при дублях он не ноль)
+ *
+ * @param targetPath Корневой путь сканирования (из CLI)
+ * @returns Абсолютный путь к найденному SARIF файлу
+ */
+// CHANGE: Add targetPath parameter and force reporters/output
+// WHY: jscpd не генерировал SARIF в ожидаемое место; необходимо явно указать репортер и каталог
+// QUOTE(ТЗ): "Любое решение строится на инвариантах и проверяемых источниках"
+// REF: REQ-DUP-SARIF-OUT
+export async function generateSarifReport(targetPath: string): Promise<string> {
+	const reportsDir = ensureReportsDir();
 
 	try {
-		await execAsync(`npx jscpd src`);
+		// Use SARIF reporter and explicit output directory
+		await execAsync(
+			`npx jscpd --reporters sarif --output ${reportsDir} ${targetPath}`,
+		);
 	} catch {
-		// jscpd exits with a non-zero code when duplicates are found; treat as expected
-		// SARIF file should still be generated
+		// jscpd exits with non-zero when duplicates are found; ignore to proceed parsing
 	}
 
-	return sarifPath;
+	return discoverSarifArtifact(reportsDir);
 }
 
 // CHANGE: Extracted helper to parse duplicate location from message
@@ -144,27 +205,99 @@ function isValidResult(result: {
 	locations?: ReadonlyArray<{ physicalLocation?: object }>;
 	message?: { text: string };
 }): boolean {
-	return !!(
-		result.locations &&
-		Array.isArray(result.locations) &&
-		result.locations.length > 0 &&
-		result.message
-	);
+	const hasLocations =
+		Array.isArray(result.locations) && result.locations.length > 0;
+	const hasMessage = typeof result.message?.text === "string";
+	// CHANGE: Accept results that have either structured locations or a message
+	// WHY: Some SARIF producers may omit message text while providing locations
+	// QUOTE(ТЗ): "Решение должно опираться на устойчивые инварианты формата"
+	// REF: REQ-DUP-SARIF-OUT
+	return hasLocations || hasMessage;
+}
+
+/**
+ * Попытка извлечь дубликат из структурированных locations SARIF.
+ *
+ * Предусловие: result.locations имеет минимум 2 элемента с заполненным region.
+ */
+type RegionInfo = {
+	readonly uri: string;
+	readonly start: number;
+	readonly end: number;
+};
+
+// CHANGE: Type guards to reduce per-function complexity
+// WHY: Move branching out of extractRegion to satisfy complexity thresholds
+// QUOTE(ТЗ): "Исправить все ошибки линтера"
+// REF: REQ-LINT-FIX
+function isDefined<T>(v: T | undefined | null): v is T {
+	return v !== undefined && v !== null;
+}
+function isNonEmptyString(s: string | undefined): s is string {
+	return typeof s === "string" && s.length > 0;
+}
+function isNum(n: number | undefined): n is number {
+	return typeof n === "number";
+}
+
+function extractRegion(loc: SarifLocation): RegionInfo | null {
+	const physical = loc.physicalLocation;
+	if (!isDefined(physical)) {
+		return null;
+	}
+
+	const uri = physical.artifactLocation?.uri;
+	const start = physical.region?.startLine;
+	const end = physical.region?.endLine;
+
+	if (!isNonEmptyString(uri) || !isNum(start) || !isNum(end)) {
+		return null;
+	}
+
+	return { uri, start, end };
+}
+
+function toDuplicateFromLocations(result: SarifResult): DuplicateInfo | null {
+	if (!Array.isArray(result.locations) || result.locations.length < 2) {
+		return null;
+	}
+
+	const a = extractRegion(result.locations[0] as SarifLocation);
+	const b = extractRegion(result.locations[1] as SarifLocation);
+	if (a === null || b === null) {
+		return null;
+	}
+
+	return {
+		fileA: a.uri,
+		startA: a.start,
+		endA: a.end,
+		fileB: b.uri,
+		startB: b.start,
+		endB: b.end,
+	};
 }
 
 function extractDuplicatesFromResults(
-	results: ReadonlyArray<{
-		locations?: ReadonlyArray<{ physicalLocation?: object }>;
-		message?: { text: string };
-	}>,
+	results: ReadonlyArray<SarifResult>,
 ): DuplicateInfo[] {
 	const duplicates: DuplicateInfo[] = [];
 
 	for (const result of results) {
-		if (!isValidResult(result) || !result.message) continue;
+		if (!isValidResult(result)) continue;
 
-		const duplicate = parseDuplicateLocation(result.message.text);
-		if (duplicate) duplicates.push(duplicate);
+		// 1) Prefer structured SARIF locations
+		const fromLoc = toDuplicateFromLocations(result);
+		if (fromLoc !== null) {
+			duplicates.push(fromLoc);
+			continue;
+		}
+
+		// 2) Fallback: parse free-text message if present
+		if (result.message?.text) {
+			const fallback = parseDuplicateLocation(result.message.text);
+			if (fallback) duplicates.push(fallback);
+		}
 	}
 
 	return duplicates;
