@@ -4,21 +4,17 @@
 // REF: REQ-20250210-MODULAR-ARCH
 // SOURCE: lint.ts lines 1196-1284, 1815-1893
 
-// CHANGE: Use node: protocol for Node.js built-in modules
-// WHY: Biome lint rule requires explicit node: prefix for clarity
-// REF: lint/style/useNodejsImportProtocol
-// SOURCE: https://biomejs.dev/linter/rules/lint/style/useNodejsImportProtocol
-import { exec } from "node:child_process";
-import * as fs from "node:fs";
-import * as path from "node:path";
-import { promisify } from "node:util";
-
 import type {
 	DuplicateInfo,
 	SarifLocation,
 	SarifReport,
 	SarifResult,
 } from "../types/index";
+// CHANGE: Use node: protocol for Node.js built-in modules
+// WHY: Biome lint rule requires explicit node: prefix for clarity
+// REF: lint/style/useNodejsImportProtocol
+// SOURCE: https://biomejs.dev/linter/rules/lint/style/useNodejsImportProtocol
+import { exec, fs, path, promisify } from "../utils/node-mods";
 
 const execAsync = promisify(exec);
 
@@ -337,6 +333,73 @@ export function parseSarifReport(
 // QUOTE(LINT): "Function has too many lines (56). Maximum allowed is 50"
 // REF: ESLint max-lines-per-function
 // SOURCE: n/a
+/**
+ * CHANGE: Очистка артефактов отчета, если дубликаты не найдены
+ * WHY: После успешной проверки без дублей не оставлять мусор в reports/
+ * QUOTE(ТЗ): "Любое решение строится на инвариантах" — артефакты не нужны при 0 дубликатах
+ * REF: REQ-DUP-SARIF-OUT
+ *
+ * Инварианты:
+ * - Не бросает исключения; ошибки удаления игнорируются.
+ * - Удаляет файл SARIF; затем директорию reports/jscpd и родительскую reports при пустоте.
+ */
+/**
+ * CHANGE: Вспомогательный безопасный удалитель файла
+ * WHY: Снизить цикломатическую сложность cleanupReportsArtifacts до допустимого уровня
+ * QUOTE(ТЗ): "Исправить все ошибки линтера"
+ * REF: REQ-LINT-FIX (complexity)
+ */
+function removeFileIfExists(p: string): void {
+	try {
+		if (fs.existsSync(p)) {
+			fs.rmSync(p, { force: true });
+		}
+	} catch {
+		// ignore errors
+	}
+}
+
+/**
+ * CHANGE: Вспомогательный удалитель пустых директорий
+ * WHY: Инкапсулировать проверки и удалить дублирующиеся условия
+ * REF: REQ-LINT-FIX (complexity)
+ */
+function removeDirIfEmpty(dir: string): void {
+	try {
+		if (fs.existsSync(dir) && fs.readdirSync(dir).length === 0) {
+			fs.rmdirSync(dir);
+		}
+	} catch {
+		// ignore errors
+	}
+}
+
+/**
+ * CHANGE: Очистка артефактов отчета, если дубликаты не найдены
+ * WHY: После успешной проверки без дублей не оставлять мусор в reports/
+ * QUOTE(ТЗ): "Любое решение строится на инвариантах" — артефакты не нужны при 0 дубликатах
+ * REF: REQ-DUP-SARIF-OUT
+ *
+ * Инварианты:
+ * - Не бросает исключения; ошибки удаления игнорируются.
+ * - Удаляет файл SARIF; затем директорию reports/jscpd и родительскую reports при пустоте.
+ */
+export function cleanupReportsArtifacts(
+	sarifPath: string,
+	hasDuplicates: boolean,
+): void {
+	// CHANGE: Не удаляем артефакты, если дубликаты есть — нужны для отладки
+	if (hasDuplicates) return;
+
+	removeFileIfExists(sarifPath);
+
+	const artifactDir = path.dirname(sarifPath);
+	removeDirIfEmpty(artifactDir);
+
+	const reportsDir = path.dirname(artifactDir);
+	removeDirIfEmpty(reportsDir);
+}
+
 function displaySingleDuplicate(
 	dup: DuplicateInfo,
 	dupNum: number,

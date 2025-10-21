@@ -1,6 +1,6 @@
 import * as path from "node:path";
 
-import type { ExecError, GitHistoryBlock } from "../types/index";
+import type { GitHistoryBlock } from "../types/index";
 import {
 	buildDiffBlocks,
 	type CommitDiffBlock,
@@ -10,7 +10,7 @@ import {
 	parseGitLogSegments,
 	processCommitSegment,
 } from "./history-helpers";
-import { execGitCommand } from "./utils";
+import { execGitNonEmptyOrNull } from "./utils";
 
 export type { CommitInfo, CommitDiffBlock };
 
@@ -77,29 +77,13 @@ export async function getGitHistoryBlock(
 	const historyCommand = `git log -L ${line},${line}:${filePath} --date=short`;
 	let historyOutput = "";
 
-	try {
-		const { stdout } = await execGitCommand(historyCommand, 5 * 1024 * 1024);
-		historyOutput = stdout;
-	} catch (error) {
-		const execError = error as ExecError;
-		// CHANGE: Avoid truthiness on nullable string stdout
-		// WHY: strict-boolean-expressions — handle nullish/empty explicitly
-		// QUOTE(ТЗ): "Исправить все ошибки линтера"
-		// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
-		const out = typeof execError.stdout === "string" ? execError.stdout : "";
-		if (out.length > 0) {
-			historyOutput = out;
-		} else {
-			return null;
-		}
-	}
-
-	const trimmed = historyOutput.trim();
-	if (trimmed.length === 0) {
+	const out = await execGitNonEmptyOrNull(historyCommand, 5 * 1024 * 1024);
+	if (out === null) {
 		return null;
 	}
+	historyOutput = out;
 
-	const segments = parseGitLogSegments(trimmed);
+	const segments = parseGitLogSegments(historyOutput);
 	const relativePath = path
 		.relative(process.cwd(), filePath)
 		.replace(/\\/g, "/");

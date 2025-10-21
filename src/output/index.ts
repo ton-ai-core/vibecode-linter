@@ -5,6 +5,7 @@
 // SOURCE: n/a
 
 export {
+	cleanupReportsArtifacts,
 	displayClonesFromSarif,
 	generateSarifReport,
 	parseSarifReport,

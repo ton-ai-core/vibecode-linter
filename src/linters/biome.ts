@@ -50,22 +50,10 @@ export async function runBiomeFix(targetPath: string): Promise<void> {
 		try {
 			await execAsync(`npx biome check --write "${targetPath}"`);
 		} catch (error) {
-			// Biome returns non-zero exit code when it finds issues, even if it fixes them
-			// This is expected behavior, continue to next pass
-			// CHANGE: Avoid using possibly-any in boolean context; compute explicit flag
-			// WHY: strict-boolean-expressions — require explicit checks
-			// QUOTE(ТЗ): "Исправить все ошибки линтера"
-			// REF: REQ-LINT-FIX
-			// CHANGE: Robust stdout detection without using unknown
-			// WHY: strict-boolean-expressions — explicit checks; .clinerules forbid 'unknown'
-			// QUOTE(ТЗ): "Никогда не использовать any, unknown"
-			// REF: REQ-LINT-FIX
-			let hasStdout = false;
-			if (typeof error === "object" && error !== null) {
-				const maybe = error as { stdout?: string };
-				hasStdout = typeof maybe.stdout === "string";
-			}
-			if (!hasStdout) {
+			// Biome возвращает ненулевой код при найденных и/или исправленных проблемах — это ожидаемо.
+			// Устойчиво определяем наличие stdout, используя общий helper (убираем дубли).
+			const out = extractStdoutFromError(error as Error);
+			if (typeof out !== "string") {
 				console.error(`❌ Biome auto-fix failed:`, error);
 				break;
 			}

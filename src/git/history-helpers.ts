@@ -3,8 +3,8 @@
 // REF: ESLint max-lines
 
 import { extractDiffSnippet } from "../diff/index";
-import type { DiffSnippet, ExecError } from "../types/index";
-import { execGitCommand, getCommitSnippetForLine } from "./utils";
+import type { DiffSnippet } from "../types/index";
+import { execGitNonEmptyOrNull, getCommitSnippetForLine } from "./utils";
 
 export interface CommitInfo {
 	readonly hash: string;
@@ -130,49 +130,22 @@ function extractAuthor(lines: readonly string[]): string {
 	return "unknown";
 }
 
-function extractDate(lines: readonly string[]): string {
-	const dateLine = lines.find((row) => row.startsWith("Date:"));
-	// CHANGE: Avoid truthiness on possibly undefined string
-	// WHY: strict-boolean-expressions — explicit nullish/empty handling
-	// QUOTE(ТЗ): "Исправить все ошибки линтера"
-	// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
-	if (typeof dateLine === "string" && dateLine.length > 0) {
-		return (
-			dateLine.slice("Date:".length).trim().split(" ")[0] ?? "unknown-date"
-		);
-	}
-	return "unknown-date";
-}
-
-function extractSummary(lines: readonly string[]): string {
-	const messageLine = lines.find((row) => row.startsWith("    "));
-	// CHANGE: Avoid truthiness on possibly undefined string
-	// WHY: strict-boolean-expressions — explicit nullish/empty handling
-	// QUOTE(ТЗ): "Исправить все ошибки линтера"
-	// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
-	const summaryRaw =
-		typeof messageLine === "string" && messageLine.length > 0
-			? messageLine.trim()
-			: "(no subject)";
-	return summaryRaw.length > 80 ? `${summaryRaw.slice(0, 77)}...` : summaryRaw;
-}
-
 export function parseCommitInfo(segment: string): CommitInfo | null {
 	const lines = segment.split(/\r?\n/u);
-	const commitLine = lines.find((row) => row.startsWith("commit "));
-	// CHANGE: Avoid truthiness on possibly undefined string
-	// WHY: strict-boolean-expressions — explicit undefined check
-	// QUOTE(ТЗ): "Исправить все ошибки линтера"
-	// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
-	if (commitLine === undefined) return null;
+	// CHANGE: Reuse extractCommitBasicInfo to avoid duplicated parsing logic
+	// WHY: Remove internal duplication (jscpd hit) while preserving invariants
+	// REF: REQ-LINT-FIX
+	const basic = extractCommitBasicInfo(lines);
+	if (basic === null) return null;
 
-	const hash = commitLine.slice("commit ".length).trim();
-	const shortHash = hash.slice(0, 12);
 	const author = extractAuthor(lines);
-	const date = extractDate(lines);
-	const summary = extractSummary(lines);
-
-	return { hash, shortHash, date, author, summary };
+	return {
+		hash: basic.hash,
+		shortHash: basic.shortHash,
+		date: basic.date,
+		author,
+		summary: basic.summary,
+	};
 }
 
 export async function fetchCommitHistoryForLine(
@@ -181,29 +154,16 @@ export async function fetchCommitHistoryForLine(
 	limit: number,
 ): Promise<CommitInfo[] | null> {
 	const historyCommand = `git log -L ${line},${line}:${filePath} --date=short --pretty=format:"commit %H%nAuthor: %an <%ae>%nDate: %ad%n%n    %s%n"`;
-	let historyOutput = "";
 
-	try {
-		const { stdout } = await execGitCommand(historyCommand, 5 * 1024 * 1024);
-		historyOutput = stdout;
-	} catch (error) {
-		const execError = error as ExecError;
-		// CHANGE: Avoid truthiness on nullable string stdout
-		// WHY: strict-boolean-expressions — handle nullish/empty explicitly
-		// QUOTE(ТЗ): "Исправить все ошибки линтера"
-		// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
-		const out = typeof execError.stdout === "string" ? execError.stdout : "";
-		if (out.length > 0) {
-			historyOutput = out;
-		} else {
-			return null;
-		}
+	// CHANGE: Use execGitNonEmptyOrNull to centralize stdout extraction + non-empty invariant
+	// WHY: remove duplicated pattern with trim/length checks (jscpd)
+	// REF: REQ-LINT-FIX
+	const out = await execGitNonEmptyOrNull(historyCommand, 5 * 1024 * 1024);
+	if (out === null) {
+		return null;
 	}
 
-	const trimmed = historyOutput.trim();
-	if (trimmed.length === 0) return null;
-
-	const segments = parseGitLogSegments(trimmed);
+	const segments = parseGitLogSegments(out);
 	const commits: CommitInfo[] = [];
 	for (const segment of segments.slice(0, limit + 1)) {
 		const commitInfo = parseCommitInfo(segment);
@@ -228,19 +188,12 @@ export async function handleSingleCommit(
 	const diffCommand = `git diff --unified=${contextLines} ${emptyTree}..${creation.hash} -- "${filePath}"`;
 	let diffOutput = "";
 
-	try {
-		const { stdout } = await execGitCommand(diffCommand, 10 * 1024 * 1024);
-		diffOutput = stdout;
-	} catch (error) {
-		const execError = error as ExecError;
-		// CHANGE: Avoid truthiness on nullable string stdout
-		// WHY: strict-boolean-expressions — handle nullish/empty explicitly
-		// QUOTE(ТЗ): "Исправить все ошибки линтера"
-		// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
-		const out = typeof execError.stdout === "string" ? execError.stdout : "";
-		if (out.length > 0) {
-			diffOutput = out;
-		}
+	// CHANGE: Use execGitStdoutOrNull to centralize stdout extraction
+	// WHY: remove duplicated try/catch across modules (jscpd)
+	// REF: REQ-LINT-FIX
+	const outDiff = await execGitNonEmptyOrNull(diffCommand, 10 * 1024 * 1024);
+	if (outDiff !== null) {
+		diffOutput = outDiff;
 	}
 
 	const diffSnippet =
@@ -284,19 +237,12 @@ export async function buildDiffBlocks(
 		const diffCommand = `git diff --unified=${contextLines} ${older.hash}..${newer.hash} -- "${fileInfo.path}"`;
 		let diffOutput = "";
 
-		try {
-			const { stdout } = await execGitCommand(diffCommand, 10 * 1024 * 1024);
-			diffOutput = stdout;
-		} catch (error) {
-			const execError = error as ExecError;
-			// CHANGE: Avoid truthiness on nullable string stdout
-			// WHY: strict-boolean-expressions — handle nullish/empty explicitly
-			// QUOTE(ТЗ): "Исправить все ошибки линтера"
-			// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
-			const out = typeof execError.stdout === "string" ? execError.stdout : "";
-			if (out.length > 0) {
-				diffOutput = out;
-			}
+		// CHANGE: Use execGitStdoutOrNull to centralize stdout extraction
+		// WHY: remove duplicated try/catch across modules (jscpd)
+		// REF: REQ-LINT-FIX
+		const out2 = await execGitNonEmptyOrNull(diffCommand, 10 * 1024 * 1024);
+		if (out2 !== null) {
+			diffOutput = out2;
 		}
 
 		const diffSnippet =

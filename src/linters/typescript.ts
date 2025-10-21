@@ -12,7 +12,8 @@ import { exec } from "node:child_process";
 import * as path from "node:path";
 import { promisify } from "node:util";
 
-import type { ExecError, TypeScriptMessage } from "../types/index";
+import type { TypeScriptMessage } from "../types/index";
+import { extractStdoutFromError } from "../types/index";
 
 const execAsync = promisify(exec);
 
@@ -109,22 +110,14 @@ export async function getTypeScriptDiagnostics(
 		await execAsync(command);
 		return [];
 	} catch (error) {
-		// CHANGE: Explicitly check for stdout without using any/unknown
-		// WHY: strict-boolean-expressions + .clinerules forbid any/unknown
-		// REF: REQ-LINT-FIX
-		const hasStdout =
-			typeof error === "object" &&
-			error !== null &&
-			"stdout" in (error as { stdout?: string });
-		if (!hasStdout) {
+		// CHANGE: Use shared helper to extract stdout from exec errors
+		// WHY: Remove duplicated pattern across modules (jscpd hit)
+		// QUOTE(ТЗ): "Убрать дубли кода"
+		// REF: REQ-LINT-FIX, extractStdoutFromError
+		const stdout = extractStdoutFromError(error as Error);
+		if (typeof stdout !== "string" || stdout.trim().length === 0) {
 			return [];
 		}
-
-		const stdout = (error as ExecError).stdout;
-		if (typeof stdout !== "string" || stdout.length === 0) {
-			return [];
-		}
-
 		const messages = parseTypeScriptOutput(stdout);
 		return filterMessagesByPath(messages, targetPath);
 	}

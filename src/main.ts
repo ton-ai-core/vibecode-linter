@@ -16,6 +16,7 @@ import {
 	runESLintFix,
 } from "./linters/index";
 import {
+	cleanupReportsArtifacts,
 	displayClonesFromSarif,
 	generateSarifReport,
 	parseSarifReport,
@@ -98,6 +99,12 @@ function handleDuplicates(
 			console.log("\n✅ No code duplicates found!");
 		}
 	}
+
+	// CHANGE: Remove reports/ artifacts when no duplicates were found
+	// WHY: Keep workspace clean; user expects reports directory to disappear if not needed
+	// QUOTE(ТЗ): "Любое решение строится на инвариантах"
+	// REF: REQ-DUP-SARIF-OUT
+	cleanupReportsArtifacts(sarifPath, hasDuplicates);
 
 	return hasDuplicates;
 }

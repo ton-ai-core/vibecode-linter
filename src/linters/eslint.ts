@@ -46,16 +46,12 @@ export async function runESLintFix(targetPath: string): Promise<void> {
 		await execAsync(eslintCommand);
 		console.log(`✅ ESLint auto-fix completed`);
 	} catch (error) {
-		// CHANGE: Robust stdout detection without using any/unknown
-		// WHY: strict-boolean-expressions — explicit object guards; .clinerules forbid any/unknown
-		// QUOTE(ТЗ): "Никогда не использовать any, unknown"
-		// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
-		let hasStdout = false;
-		if (typeof error === "object" && error !== null) {
-			const maybe = error as { stdout?: string };
-			hasStdout = typeof maybe.stdout === "string";
-		}
-		if (hasStdout) {
+		// CHANGE: Use shared helper to extract stdout from exec errors
+		// WHY: Remove duplicated pattern across modules (jscpd hit)
+		// QUOTE(ТЗ): "Убрать дубли кода"
+		// REF: REQ-LINT-FIX, extractStdoutFromError
+		const out = extractStdoutFromError(error as Error);
+		if (typeof out === "string") {
 			console.log(`✅ ESLint auto-fix completed with warnings`);
 		} else {
 			console.error(`❌ ESLint auto-fix failed:`, error);

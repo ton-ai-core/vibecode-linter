@@ -4,16 +4,13 @@
 // REF: REQ-20250210-MODULAR-ARCH
 // SOURCE: n/a
 
+import type { DiffRangeConfig, ExecError } from "../types/index";
+import { extractStdoutFromError } from "../types/index";
 // CHANGE: Use node: protocol for Node.js built-in modules
 // WHY: Biome lint rule requires explicit node: prefix for clarity
 // REF: lint/style/useNodejsImportProtocol
 // SOURCE: https://biomejs.dev/linter/rules/lint/style/useNodejsImportProtocol
-import { exec } from "node:child_process";
-import * as fs from "node:fs";
-import * as path from "node:path";
-import { promisify } from "node:util";
-
-import type { DiffRangeConfig, ExecError } from "../types/index";
+import { exec, fs, path, promisify } from "../utils/node-mods";
 
 const execAsync = promisify(exec);
 
@@ -118,6 +115,58 @@ export async function detectDiffRange(): Promise<DiffRangeConfig> {
 		diffArg: "HEAD",
 		label: "HEAD",
 	};
+}
+
+/**
+ * Выполняет git-команду и возвращает stdout либо null.
+ *
+ * Инварианты:
+ * - Не бросает исключение; при ошибке пытается извлечь stdout с помощью extractStdoutFromError.
+ * - Возвращает null, если stdout отсутствует/пуст.
+ *
+ * @param command Команда git для выполнения
+ * @param maxBuffer Максимальный размер буфера для stdout
+ * @returns Строка stdout или null
+ */
+// CHANGE: Унифицированная обертка для устранения дублирования try/catch-паттерна
+// WHY: jscpd указывал на повторяющиеся блоки с разбором stdout в нескольких модулях
+// REF: REQ-LINT-FIX
+export async function execGitStdoutOrNull(
+	command: string,
+	maxBuffer = 10 * 1024 * 1024,
+): Promise<string | null> {
+	try {
+		const { stdout } = await execGitCommand(command, maxBuffer);
+		return stdout;
+	} catch (error) {
+		const out = extractStdoutFromError(error as Error);
+		return typeof out === "string" && out.length > 0 ? out : null;
+	}
+}
+
+/**
+ * Выполняет git-команду и возвращает непустой stdout или null.
+ *
+ * Инварианты:
+ * - Использует execGitStdoutOrNull для безопасного извлечения stdout.
+ * - Возвращает null, если stdout отсутствует или после trim() пуст.
+ *
+ * @param command Команда git для выполнения
+ * @param maxBuffer Максимальный размер буфера для stdout
+ * @returns Строка stdout (непустая) или null
+ */
+// CHANGE: Централизация проверки "непустого stdout" для устранения дублей
+// WHY: jscpd фиксировал повторяющийся паттерн проверки длины/trim()
+// QUOTE(ТЗ): "Убрать дубли кода"
+// REF: REQ-LINT-FIX
+export async function execGitNonEmptyOrNull(
+	command: string,
+	maxBuffer = 10 * 1024 * 1024,
+): Promise<string | null> {
+	const out = await execGitStdoutOrNull(command, maxBuffer);
+	if (typeof out !== "string") return null;
+	const trimmed = out.trim();
+	return trimmed.length > 0 ? out : null;
 }
 
 /**

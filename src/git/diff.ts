@@ -15,11 +15,10 @@ import type {
 	DiffLineView,
 	DiffRangeConfig,
 	DiffSnippet,
-	ExecError,
 	GitDiffBlock,
 	LintMessage,
 } from "../types/index";
-import { execGitCommand } from "./utils";
+import { execGitStdoutOrNull } from "./utils";
 
 /**
  * Уточняет диапазон подсветки на основе текста сообщения об ошибке.
@@ -97,27 +96,14 @@ async function executeDiffAttempts(
 	const descriptors: string[] = [];
 
 	for (const attempt of attempts) {
-		let diffOutput = "";
-		try {
-			const { stdout } = await execGitCommand(attempt.command);
-			diffOutput = stdout;
-		} catch (error) {
-			const execError = error as ExecError;
-			// CHANGE: Avoid truthiness check on nullable string stdout
-			// WHY: strict-boolean-expressions — handle nullish/empty explicitly
-			// QUOTE(ТЗ): "Исправить все ошибки линтера"
-			// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
-			const out = typeof execError.stdout === "string" ? execError.stdout : "";
-			if (out.length > 0) {
-				diffOutput = out;
-			} else {
-				continue;
-			}
-		}
-
-		if (diffOutput.trim().length === 0) {
+		// CHANGE: Centralize stdout extraction to avoid duplicated try/catch
+		// WHY: jscpd flagged repeated patterns; use unified helper
+		// REF: REQ-LINT-FIX, execGitStdoutOrNull
+		const out = await execGitStdoutOrNull(attempt.command);
+		if (typeof out !== "string" || out.trim().length === 0) {
 			continue;
 		}
+		const diffOutput = out;
 
 		diffOutputs.push(diffOutput);
 		descriptors.push(attempt.descriptor);

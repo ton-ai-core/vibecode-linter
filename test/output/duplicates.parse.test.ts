@@ -14,69 +14,72 @@ import type { DuplicateInfo, SarifReport } from "../../src/types";
 
 // Helpers (top-level) to keep the test body short
 function mkdirp(dir: string): void {
-  fs.mkdirSync(dir, { recursive: true });
+	fs.mkdirSync(dir, { recursive: true });
 }
 
 function writeJson(file: string, data: SarifReport): void {
-  fs.writeFileSync(file, `${JSON.stringify(data, null, 2)}\n`, {
-    encoding: "utf-8",
-  });
+	fs.writeFileSync(file, `${JSON.stringify(data, null, 2)}\n`, {
+		encoding: "utf-8",
+	});
 }
 
 function minimalSarif(a: string, b: string): SarifReport {
-  return {
-    runs: [
-      {
-        results: [
-          {
-            locations: [
-              {
-                physicalLocation: {
-                  artifactLocation: { uri: a },
-                  region: { startLine: 10, endLine: 20 },
-                },
-              },
-              {
-                physicalLocation: {
-                  artifactLocation: { uri: b },
-                  region: { startLine: 30, endLine: 40 },
-                },
-              },
-            ],
-            // CHANGE: Provide required SARIF field with empty array for robustness
-            // WHY: Our SarifResult type requires relatedLocations, even if unused
-            relatedLocations: [],
-            message: { text: "free-text not used for parsing" },
-          },
-        ],
-      },
-    ],
-  };
+	return {
+		runs: [
+			{
+				results: [
+					{
+						locations: [
+							{
+								physicalLocation: {
+									artifactLocation: { uri: a },
+									region: { startLine: 10, endLine: 20 },
+								},
+							},
+							{
+								physicalLocation: {
+									artifactLocation: { uri: b },
+									region: { startLine: 30, endLine: 40 },
+								},
+							},
+						],
+						// CHANGE: Provide required SARIF field with empty array for robustness
+						// WHY: Our SarifResult type requires relatedLocations, even if unused
+						relatedLocations: [],
+						message: { text: "free-text not used for parsing" },
+					},
+				],
+			},
+		],
+	};
 }
 
 describe("parseSarifReport (SARIF locations parsing)", (): void => {
-  test("extracts duplicate info from SARIF locations (without relying on message text)", (): void => {
-    const tmpRoot = fs.mkdtempSync(
-      path.join(os.tmpdir(), "vibecode-linter-sarif-"),
-    );
-    const reportsDir = path.join(tmpRoot, "reports", "jscpd");
-    mkdirp(reportsDir);
+	test("extracts duplicate info from SARIF locations (without relying on message text)", (): void => {
+		const tmpRoot = fs.mkdtempSync(
+			path.join(os.tmpdir(), "vibecode-linter-sarif-"),
+		);
+		const reportsDir = path.join(tmpRoot, "reports", "jscpd");
+		mkdirp(reportsDir);
 
-    const sarifPath = path.join(reportsDir, "jscpd-sarif.json");
-    writeJson(sarifPath, minimalSarif("/abs/path/to/A.ts", "/abs/path/to/B.ts"));
+		const sarifPath = path.join(reportsDir, "jscpd-sarif.json");
+		writeJson(
+			sarifPath,
+			minimalSarif("/abs/path/to/A.ts", "/abs/path/to/B.ts"),
+		);
 
-    const result = parseSarifReport(sarifPath);
-    expect(Array.isArray(result)).toBe(true);
-    expect(result.length).toBe(1);
+		const result = parseSarifReport(sarifPath);
+		expect(Array.isArray(result)).toBe(true);
+		expect(result.length).toBe(1);
 
-    const dup: DuplicateInfo = result[0] as DuplicateInfo;
-    expect(dup.fileA).toBe("/abs/path/to/A.ts");
-    expect(dup.fileB).toBe("/abs/path/to/B.ts");
-    expect(dup.startA).toBe(10);
-    expect(dup.endA).toBe(20);
-    expect(dup.startB).toBe(30);
-    expect(dup.endB).toBe(40);
+		const dup: DuplicateInfo = result[0] as DuplicateInfo;
+		expect(dup.fileA).toBe("/abs/path/to/A.ts");
+		expect(dup.fileB).toBe("/abs/path/to/B.ts");
+		expect(dup.startA).toBe(10);
+		expect(dup.endA).toBe(20);
+		expect(dup.startB).toBe(30);
+		expect(dup.endB).toBe(40);
 
-    fs.rmSync(tmpRoot, { recursive: true, force: true });
-  });
+		fs.rmSync(tmpRoot, { recursive: true, force: true });
+	});
 });
