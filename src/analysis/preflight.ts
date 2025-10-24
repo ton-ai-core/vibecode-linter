@@ -8,6 +8,7 @@ import * as fs from "node:fs";
 import { createRequire } from "node:module";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
+import { match } from "ts-pattern";
 
 // CHANGE: Define __dirname and require equivalents for ES modules
 // WHY: package.json has "type": "module", __dirname and require are not available in ES modules
@@ -261,28 +262,26 @@ function printBlockingIssues(
 		"\n[ERROR] Environment preflight failed. Please resolve the following issues:\n",
 	);
 	for (const issue of blockingIssues) {
-		switch (issue) {
-			case "noPackageJson": {
+		// CHANGE: Replace switch with ts-pattern exhaustive match
+		// WHY: Functional paradigm forbids switch; ts-pattern ensures total, type-safe branching
+		// QUOTE(TЗ): "Исправить все ошибки линтера" — запрет switch, использовать ts-pattern match()
+		// REF: REQ-LINT-FIX, ESLint no-restricted-syntax
+		// FORMAT THEOREME: Пусть I — конечное множество {noPackageJson, missingTypescript, missingBiome, npxIsolated}.
+		// Определим g: I → Unit c поведением печати. Матч реализует тотально определенную функцию g, покрывая все элементы I.
+		match(issue)
+			.with("noPackageJson", () => {
 				printNoPackageJson();
-				break;
-			}
-			case "missingTypescript": {
+			})
+			.with("missingTypescript", () => {
 				printMissingTypescript();
-				break;
-			}
-			case "missingBiome": {
+			})
+			.with("missingBiome", () => {
 				printMissingBiome();
-				break;
-			}
-			case "npxIsolated": {
+			})
+			.with("npxIsolated", () => {
 				// Advisory-only: handled as warning elsewhere; not a blocker
-				break;
-			}
-			default: {
-				// Unreachable/placeholder for exhaustiveness
-				break;
-			}
-		}
+			})
+			.exhaustive();
 	}
 }
 

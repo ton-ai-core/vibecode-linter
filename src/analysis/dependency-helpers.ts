@@ -5,6 +5,7 @@
 // SOURCE: n/a
 
 import * as path from "node:path";
+import { match } from "ts-pattern";
 import ts from "typescript";
 import type { LintMessageWithFile } from "../types/index.js";
 
@@ -41,22 +42,32 @@ export function createMessageId(
 	filePath: string,
 	message: LintMessageWithFile,
 ): MsgId {
-	let ruleId: string;
-	switch (message.source) {
-		case "typescript": {
-			ruleId = message.code;
-			break;
-		}
-		case "eslint":
-		case "biome": {
-			ruleId = message.ruleId ?? "no-rule";
-			break;
-		}
-		default: {
-			ruleId = "no-rule";
-			break;
-		}
-	}
+	// CHANGE: Replace switch with ts-pattern exhaustive match
+	// WHY: In functional paradigm, switch is forbidden; ts-pattern ensures total, type-safe branching over discriminant
+	// QUOTE(TЗ): "Исправить все ошибки линтера" — запрет switch, использовать ts-pattern match()
+	// REF: REQ-LINT-FIX, ESLint no-restricted-syntax, ts-pattern recommendation
+	// SOURCE: "Switch statements are forbidden in functional programming paradigm. Use ts-pattern match() instead."
+	// FORMAT THEOREME: Пусть S — множество источников {typescript, eslint, biome} ∪ {прочие}.
+	// Определим f: S → string как:
+	//   f(typescript) = message.code
+	//   f(eslint) = message.ruleId ?? "no-rule"
+	//   f(biome) = message.ruleId ?? "no-rule"
+	//   f(other) = "no-rule"
+	// Матч ts-pattern реализует тот же морфизм f с исчерпывающей проверкой: для всех s ∈ S, f(s) определена.
+	// Следовательно, замена switch на match сохраняет поведение и инвариант тотальности.
+	const ruleId = match(message)
+		// CHANGE: Match on the whole discriminated union object, not just the source string
+		// WHY: Ensures type-safe narrowing so variant-specific fields are accessible
+		// QUOTE(TЗ): "Давать проверяемые решения через формализацию и строгую типизацию"
+		// REF: REQ-LINT-FIX, @typescript-eslint/no-unsafe-member-access
+		.with({ source: "typescript" }, (m) => m.code)
+		.with(
+			{ source: "eslint" },
+			{ source: "biome" },
+			(m) => m.ruleId ?? "no-rule",
+		)
+		.otherwise(() => "no-rule");
+
 	return `${path.resolve(filePath)}:${message.line}:${message.column}:${message.source}:${ruleId}`;
 }
 

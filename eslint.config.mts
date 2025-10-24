@@ -141,7 +141,7 @@ export default tseslint.config(
 			"@typescript-eslint/require-await": "error",
 			"@typescript-eslint/no-unnecessary-type-assertion": "error",
 			"@typescript-eslint/prefer-readonly": "error",
-    		"@typescript-eslint/prefer-as-const": "error",
+			"@typescript-eslint/prefer-as-const": "error",
 			"@typescript-eslint/strict-boolean-expressions": "error",
 			"@typescript-eslint/ban-ts-comment": [
 				"error",
@@ -169,16 +169,33 @@ export default tseslint.config(
 				},
 			],
 
-			// CHANGE: AST-блокировка TSUnknownKeyword через no-restricted-syntax
-			// WHY: Дополнительная страховка от использования unknown в любом виде
-			// QUOTE(ТЗ): "AST-блокировка на всякий случай"
-			// REF: user message (запрос на запрет unknown)
-			// SOURCE: https://eslint.org/docs/latest/rules/no-restricted-syntax
+			// CHANGE: Объединенные правила no-restricted-syntax
+			// WHY: Блокируем unknown и императивные конструкции в одном правиле
+			// QUOTE(ТЗ): "Для функционального программирования используй ts-pattern, loop-controls, Effect"
+			// REF: REQ-FP-PARADIGM
+			// SOURCE: n/a
 			"no-restricted-syntax": [
 				"error",
 				{
 					selector: "TSUnknownKeyword",
 					message: "Запрещено 'unknown'.",
+				},
+				{
+					selector: "SwitchStatement",
+					message: [
+						"Switch statements are forbidden in functional programming paradigm.",
+						"How to fix: Use ts-pattern match() instead.",
+						"Example:",
+						"  import { match } from 'ts-pattern';",
+						" import { forEach, map, filter } from 'loop-controls';",
+						"  ",
+						"  type Item = { type: 'this' } | { type: 'that' };",
+						"  ",
+						"  const result = match(item)",
+						"    .with({ type: 'this' }, (item) => processThis(item))",
+						"    .with({ type: 'that' }, (item) => processThat(item))",
+						"    .exhaustive();"
+					].join("\n")
 				},
 			],
 
@@ -251,6 +268,7 @@ export default tseslint.config(
 			"promise/param-names": "error",
 			"promise/no-multiple-resolved": "error",
 			"no-restricted-globals": ["error", "Reflect"],
+
 
 			// // Точечные запреты с пояснениями
 			// "no-restricted-syntax": ["error",
