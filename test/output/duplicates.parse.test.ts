@@ -2,8 +2,8 @@ import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 
-import { parseSarifReport } from "../../src/output/duplicates"; // direct import to avoid re-export interference
-import type { DuplicateInfo, SarifReport } from "../../src/types";
+import { parseSarifReport } from "../../dist/output/duplicates.js"; // CHANGE: Use built artifacts to satisfy test project isolation (disableSourceOfProjectReferenceRedirect)
+import type { DuplicateInfo, SarifReport } from "../../dist/types/index.js";
 
 /**
  * CHANGE: Add unit test for SARIF parsing via structured locations
@@ -72,7 +72,10 @@ describe("parseSarifReport (SARIF locations parsing)", (): void => {
 		expect(Array.isArray(result)).toBe(true);
 		expect(result.length).toBe(1);
 
-		const dup: DuplicateInfo = result[0] as DuplicateInfo;
+		// CHANGE: Narrow after length assertion using explicit cast for tests
+		// WHY: TypeScript cannot narrow from expect(result.length).toBe(1); runtime guarantees > 0 here
+		// REF: REQ-TS-SOLUTION-STYLE
+		const dup = result[0] as DuplicateInfo;
 		expect(dup.fileA).toBe("/abs/path/to/A.ts");
 		expect(dup.fileB).toBe("/abs/path/to/B.ts");
 		expect(dup.startA).toBe(10);

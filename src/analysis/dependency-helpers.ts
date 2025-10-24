@@ -6,7 +6,7 @@
 
 import * as path from "node:path";
 import ts from "typescript";
-import type { LintMessageWithFile } from "../types/index";
+import type { LintMessageWithFile } from "../types/index.js";
 
 export type MsgId = string;
 
@@ -28,6 +28,11 @@ export interface DependencyContext {
 /**
  * Создает уникальный идентификатор для сообщения линтера.
  *
+ * CHANGE: Use switch with proper type narrowing for discriminated unions
+ * WHY: TypeScript requires explicit narrowing for union types to avoid unsafe access
+ * QUOTE(ERROR): "Unsafe member access on error typed value"
+ * REF: ESLint @typescript-eslint/no-unsafe-member-access
+ *
  * @param filePath Путь к файлу
  * @param message Сообщение линтера
  * @returns Уникальный идентификатор
@@ -36,13 +41,23 @@ export function createMessageId(
 	filePath: string,
 	message: LintMessageWithFile,
 ): MsgId {
-	const ruleId =
-		message.source === "typescript"
-			? message.code
-			: "ruleId" in message
-				? message.ruleId
-				: "no-rule";
-	return `${path.resolve(filePath)}:${message.line}:${message.column}:${message.source}:${ruleId ?? "no-rule"}`;
+	let ruleId: string;
+	switch (message.source) {
+		case "typescript": {
+			ruleId = message.code;
+			break;
+		}
+		case "eslint":
+		case "biome": {
+			ruleId = message.ruleId ?? "no-rule";
+			break;
+		}
+		default: {
+			ruleId = "no-rule";
+			break;
+		}
+	}
+	return `${path.resolve(filePath)}:${message.line}:${message.column}:${message.source}:${ruleId}`;
 }
 
 /**

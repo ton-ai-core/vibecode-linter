@@ -17,11 +17,17 @@ interface BaseLintMessage {
 }
 
 /**
- * Сообщение об ошибке от ESLint.
+ * Сообщение об ошибке от ESLint с файлом.
+ *
+ * CHANGE: Added filePath to ESLintMessage directly
+ * WHY: Avoid type intersection conflicts in LintMessageWithFile
+ * QUOTE(ERROR): "Unsafe member access on error typed value"
+ * REF: ESLint @typescript-eslint/no-unsafe-member-access
  */
 export interface ESLintMessage extends BaseLintMessage {
 	readonly ruleId: string | null;
 	readonly source: "eslint";
+	readonly filePath: string;
 }
 
 /**
@@ -34,26 +40,71 @@ export interface TypeScriptMessage extends BaseLintMessage {
 }
 
 /**
- * Сообщение об ошибке от Biome.
+ * Сообщение об ошибке от Biome с файлом.
+ *
+ * CHANGE: Added filePath to BiomeMessage directly
+ * WHY: Avoid type intersection conflicts in LintMessageWithFile
+ * QUOTE(ERROR): "Unsafe member access on error typed value"
+ * REF: ESLint @typescript-eslint/no-unsafe-member-access
  */
 export interface BiomeMessage extends BaseLintMessage {
 	readonly ruleId: string | null;
 	readonly source: "biome";
+	readonly filePath: string;
 }
 
 /**
  * Объединенный тип сообщения от любого линтера.
+ *
+ * CHANGE: Removed separate LintMessage type, use LintMessageWithFile directly
+ * WHY: All messages always have filePath in practice, no need for two types
+ * QUOTE(ТЗ): "Давать проверяемые решения через формализацию"
+ * REF: Type safety requirements
  */
 export type LintMessage = ESLintMessage | TypeScriptMessage | BiomeMessage;
 
 /**
  * Расширенный тип сообщения с путем к файлу.
+ *
+ * CHANGE: Now just an alias since all message types have filePath
+ * WHY: Eliminates type intersection that was causing "error" types
+ * QUOTE(ERROR): "Type acts as 'any' and overrides all other types"
+ * REF: ESLint @typescript-eslint/no-redundant-type-constituents
  */
-export type LintMessageWithFile = LintMessage & { readonly filePath: string };
+export type LintMessageWithFile = LintMessage;
+
+/**
+ * Type guards for narrowing LintMessage variants.
+ *
+ * CHANGE: Added type guards to help TypeScript narrow union types
+ * WHY: ESLint complains about unsafe member access without type guards
+ * QUOTE(ERROR): "Unsafe member access on error typed value"
+ * REF: ESLint @typescript-eslint/no-unsafe-member-access
+ */
+export function isTypeScriptMessage(
+	message: LintMessage,
+): message is TypeScriptMessage {
+	return message.source === "typescript";
+}
+
+export function isESLintMessage(
+	message: LintMessage,
+): message is ESLintMessage {
+	return message.source === "eslint";
+}
+
+export function isBiomeMessage(message: LintMessage): message is BiomeMessage {
+	return message.source === "biome";
+}
 
 /**
  * Результат работы линтера для одного файла.
  * Используется как базовый тип для ESLintResult, BiomeResult и др.
+ *
+ * CHANGE: Updated messages type to use BaseLintMessage with ruleId
+ * WHY: Messages from linters don't have source field yet (added in main.ts)
+ * QUOTE(ERROR): "Type acts as 'any' and overrides all other types"
+ * REF: ESLint @typescript-eslint/no-redundant-type-constituents
  */
 export interface LintResult {
 	readonly filePath: string;

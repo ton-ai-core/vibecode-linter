@@ -4,6 +4,7 @@
 			"level": 1,
 			"name": "Critical Compiler Errors",
 			"rules": [
+				"ts(2835)",
 				"@ton-ai-core/suggest-members/suggest-members",
 				"@ton-ai-core/suggest-members/suggest-imports",
 				"@ton-ai-core/suggest-members/suggest-module-paths",

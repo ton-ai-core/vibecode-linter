@@ -9,5 +9,5 @@ export {
 	expandTabs,
 	TAB_WIDTH,
 	visualColumnAt,
-} from "./column";
-export { extractDiffSnippet, pickSnippetForLine } from "./parser";
+} from "./column.js";
+export { extractDiffSnippet, pickSnippetForLine } from "./parser.js";

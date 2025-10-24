@@ -4,10 +4,10 @@
 // REF: REQ-20250210-MODULAR-ARCH
 // SOURCE: n/a
 
-export { parseCLIArgs } from "./cli";
+export { parseCLIArgs } from "./cli.js";
 export {
 	loadLinterConfig,
 	makeRuleLevelMap,
 	type RuleLevelMap,
 	ruleIdOf,
-} from "./loader";
+} from "./loader.js";

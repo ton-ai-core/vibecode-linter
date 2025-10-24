@@ -9,5 +9,5 @@ export {
 	displayClonesFromSarif,
 	generateSarifReport,
 	parseSarifReport,
-} from "./duplicates";
-export { processResults } from "./printer";
+} from "./duplicates.js";
+export { processResults } from "./printer.js";

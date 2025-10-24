@@ -5,14 +5,15 @@
 // SOURCE: n/a
 
 import * as path from "node:path";
+import { jest } from "@jest/globals"; // CHANGE: ESM Jest requires explicit import of 'jest' in ESM modules
 import {
 	hasPackageJson,
 	isNpxIsolatedProcess,
 	type PreflightIssueCode,
 	printPreflightReport,
 	runPreflight,
-} from "../../src/analysis/preflight";
-import { createTempProject } from "../utils/tempProject";
+} from "../../dist/analysis/preflight.js";
+import { createTempProject } from "../utils/tempProject.js";
 
 describe("preflight: filesystem and environment checks", () => {
 	test("hasPackageJson returns false when package.json is absent", (): void => {

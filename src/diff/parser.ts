@@ -4,7 +4,7 @@
 // REF: REQ-20250210-MODULAR-ARCH
 // SOURCE: n/a
 
-import type { DiffLineView, DiffSnippet } from "../types/index";
+import type { DiffLineView, DiffSnippet } from "../types/index.js";
 
 const UNIFIED_HEADER_PATTERN = /^@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@/;
 

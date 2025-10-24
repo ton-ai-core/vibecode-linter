@@ -4,8 +4,33 @@
   // QUOTE(ТЗ): "Давать проверяемые решения через формализацию и строгую типизацию"
   // REF: REQ-TS-SOLUTION-STYLE
   "extends": "./tsconfig.base.json",
+  "references": [
+    { "path": "./tsconfig.src.json" }
+  ],
   "compilerOptions": {
-    "noEmit": true
+    // CHANGE: Enable composite to allow being referenced from root tsconfig.json
+    // WHY: Project references require "composite": true (TS6306)
+    "composite": true,
+
+    // CHANGE: Do not disable emit in the referenced project; top-level --noEmit will be used when desired
+    // WHY: TS6310 — referenced projects may not disable emit
+    "noEmit": false,
+
+    // CHANGE: Separate build output/cache to avoid .tsbuildinfo collisions with src
+    // WHY: TS6377 — unique tsBuildInfoFile per referenced project
+    "outDir": "./dist-test",
+    "tsBuildInfoFile": "./dist/.tsbuildinfo.test",
+    // CHANGE: Prevent pulling source files from referenced projects (use d.ts instead)
+    // WHY: Avoid TS6307 by keeping test project isolated from src/*.ts
+    "disableSourceOfProjectReferenceRedirect": true,
+
+    // CHANGE: Tests do not need declarations or source maps when built via references
+    "declaration": true,
+    "declarationMap": false,
+    "sourceMap": false,
+
+    // Keep tests root at repository root (tests live under ./test)
+    "rootDir": "."
   },
   "include": ["test/**/*.ts"],
   "exclude": [

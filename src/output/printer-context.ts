@@ -1,9 +1,9 @@
 // CHANGE: Extracted context printing helpers
 // WHY: Keeps printer-helpers.ts under 300 lines
 // REF: ESLint max-lines
-import { expandTabs } from "../diff/index";
-import type { CommitDiffBlock } from "../git/history-helpers";
-import type { GitDiffBlock, LintMessageWithFile } from "../types/index";
+import { expandTabs } from "../diff/index.js";
+import type { CommitDiffBlock } from "../git/history-helpers.js";
+import type { GitDiffBlock, LintMessageWithFile } from "../types/index.js";
 
 function calculateVisualWidth(char: string, currentVisual: number): number {
 	if (char === "\t") {
@@ -173,7 +173,7 @@ function printDiffLines(
 
 function categorizeDiffLines(
 	lines: ReadonlyArray<{
-		symbol?: string;
+		symbol?: string | undefined;
 		headLineNumber: number | null;
 		content: string;
 	}>,

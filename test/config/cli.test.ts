@@ -4,8 +4,8 @@
 // REF: REQ-20250210-MODULAR-ARCH, REQ-LINT-FIX
 // SOURCE: n/a
 
-import { parseCLIArgs } from "../../src/config/index";
-import type { CLIOptions } from "../../src/types/index";
+import { parseCLIArgs } from "../../dist/config/index.js";
+import type { CLIOptions } from "../../dist/types/index.js";
 
 /**
  * Safely set process.argv for the duration of a test and restore afterwards.

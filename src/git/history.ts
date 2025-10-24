@@ -1,6 +1,6 @@
 import * as path from "node:path";
 
-import type { GitHistoryBlock } from "../types/index";
+import type { GitHistoryBlock } from "../types/index.js";
 import {
 	buildDiffBlocks,
 	type CommitDiffBlock,
@@ -9,10 +9,17 @@ import {
 	handleSingleCommit,
 	parseGitLogSegments,
 	processCommitSegment,
-} from "./history-helpers";
-import { execGitNonEmptyOrNull } from "./utils";
+} from "./history-helpers.js";
+import { execGitNonEmptyOrNull } from "./utils.js";
 
 export type { CommitInfo, CommitDiffBlock };
+
+// CHANGE: Helper to reduce complexity by picking first defined value
+// WHY: Replace conditional update of latestSnippet with a pure helper
+// REF: REQ-LINT-FIX, exactOptionalPropertyTypes
+function pickFirst<T>(a: T | undefined, b: T | undefined): T | undefined {
+	return a === undefined ? b : a;
+}
 
 async function buildHistoryResult(
 	segments: string[],
@@ -23,48 +30,35 @@ async function buildHistoryResult(
 ): Promise<GitHistoryBlock | null> {
 	const header = "--- history (recent line updates) -------------------------";
 	const result: string[] = [header];
-	let taken = 0;
 	let latestSnippet: ReadonlyArray<string> | undefined;
 
-	for (const segment of segments) {
-		if (taken >= limit) {
-			break;
-		}
+	// CHANGE: Bound iteration upfront to avoid loop guard inside (reduces complexity)
+	// WHY: ESLint complexity threshold
+	const limited = segments.slice(0, limit);
 
+	for (const segment of limited) {
 		const processed = await processCommitSegment(
 			segment,
 			filePath,
 			line,
 			relativePath,
 		);
-		// CHANGE: Avoid truthiness on nullable object
-		// WHY: strict-boolean-expressions — explicit null check
-		// QUOTE(ТЗ): "Исправить все ошибки линтера"
-		// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
-		if (processed === null) {
-			continue;
-		}
+		if (processed === null) continue;
 
-		for (const line of processed.lines) {
-			result.push(line);
+		for (const l of processed.lines) {
+			result.push(l);
 		}
-
-		// CHANGE: Avoid truthiness checks on undefined values
-		// WHY: strict-boolean-expressions — check undefined explicitly
-		// QUOTE(ТЗ): "Исправить все ошибки линтера"
-		// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
-		if (latestSnippet === undefined && processed.snippet !== undefined) {
-			latestSnippet = processed.snippet;
-		}
-
-		taken += 1;
+		// CHANGE: Use helper to avoid conditional update
+		latestSnippet = pickFirst(latestSnippet, processed.snippet);
 	}
 
 	const totalCommits = segments.length;
 	if (result.length > 1) {
 		result.push(`Total commits for line: ${totalCommits}`);
 		result.push(`Full list: git log --follow -- ${relativePath} | cat`);
-		return { lines: result, totalCommits, latestSnippet };
+		return latestSnippet === undefined
+			? { lines: result, totalCommits }
+			: { lines: result, totalCommits, latestSnippet };
 	}
 	return null;
 }

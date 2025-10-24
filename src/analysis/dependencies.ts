@@ -13,7 +13,7 @@ import * as path from "node:path";
 
 import ts from "typescript";
 
-import type { LintMessageWithFile } from "../types/index";
+import type { LintMessageWithFile } from "../types/index.js";
 import {
 	createMessageId,
 	type DependencyContext,
@@ -22,7 +22,7 @@ import {
 	getPosition,
 	groupMessagesByFile,
 	type MsgId,
-} from "./dependency-helpers";
+} from "./dependency-helpers.js";
 
 /**
  * Создает TypeScript Program из tsconfig.json.
@@ -101,16 +101,20 @@ function processNodeDeclarations(
 	file: string,
 	context: DependencyContext,
 ): ReadonlyArray<readonly [MsgId, MsgId]> {
-	const symbols = getDefinitionSymbols(context.checker, node);
+	const checker: ts.TypeChecker = context.checker;
+	const symbols = getDefinitionSymbols(checker, node);
 	const edges: Array<readonly [MsgId, MsgId]> = [];
 
 	for (const symbol of symbols) {
-		const declarations = symbol.declarations ?? [];
+		const declarations: ReadonlyArray<ts.Declaration> =
+			symbol.declarations ?? [];
 		for (const declaration of declarations) {
 			const result = findDeclarationMessage(declaration, context);
-			if (result) {
+			if (result !== null) {
+				const resultFile: string = result.file;
+				const resultMessage: LintMessageWithFile = result.message;
 				edges.push([
-					createMessageId(result.file, result.message),
+					createMessageId(resultFile, resultMessage),
 					createMessageId(file, useMessage),
 				]);
 			}
@@ -132,6 +136,8 @@ function processImportDeclarations(
 	context: DependencyContext,
 ): ReadonlyArray<readonly [MsgId, MsgId]> {
 	const edges: Array<readonly [MsgId, MsgId]> = [];
+	const program: ts.Program = context.program;
+	const byFile: Map<string, LintMessageWithFile[]> = context.byFile;
 
 	sourceFile.forEachChild((node) => {
 		if (
@@ -142,10 +148,11 @@ function processImportDeclarations(
 		}
 
 		const spec = node.moduleSpecifier.text;
+		const compilerOptions: ts.CompilerOptions = program.getCompilerOptions();
 		const resolved = ts.resolveModuleName(
 			spec,
 			file,
-			context.program.getCompilerOptions(),
+			compilerOptions,
 			ts.sys,
 		).resolvedModule;
 		if (!resolved) {
@@ -153,13 +160,17 @@ function processImportDeclarations(
 		}
 
 		const target = path.resolve(resolved.resolvedFileName);
-		const targetMessages = context.byFile.get(target);
+		const targetMessages = byFile.get(target);
 		if (!targetMessages || targetMessages.length === 0) {
 			return;
 		}
 
 		const firstMessage = targetMessages[0];
-		if (!firstMessage) return;
+		// CHANGE: Explicit undefined check instead of truthiness
+		// WHY: strict-boolean-expressions — object value in conditional is always true
+		// QUOTE(ТЗ): "Исправить все ошибки линтера"
+		// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
+		if (firstMessage === undefined) return;
 		const from = createMessageId(target, firstMessage);
 
 		for (const useMessage of msgs) {

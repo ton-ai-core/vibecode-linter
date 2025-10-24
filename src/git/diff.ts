@@ -10,15 +10,15 @@ import {
 	pickSnippetForLine,
 	TAB_WIDTH,
 	visualColumnAt,
-} from "../diff/index";
+} from "../diff/index.js";
 import type {
 	DiffLineView,
 	DiffRangeConfig,
 	DiffSnippet,
 	GitDiffBlock,
 	LintMessage,
-} from "../types/index";
-import { execGitStdoutOrNull } from "./utils";
+} from "../types/index.js";
+import { execGitStdoutOrNull } from "./utils.js";
 
 /**
  * Уточняет диапазон подсветки на основе текста сообщения об ошибке.

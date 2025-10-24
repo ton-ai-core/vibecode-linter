@@ -8,4 +8,4 @@ export {
 	buildDependencyEdges,
 	buildProgram,
 	topologicalSort,
-} from "./dependencies";
+} from "./dependencies.js";

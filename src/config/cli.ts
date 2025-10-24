@@ -4,7 +4,7 @@
 // REF: REQ-20250210-MODULAR-ARCH
 // SOURCE: n/a
 
-import type { CLIOptions } from "../types/index";
+import type { CLIOptions } from "../types/index.js";
 
 // CHANGE: Extracted result type for argument processing
 // WHY: Simplifies control flow in parseCLIArgs
@@ -66,10 +66,15 @@ function processArgument(
 	current: Omit<ArgProcessResult, "skipNext">,
 ): ArgProcessResult {
 	// Try numeric flag handlers
-	const handler = numericHandlers[arg];
-	if (handler) {
+	// CHANGE: Use explicit undefined/null checks
+	// WHY: strict-boolean-expressions — function/object truthiness is always true
+	// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
+	const handler: NumericFlagHandler | undefined = (
+		numericHandlers as Record<string, NumericFlagHandler | undefined>
+	)[arg];
+	if (handler !== undefined) {
 		const result = handler(args, index, current);
-		if (result) return result;
+		if (result !== null) return result;
 	}
 
 	// Handle boolean flags
@@ -144,5 +149,19 @@ export function parseCLIArgs(): CLIOptions {
 		}
 	}
 
-	return state;
+	// CHANGE: Build base result once to remove duplication (jscpd)
+	// WHY: Two branches differed только наличием 'context'; дублирование убрано
+	// QUOTE(ТЗ): "Разумные рефакторинги без дубликатов"
+	// REF: REQ-LINT-FIX
+	const { context, ...rest } = state;
+	const base: Omit<CLIOptions, "context"> = {
+		targetPath: rest.targetPath,
+		maxClones: rest.maxClones,
+		width: rest.width,
+		noFix: rest.noFix,
+		noPreflight: rest.noPreflight,
+		fixPeers: rest.fixPeers,
+	};
+	// exactOptionalPropertyTypes: отсутствие поля корректно моделирует "context?: number"
+	return context === undefined ? base : { ...base, context };
 }

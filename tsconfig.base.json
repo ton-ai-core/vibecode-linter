@@ -1,47 +1,97 @@
 {
-  // CHANGE: Introduce solution-style TS config (base) for shared compiler options
-  // WHY: Senior practice — separate base, build (src), and test configs; ESLint references a single root
-  // QUOTE(ТЗ): "Давать проверяемые решения через формализацию и строгую типизацию"
-  // REF: REQ-TS-SOLUTION-STYLE
-  "compilerOptions": {
-    // Strictness (shared)
-    "strict": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-    "strictFunctionTypes": true,
-    "strictBindCallApply": true,
-    "strictPropertyInitialization": true,
-    "noImplicitThis": true,
-    "alwaysStrict": true,
+  // CHANGE: Complete rewrite of TypeScript configuration for maximum type safety and Effect compatibility
+  // WHY: Remove redundancy (strict flag includes many explicit options), add missing strict checks,
+  //      modernize module system for Effect (NodeNext vs CommonJS), enable full verification
+  // QUOTE(ТЗ): "Давать проверяемые решения через формализацию и строгую типизацию в функциональной парадигме"
+  // REF: REQ-TS-MAX-VERIFICATION
+  // SOURCE: TypeScript 5.x documentation - Compiler Options Reference
+  //         https://www.typescriptlang.org/tsconfig
+  // RATIONALE: strict:true already includes noImplicitAny, strictNullChecks, strictFunctionTypes,
+  //            strictBindCallApply, strictPropertyInitialization, noImplicitThis, alwaysStrict,
+  //            useUnknownInCatchVariables - explicit duplication removed for clarity
 
-    // Additional strict checks
+  "compilerOptions": {
+    // ═══════════════════════════════════════════════════════════════════════════
+    // STRICTNESS CORE (single flag enables 8 checks)
+    // ═══════════════════════════════════════════════════════════════════════════
+    "strict": true,
+    // Automatically enables:
+    //   - noImplicitAny: reject implicit 'any' types
+    //   - strictNullChecks: null/undefined not assignable to other types
+    //   - strictFunctionTypes: contravariant function parameter checking
+    //   - strictBindCallApply: strict checking of bind/call/apply
+    //   - strictPropertyInitialization: class properties must be initialized
+    //   - noImplicitThis: 'this' must have explicit type
+    //   - alwaysStrict: emit "use strict" in JS output
+    //   - useUnknownInCatchVariables: catch clause variables are 'unknown' not 'any'
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // ADDITIONAL STRICT CHECKS (not included in 'strict')
+    // ═══════════════════════════════════════════════════════════════════════════
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
+    "exactOptionalPropertyTypes": true,
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
     "allowUnusedLabels": false,
     "allowUnreachableCode": false,
 
-    // Module/target (shared)
+
+    // CHANGE: Add verbatimModuleSyntax for explicit import control
+    // WHY: Require explicit 'type' keyword for type-only imports, better bundler compatibility
+    "verbatimModuleSyntax": true,
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // MODULE SYSTEM (modernized for Effect and ESM)
+    // ═══════════════════════════════════════════════════════════════════════════
+    // CHANGE: Switch from CommonJS to NodeNext
+    // WHY: Effect library designed for modern ESM, NodeNext provides best compatibility
+    //      with both ESM and CJS, enables package.json "exports" field support
     "target": "ES2022",
-    "module": "CommonJS",
-    "moduleResolution": "node",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "lib": ["ES2022"],
+
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
+
+    // CHANGE: Keep isolatedModules for esbuild/swc compatibility
+    // WHY: Each file must be compilable independently, critical for fast build tools
     "isolatedModules": true,
 
-    // Type checking
-    "skipLibCheck": true,
+    // ═══════════════════════════════════════════════════════════════════════════
+    // TYPE CHECKING CONTROL
+    // ═══════════════════════════════════════════════════════════════════════════
+    // CHANGE: Set skipLibCheck to false for maximum verification
+    // WHY: Full type checking of declaration files ensures library type correctness
+    // TRADEOFF: Increases compilation time 2-3x, but ensures complete type safety
+    // NOTE: For development speed, can temporarily set to true, but CI must use false
+    "skipLibCheck": false,
+
     "forceConsistentCasingInFileNames": true,
 
-    // Paths
+    // ═══════════════════════════════════════════════════════════════════════════
+    // OUTPUT CONFIGURATION
+    // ═══════════════════════════════════════════════════════════════════════════
+    // NOTE: Moved emission-related options to project configs (tsconfig.src.json, tsconfig.test.json)
+    // WHY: Root (solution) tsconfig must not define outDir/tsBuildInfoFile to avoid TS6377 collisions
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // PATH RESOLUTION
+    // ═══════════════════════════════════════════════════════════════════════════
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]
     }
-  }
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // PROJECT STRUCTURE
+  // ═══════════════════════════════════════════════════════════════════════════
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "**/*.spec.ts", "**/*.test.ts"]
 }

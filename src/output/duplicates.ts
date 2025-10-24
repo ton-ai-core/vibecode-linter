@@ -9,12 +9,12 @@ import type {
 	SarifLocation,
 	SarifReport,
 	SarifResult,
-} from "../types/index";
+} from "../types/index.js";
 // CHANGE: Use node: protocol for Node.js built-in modules
 // WHY: Biome lint rule requires explicit node: prefix for clarity
 // REF: lint/style/useNodejsImportProtocol
 // SOURCE: https://biomejs.dev/linter/rules/lint/style/useNodejsImportProtocol
-import { exec, fs, path, promisify } from "../utils/node-mods";
+import { exec, fs, path, promisify } from "../utils/node-mods.js";
 
 const execAsync = promisify(exec);
 

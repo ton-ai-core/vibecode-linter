@@ -59,8 +59,7 @@ export default tseslint.config(
 			globals: { ...globals.node, ...globals.browser },
 			parserOptions: {
 				tsconfigRootDir: import.meta.dirname,
-				projectService: true,
-				project: ["./tsconfig.json"]
+				projectService: true
 			},
 		},
 		settings: {
@@ -386,13 +385,10 @@ export default tseslint.config(
 		plugins: { jest: jestPlugin },
 		languageOptions: { 
 			globals: { ...globals.jest },
-			// CHANGE: Point ESLint type-aware parser to a dedicated tsconfig for tests
-			// WHY: Keep build tsconfig (rootDir: src) intact while enabling type services for tests
-			// QUOTE(ТЗ): "Тесты должны проходить линт без ошибок конфигурации"
-			// REF: test/utils/tempProject.ts parsing error
+			// CHANGE: Use projectService — ESLint выберет нужный tsconfig (src/test) сам по references
 			parserOptions: {
-				project: ["./tsconfig.json"],
-				tsconfigRootDir: import.meta.dirname
+				tsconfigRootDir: import.meta.dirname,
+				projectService: true
 			}
 		},
 		rules: {

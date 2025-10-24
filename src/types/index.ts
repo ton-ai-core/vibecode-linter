@@ -9,21 +9,21 @@ export type {
 	ExecError,
 	LinterConfig,
 	PriorityLevel,
-} from "./config";
+} from "./config.js";
 export type {
 	DiffLineView,
 	DiffSnippet,
 	DiffSnippetSelection,
 	DiffSymbol,
-} from "./diff";
-export { extractStdoutFromError } from "./exec-helpers";
+} from "./diff.js";
+export { extractStdoutFromError } from "./exec-helpers.js";
 export type {
 	DiffRangeConfig,
 	GitBlameOptions,
 	GitBlameResult,
 	GitDiffBlock,
 	GitHistoryBlock,
-} from "./git";
+} from "./git.js";
 export type {
 	BiomeMessage,
 	ESLintMessage,
@@ -31,10 +31,15 @@ export type {
 	LintMessageWithFile,
 	LintResult,
 	TypeScriptMessage,
-} from "./messages";
+} from "./messages.js";
+export {
+	isBiomeMessage,
+	isESLintMessage,
+	isTypeScriptMessage,
+} from "./messages.js";
 export type {
 	DuplicateInfo,
 	SarifLocation,
 	SarifReport,
 	SarifResult,
-} from "./sarif";
+} from "./sarif.js";

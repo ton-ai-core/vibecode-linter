@@ -5,7 +5,17 @@
 // SOURCE: n/a
 
 import * as fs from "node:fs";
+import { createRequire } from "node:module";
 import * as path from "node:path";
+import { fileURLToPath } from "node:url";
+
+// CHANGE: Define __dirname and require equivalents for ES modules
+// WHY: package.json has "type": "module", __dirname and require are not available in ES modules
+// QUOTE(ERROR): "ReferenceError: __dirname is not defined", "ReferenceError: require is not defined"
+// REF: ES module migration
+// SOURCE: Node.js ES modules documentation
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const require = createRequire(import.meta.url);
 
 /**
  * Preflight issue codes enumerating all invariant violations we can detect prior to run.
