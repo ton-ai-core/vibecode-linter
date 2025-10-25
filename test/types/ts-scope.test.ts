@@ -1,6 +1,6 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { getTypeScriptDiagnostics } from "../../dist/linters/index.js";
+import { getTypeScriptDiagnostics } from "../../src/shell/linters/index.js";
 
 // CHANGE: Deterministic test that our TS diagnostics respect targetPath scope
 // WHY: Verify that diagnostics come strictly from the passed subtree and reflect tsconfig.json semantics

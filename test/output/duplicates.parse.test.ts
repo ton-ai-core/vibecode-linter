@@ -1,9 +1,8 @@
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
-
-import { parseSarifReport } from "../../dist/output/duplicates.js"; // CHANGE: Use built artifacts to satisfy test project isolation (disableSourceOfProjectReferenceRedirect)
-import type { DuplicateInfo, SarifReport } from "../../dist/types/index.js";
+import type { DuplicateInfo, SarifReport } from "../../src/core/types/index.js";
+import { parseSarifReport } from "../../src/shell/output/duplicates.js";
 
 /**
  * CHANGE: Add unit test for SARIF parsing via structured locations

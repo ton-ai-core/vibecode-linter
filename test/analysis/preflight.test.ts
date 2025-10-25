@@ -12,7 +12,7 @@ import {
 	type PreflightIssueCode,
 	printPreflightReport,
 	runPreflight,
-} from "../../dist/analysis/preflight.js";
+} from "../../src/shell/analysis/preflight.js";
 import { createTempProject } from "../utils/tempProject.js";
 
 describe("preflight: filesystem and environment checks", () => {
