@@ -1,12 +1,12 @@
 {
-  // CHANGE: Convert root tsconfig to solution-style with project references (src + test)
-  // WHY: Senior practice — a single canonical tsconfig for tools (ESLint), with isolated build profile
-  // QUOTE(ТЗ): "Давать проверяемые решения через формализацию и строгую типизацию"
-  // REF: REQ-TS-SOLUTION-STYLE
-  "extends": "./tsconfig.base.json",
-  "files": [],
-  "references": [
-    { "path": "./tsconfig.src.json" },
-    { "path": "./tsconfig.test.json" }
-  ]
+	// CHANGE: Convert root tsconfig to solution-style with project references (src + test)
+	// WHY: Senior practice — a single canonical tsconfig for tools (ESLint), with isolated build profile
+	// QUOTE(ТЗ): "Давать проверяемые решения через формализацию и строгую типизацию"
+	// REF: REQ-TS-SOLUTION-STYLE
+	"extends": "./tsconfig.base.json",
+	"files": [],
+	"references": [
+		{ "path": "./tsconfig.src.json" },
+		{ "path": "./tsconfig.test.json" }
+	]
 }
