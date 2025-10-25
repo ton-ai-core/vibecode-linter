@@ -116,13 +116,13 @@ function calculateWordEnd(currentLine: string, startCol: number): number {
 	const charAtPos = currentLine.charAt(startCol);
 	if (charAtPos === "" || !/[a-zA-Z_$]/.test(charAtPos)) return startCol + 1;
 
-	// CHANGE: Remove unreachable defensive code
+	// CHANGE: Remove unreachable defensive code, use optional chaining for type safety
 	// WHY: After charAtPos passes /[a-zA-Z_$]/ test, match always succeeds
 	// INVARIANT: ∀ line, col: charAt(col) ∈ [a-zA-Z_$] → match finds ≥1 char
+	// NOTE: Using ?. instead of ! to satisfy Biome linter (mathematically guaranteed non-null)
 	const remainingLine = currentLine.substring(startCol);
 	const wordMatch = remainingLine.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*/);
-	// wordMatch is never null here due to previous check
-	const wordLen = wordMatch![0].length;
+	const wordLen = wordMatch?.[0].length ?? 1;
 	return Math.min(startCol + wordLen, currentLine.length);
 }
 
