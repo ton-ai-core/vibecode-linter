@@ -1,9 +1,16 @@
 {
 	"name": "@ton-ai-core/vibecode-linter",
-	"version": "0.2.1",
+	"version": "1.0.0",
 	"type": "module",
 	"description": "Advanced TypeScript linter with Git integration, dependency analysis, and comprehensive error reporting",
-	"main": "dist/main.js",
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js"
+		}
+	},
 	"bin": {
 		"vibecode-linter": "dist/bin/vibecode-linter.js"
 	},
@@ -21,7 +28,7 @@
 	},
 	"homepage": "https://github.com/ton-ai-core/vibecode-linter#readme",
 	"scripts": {
-		"build": "tsc -p tsconfig.src.json",
+		"build": "npx -y rimraf ./dist && tsc -p tsconfig.src.json",
 		"prepack": "npm run build",
 		"prepublishOnly": "npm run build",
 		"release": "npm run build && npm run lint && npm version patch && npm publish --access public",

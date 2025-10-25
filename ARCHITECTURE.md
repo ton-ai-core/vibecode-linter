@@ -74,13 +74,21 @@
 - Координация всех модулей
 - Обработка ошибок
 
-#### 9. Обновить `lint.ts` (TODO)
-Превратить в точку входа:
-```typescript
-#!/usr/bin/env ts-node
-import { main } from "./src/main.js";
+#### 9. Точка входа (✅ Реализовано)
+Архитектура entry points:
+- **CLI**: `src/bin/vibecode-linter.ts` (единственное место с process.exit)
+- **Library API**: `src/index.ts` (экспортирует runLinter и типы)
+- **Orchestration**: `src/app/runLinter.ts` (координация CORE + SHELL)
 
-main().catch(console.error);
+```typescript
+// Programmatic usage:
+import { runLinter } from '@ton-ai-core/vibecode-linter';
+
+await runLinter({
+  targetPath: 'src/',
+  noFix: false,
+  // ... options
+});
 ```
 
 ## Граф зависимостей модулей

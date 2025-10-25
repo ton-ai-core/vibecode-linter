@@ -19,12 +19,66 @@ vibecode-linter src/
 
 ## 📖 Usage
 
+### CLI Usage
+
 ```bash
 # Lint a directory
 npx @ton-ai-core/vibecode-linter src/
 
 # Lint a specific file
 npx @ton-ai-core/vibecode-linter src/main.ts
+```
+
+### 📚 Programmatic Usage
+
+Use vibecode-linter as a library in your Node.js projects:
+
+```typescript
+import { runLinter } from '@ton-ai-core/vibecode-linter';
+
+// Run linter with custom options
+const exitCode = await runLinter({
+  targetPath: 'src/',           // Path to lint
+  maxClones: 5,                 // Max code duplicates to display
+  width: 120,                   // Terminal width for formatting
+  noFix: false,                 // Enable auto-fix (default)
+  noPreflight: false,           // Run preflight checks (default)
+  fixPeers: false,              // Don't fix peer dependencies (default)
+});
+
+if (exitCode === 0) {
+  console.log('✅ No errors found!');
+} else {
+  console.log('❌ Linting errors detected');
+  process.exit(1);
+}
+```
+
+**Available Exports:**
+
+```typescript
+// Main orchestrator
+import { runLinter } from '@ton-ai-core/vibecode-linter';
+
+// Types
+import type {
+  CLIOptions,
+  ExitCode,
+  LintMessage,
+  LintMessageWithFile,
+  ESLintMessage,
+  BiomeMessage,
+  TypeScriptMessage,
+} from '@ton-ai-core/vibecode-linter';
+
+// Pure utility functions
+import {
+  computeExitCode,
+  getPriorityLevel,
+  groupByLevel,
+  isESLintMessage,
+  isTypeScriptMessage,
+} from '@ton-ai-core/vibecode-linter';
 ```
 
 ## 📊 Example Output

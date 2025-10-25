@@ -1,15 +1,16 @@
 #!/usr/bin/env node
 
-// CHANGE: Introduce thin CLI shell wrapper that is the only place calling process.exit
-// WHY: Enforce Functional Core, Imperative Shell. Core returns ExitCode; shell exits the process.
+// CHANGE: Thin CLI shell wrapper - single point of process.exit
+// WHY: Enforce Functional Core, Imperative Shell. APP returns ExitCode; BIN exits the process.
 // QUOTE(ТЗ): "CORE никогда не вызывает SHELL" / "Все эффекты (IO) изолированы в тонкой оболочке"
-// REF: Architecture plan (Iteration 1 scaffolding)
+// REF: Architecture refactoring - removed main.ts indirection
 // FORMAT THEOREM: ∀run ∈ App: returns exitCode ∈ {0,1} → process.exit(exitCode) occurs exactly once at shell boundary
-// PURITY: SHELL
-// INVARIANT: Single point of termination; no process.exit in CORE
-// COMPLEXITY: O(1) time/space (delegates to core)
+// PURITY: SHELL (BIN layer)
+// INVARIANT: Single point of termination; no process.exit in APP or CORE
+// COMPLEXITY: O(1) time/space (delegates to APP)
 
-import { main } from "../main.js";
+import { runLinter } from "../app/runLinter.js";
+import { parseCLIArgs } from "../shell/config/index.js";
 
 /**
  * CLI entry point for vibecode-linter.
@@ -22,12 +23,13 @@ import { main } from "../main.js";
  */
 void (async (): Promise<void> => {
 	try {
-		const code = await main();
+		const cliOptions = parseCLIArgs();
+		const code = await runLinter(cliOptions);
 		// Shell boundary: single process exit
 		process.exit(code);
 	} catch (error) {
 		// Shell boundary: report fatal and exit with failure
-		// NOTE: logging remains in shell; core returns typed results
+		// NOTE: logging remains in shell; APP returns typed results
 		console.error("Fatal error:", error);
 		process.exit(1);
 	}
