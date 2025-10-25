@@ -397,6 +397,56 @@ export default tseslint.config(
 	//   },
 	// },
 
+	// FCIS: CORE vs SHELL layer overrides
+	{
+		files: ["src/core/**/*.ts"],
+		rules: {
+			"no-console": "error",
+			"no-restricted-imports": [
+				"error",
+				{
+					patterns: [
+						{
+							group: [
+								"node:*",
+								"fs",
+								"child_process",
+								"os",
+								"http",
+								"https",
+								"stream",
+								"path",
+								"url",
+								"buffer",
+								"process"
+							],
+							message:
+								"CORE layer must be pure: no Node I/O modules or process",
+						},
+					],
+				},
+			],
+			"no-restricted-globals": ["error", "process"],
+		},
+	},
+	{
+		files: [
+			"src/bin/**/*.ts",
+			"src/linters/**/*.ts",
+			"src/output/**/*.ts",
+			"src/git/**/*.ts",
+			"src/utils/**/*.ts",
+			"src/analysis/**/*.ts",
+			"src/config/**/*.ts",
+			"src/app/**/*.ts",
+			"src/shell/**/*.ts",
+			"src/main.ts"
+		],
+		rules: {
+			"no-console": "off"
+		},
+	},
+
 	// Тесты
 	{
 		files: ["**/*.spec.{ts,tsx}", "**/*.test.{ts,tsx}"],

@@ -11,8 +11,8 @@
 import { exec } from "node:child_process";
 import { promisify } from "node:util";
 
-import type { LintResult } from "../types/index.js";
-import { extractStdoutFromError } from "../types/index.js";
+import type { LintResult } from "../../core/types/index.js";
+import { extractStdoutFromError } from "../../core/types/index.js";
 
 const execAsync = promisify(exec);
 

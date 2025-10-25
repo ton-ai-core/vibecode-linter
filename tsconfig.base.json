@@ -15,6 +15,7 @@
     // STRICTNESS CORE (single flag enables 8 checks)
     // ═══════════════════════════════════════════════════════════════════════════
     "strict": true,
+    "alwaysStrict": true,
     // Automatically enables:
     //   - noImplicitAny: reject implicit 'any' types
     //   - strictNullChecks: null/undefined not assignable to other types

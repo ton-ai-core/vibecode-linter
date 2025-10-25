@@ -2,7 +2,18 @@
 // WHY: Reduces line count and complexity of printer.ts
 // REF: ESLint max-lines-per-function, max-lines
 import * as fs from "node:fs";
-
+import {
+	getPriorityLevel as coreGetPriorityLevel,
+	getPriorityName as coreGetPriorityName,
+	groupByLevel as coreGroupByLevel,
+	groupBySections as coreGroupBySections,
+	type RuleLevelMapLike,
+} from "../../core/format/priority.js";
+import type {
+	DiffRangeConfig,
+	GitDiffBlock,
+	LintMessageWithFile,
+} from "../../core/types/index.js";
 import {
 	buildDependencyEdges,
 	buildProgram,
@@ -10,51 +21,42 @@ import {
 } from "../analysis/index.js";
 import { type RuleLevelMap, ruleIdOf } from "../config/index.js";
 import { getCommitDiffBlocks, getGitDiffBlock } from "../git/index.js";
-import type {
-	DiffRangeConfig,
-	GitDiffBlock,
-	LintMessageWithFile,
-} from "../types/index.js";
 import { printCommitDiffSnippet, printFileContext } from "./printer-context.js";
+
+/** Structural adapter to avoid unknown casts while keeping shell types decoupled from core. */
+function toRuleLevelMapLike(
+	ruleLevelMap: RuleLevelMap | null,
+): RuleLevelMapLike | null {
+	if (ruleLevelMap === null) return null;
+	const explicit = new Map<
+		string,
+		{ readonly level: number; readonly name: string }
+	>();
+	for (const [key, value] of ruleLevelMap.explicitRules) {
+		explicit.set(key, { level: value.level, name: value.name });
+	}
+	if (ruleLevelMap.allLevel) {
+		const allLevel = {
+			level: ruleLevelMap.allLevel.level,
+			name: ruleLevelMap.allLevel.name,
+		} as const;
+		return { explicitRules: explicit, allLevel };
+	}
+	return { explicitRules: explicit };
+}
 
 export function getPriorityLevel(
 	m: LintMessageWithFile,
 	ruleLevelMap: RuleLevelMap | null,
 ): number {
-	if (!ruleLevelMap) return 2;
-
-	const ruleId = ruleIdOf(m);
-
-	const explicitRule = ruleLevelMap.explicitRules.get(ruleId);
-	if (explicitRule) {
-		return explicitRule.level;
-	}
-
-	if (ruleLevelMap.allLevel) {
-		return ruleLevelMap.allLevel.level;
-	}
-
-	return 2;
+	return coreGetPriorityLevel(m, toRuleLevelMapLike(ruleLevelMap));
 }
 
 export function getPriorityName(
 	m: LintMessageWithFile,
 	ruleLevelMap: RuleLevelMap | null,
 ): string {
-	if (!ruleLevelMap) return "Critical Compiler Errors";
-
-	const ruleId = ruleIdOf(m);
-
-	const explicitRule = ruleLevelMap.explicitRules.get(ruleId);
-	if (explicitRule) {
-		return explicitRule.name;
-	}
-
-	if (ruleLevelMap.allLevel) {
-		return ruleLevelMap.allLevel.name;
-	}
-
-	return "Critical Compiler Errors";
+	return coreGetPriorityName(m, toRuleLevelMapLike(ruleLevelMap));
 }
 
 export function sortMessages(
@@ -99,28 +101,14 @@ export function groupByLevel(
 	messages: ReadonlyArray<LintMessageWithFile>,
 	ruleLevelMap: RuleLevelMap | null,
 ): Map<number, LintMessageWithFile[]> {
-	const byLevel = new Map<number, LintMessageWithFile[]>();
-	for (const m of messages) {
-		const level = getPriorityLevel(m, ruleLevelMap);
-		if (!byLevel.has(level)) byLevel.set(level, []);
-		const levelArray = byLevel.get(level);
-		if (levelArray) levelArray.push(m);
-	}
-	return byLevel;
+	return coreGroupByLevel(messages, toRuleLevelMapLike(ruleLevelMap));
 }
 
 export function groupBySections(
 	messages: ReadonlyArray<LintMessageWithFile>,
 	ruleLevelMap: RuleLevelMap | null,
 ): Map<string, LintMessageWithFile[]> {
-	const sections = new Map<string, LintMessageWithFile[]>();
-	for (const m of messages.slice(0, 15)) {
-		const sectionName = getPriorityName(m, ruleLevelMap);
-		if (!sections.has(sectionName)) sections.set(sectionName, []);
-		const sectionArray = sections.get(sectionName);
-		if (sectionArray) sectionArray.push(m);
-	}
-	return sections;
+	return coreGroupBySections(messages, toRuleLevelMapLike(ruleLevelMap));
 }
 
 export function printStatistics(

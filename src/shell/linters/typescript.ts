@@ -9,7 +9,7 @@
 import * as path from "node:path";
 import ts from "typescript";
 
-import type { TypeScriptMessage } from "../types/index.js";
+import type { TypeScriptMessage } from "../../core/types/index.js";
 
 // CHANGE: Add optional debug logger controlled by env VCL_DEBUG_TS
 // WHY: Diagnose where diagnostics are lost: project selection, pre/post filter counts

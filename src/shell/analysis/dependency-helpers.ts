@@ -7,7 +7,7 @@
 import * as path from "node:path";
 import { match } from "ts-pattern";
 import ts from "typescript";
-import type { LintMessageWithFile } from "../types/index.js";
+import type { LintMessageWithFile } from "../../core/types/index.js";
 
 export type MsgId = string;
 

@@ -4,13 +4,13 @@
 // REF: REQ-20250210-MODULAR-ARCH
 // SOURCE: lint.ts lines 1558-1813
 
-import { makeRuleLevelMap } from "../config/index.js";
-import { detectDiffRange } from "../git/index.js";
 import type {
 	CLIOptions,
 	LinterConfig,
 	LintMessageWithFile,
-} from "../types/index.js";
+} from "../../core/types/index.js";
+import { makeRuleLevelMap } from "../config/index.js";
+import { detectDiffRange } from "../git/index.js";
 import {
 	groupByLevel,
 	groupBySections,

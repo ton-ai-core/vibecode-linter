@@ -1,6 +1,6 @@
 import * as path from "node:path";
 
-import type { GitHistoryBlock } from "../types/index.js";
+import type { GitHistoryBlock } from "../../core/types/index.js";
 import {
 	buildDiffBlocks,
 	type CommitDiffBlock,

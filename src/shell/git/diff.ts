@@ -10,14 +10,14 @@ import {
 	pickSnippetForLine,
 	TAB_WIDTH,
 	visualColumnAt,
-} from "../diff/index.js";
+} from "../../core/diff/index.js";
 import type {
 	DiffLineView,
 	DiffRangeConfig,
 	DiffSnippet,
 	GitDiffBlock,
 	LintMessage,
-} from "../types/index.js";
+} from "../../core/types/index.js";
 import { execGitStdoutOrNull } from "./utils.js";
 
 /**

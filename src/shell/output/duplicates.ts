@@ -9,7 +9,7 @@ import type {
 	SarifLocation,
 	SarifReport,
 	SarifResult,
-} from "../types/index.js";
+} from "../../core/types/index.js";
 // CHANGE: Use node: protocol for Node.js built-in modules
 // WHY: Biome lint rule requires explicit node: prefix for clarity
 // REF: lint/style/useNodejsImportProtocol

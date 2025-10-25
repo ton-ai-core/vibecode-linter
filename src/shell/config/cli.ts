@@ -4,7 +4,7 @@
 // REF: REQ-20250210-MODULAR-ARCH
 // SOURCE: n/a
 
-import type { CLIOptions } from "../types/index.js";
+import type { CLIOptions } from "../../core/types/index.js";
 
 // CHANGE: Extracted result type for argument processing
 // WHY: Simplifies control flow in parseCLIArgs

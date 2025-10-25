@@ -13,7 +13,7 @@ import * as path from "node:path";
 
 import ts from "typescript";
 
-import type { LintMessageWithFile } from "../types/index.js";
+import type { LintMessageWithFile } from "../../core/types/index.js";
 import {
 	createMessageId,
 	type DependencyContext,

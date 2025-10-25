@@ -30,9 +30,17 @@
     "sourceMap": false,
 
     // Keep tests root at repository root (tests live under ./test)
-    "rootDir": "."
+    "rootDir": ".",
+    // Override path alias to point tests at built declarations in dist/*
+    // Rationale: tests reference the src project via references (composite),
+    // and with disableSourceOfProjectReferenceRedirect, tsc uses d.ts outputs.
+    // Mapping @/* → dist/* lets the typechecker resolve modules like "@/core/…".
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["dist/*"]
+    }
   },
-  "include": ["test/**/*.ts"],
+  "include": ["test/**/*.ts", "src/**/*.ts"],
   "exclude": [
     "node_modules",
     "dist"

@@ -1,123 +1,16 @@
 // CHANGE: Extracted context printing helpers
 // WHY: Keeps printer-helpers.ts under 300 lines
 // REF: ESLint max-lines
-import { expandTabs } from "../diff/index.js";
+import { expandTabs } from "../../core/diff/index.js";
+import {
+	calculateColumnPosition,
+	calculateHighlightRange,
+} from "../../core/format/highlight.js";
+import type {
+	GitDiffBlock,
+	LintMessageWithFile,
+} from "../../core/types/index.js";
 import type { CommitDiffBlock } from "../git/history-helpers.js";
-import type { GitDiffBlock, LintMessageWithFile } from "../types/index.js";
-
-function calculateVisualWidth(char: string, currentVisual: number): number {
-	if (char === "\t") {
-		const tabSize = 8;
-		return Math.floor(currentVisual / tabSize + 1) * tabSize;
-	}
-	if (char === "\r") return currentVisual;
-	return currentVisual + 1;
-}
-
-export function calculateColumnPosition(
-	currentLine: string,
-	targetVisualColumn: number,
-): number {
-	let realColumn = 0;
-	let visualColumn = 0;
-
-	for (let charIndex = 0; charIndex <= currentLine.length; charIndex += 1) {
-		if (visualColumn >= targetVisualColumn) {
-			realColumn = charIndex;
-			break;
-		}
-		if (charIndex >= currentLine.length) {
-			realColumn = currentLine.length;
-			break;
-		}
-
-		const ch = currentLine.charAt(charIndex);
-		// CHANGE: Avoid truthiness on possibly undefined char
-		// WHY: strict-boolean-expressions — handle empty explicitly
-		// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
-		if (ch !== "") visualColumn = calculateVisualWidth(ch, visualColumn);
-	}
-
-	if (visualColumn < targetVisualColumn) realColumn = currentLine.length;
-	return Math.max(0, Math.min(realColumn, currentLine.length));
-}
-
-function skipWhitespace(line: string, start: number): number {
-	let pos = start;
-	while (pos < line.length) {
-		const ch = line.charAt(pos);
-		// CHANGE: Avoid truthiness on possibly undefined char
-		// WHY: strict-boolean-expressions — explicit empty check
-		// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
-		if (ch === "" || !/\s/.test(ch)) break;
-		pos += 1;
-	}
-	return pos;
-}
-
-function calculateFunctionArgsEnd(
-	currentLine: string,
-	startCol: number,
-): number {
-	const beforeCursor = currentLine.substring(0, startCol + 15);
-	const funcCallMatch = beforeCursor.match(
-		/([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\([^)]*$/,
-	);
-	if (!funcCallMatch) return startCol + 1;
-
-	const lastCommaPos = beforeCursor.lastIndexOf(",");
-	const openParenPos = beforeCursor.lastIndexOf("(");
-	const targetPos = Math.max(lastCommaPos, openParenPos);
-	if (targetPos === -1) return startCol + 1;
-
-	const newStartCol = skipWhitespace(currentLine, targetPos + 1);
-	return newStartCol + 1;
-}
-
-function calculateWordEnd(currentLine: string, startCol: number): number {
-	const charAtPos = currentLine.charAt(startCol);
-	// CHANGE: Avoid truthiness on char; check empty explicitly
-	// WHY: strict-boolean-expressions
-	// REF: REQ-LINT-FIX
-	if (charAtPos === "" || !/[a-zA-Z_$]/.test(charAtPos)) return startCol + 1;
-
-	const remainingLine = currentLine.substring(startCol);
-	const wordMatch = remainingLine.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*/);
-	if (wordMatch) {
-		return Math.min(startCol + wordMatch[0].length, currentLine.length);
-	}
-	return startCol + 1;
-}
-
-export function calculateHighlightRange(
-	m: LintMessageWithFile,
-	currentLine: string,
-	startCol: number,
-): { start: number; end: number } {
-	const { source, message } = m;
-
-	let endCol: number;
-	// CHANGE: Avoid truthiness on numeric endColumn
-	// WHY: strict-boolean-expressions — explicit numeric guard
-	// REF: REQ-LINT-FIX
-	if (
-		"endColumn" in m &&
-		typeof m.endColumn === "number" &&
-		Number.isFinite(m.endColumn)
-	) {
-		endCol = Math.min(m.endColumn - 1, currentLine.length);
-	} else if (source === "typescript") {
-		if (message.includes("Expected") && message.includes("arguments")) {
-			endCol = calculateFunctionArgsEnd(currentLine, startCol);
-		} else {
-			endCol = calculateWordEnd(currentLine, startCol);
-		}
-	} else {
-		endCol = startCol + 1;
-	}
-
-	return { start: startCol, end: endCol };
-}
 
 export function printFileContext(
 	m: LintMessageWithFile,

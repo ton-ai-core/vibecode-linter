@@ -4,8 +4,8 @@
 // REF: REQ-20250210-MODULAR-ARCH
 // SOURCE: n/a
 
-import type { DiffRangeConfig, ExecError } from "../types/index.js";
-import { extractStdoutFromError } from "../types/index.js";
+import type { DiffRangeConfig, ExecError } from "../../core/types/index.js";
+import { extractStdoutFromError } from "../../core/types/index.js";
 // CHANGE: Use node: protocol for Node.js built-in modules
 // WHY: Biome lint rule requires explicit node: prefix for clarity
 // REF: lint/style/useNodejsImportProtocol
