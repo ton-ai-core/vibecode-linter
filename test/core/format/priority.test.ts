@@ -96,6 +96,21 @@ describe("groupByLevel", () => {
 		expect(grouped.get(1)?.length).toBe(1);
 		expect(grouped.get(2)?.length).toBe(1);
 	});
+
+	// CHANGE: Add test for multiple messages with same priority level
+	// WHY: Cover branch where arr.push(m) is called (priority.ts:93)
+	// INVARIANT: ∀ level ∈ Levels: |grouped[level]| = count(msgs, level)
+	// PURITY: CORE
+	it("handles multiple messages with same level (else branch)", () => {
+		const ml = mapLike({}, { level: 1, name: "All" });
+		const msgs = [
+			eslintMsg({ ruleId: "a" }),
+			eslintMsg({ ruleId: "b" }),
+			eslintMsg({ ruleId: "c" }),
+		];
+		const grouped = groupByLevel(msgs, ml);
+		expect(grouped.get(1)?.length).toBe(3);
+	});
 });
 
 describe("groupBySections", () => {

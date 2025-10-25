@@ -25,11 +25,16 @@ export interface RuleLevelMapLike {
  * Get rule id from lint message in a pure, cross-source way.
  *
  * @pure true
+ * @invariant m.source ∈ {typescript, eslint, biome} (guaranteed by type system)
  */
 export function ruleIdOfCore(m: LintMessageWithFile): string {
+	// CHANGE: Simplify by leveraging type system guarantees
+	// WHY: LintMessageWithFile union type ensures source is always one of three values
+	// INVARIANT: ∀ m: LintMessageWithFile. m.source ∈ {typescript, eslint, biome}
 	if (m.source === "typescript") return m.code;
-	const r = m.source === "eslint" || m.source === "biome" ? m.ruleId : null;
-	return typeof r === "string" && r.length > 0 ? r : "unknown";
+	// Type system guarantees m.source is "eslint" or "biome" here
+	const ruleId = m.ruleId;
+	return typeof ruleId === "string" && ruleId.length > 0 ? ruleId : "unknown";
 }
 
 /**

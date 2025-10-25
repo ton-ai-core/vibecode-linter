@@ -22,6 +22,30 @@ function expectSingleChar(currentLine: string, msg: LintMessageWithFile): void {
 	expect(end - start).toBe(1);
 }
 
+// CHANGE: Add helper to eliminate duplicate test assertions
+// WHY: DRY principle - avoid repeated expect blocks for valid range checks
+// PURITY: CORE
+function expectValidRange(currentLine: string, msg: LintMessageWithFile): void {
+	const { start, end } = range(currentLine, msg);
+	expect(end).toBeGreaterThan(start);
+	expect(end).toBeLessThanOrEqual(currentLine.length);
+}
+
+// CHANGE: Add helper for single-char identifier tests
+// WHY: DRY principle - eliminate duplicate test structure
+// PURITY: CORE
+function expectSingleCharAt(
+	currentLine: string,
+	column: number,
+	expectedStart: number,
+	expectedEnd: number,
+): void {
+	const m = tsMsg({ line: 1, column, message: "TS message" });
+	const { start, end } = range(currentLine, m);
+	expect(start).toBe(expectedStart);
+	expect(end).toBe(expectedEnd);
+}
+
 describe("calculateHighlightRange — eslint branch", () => {
 	it("uses endColumn and clamps to line length", () => {
 		const currentLine = "abcdefghij";
@@ -36,42 +60,61 @@ describe("calculateHighlightRange — eslint branch", () => {
 	});
 });
 
-describe("calculateHighlightRange — typescript branch", () => {
-	it("Expected ... arguments — function call context advances to next arg (+1)", () => {
-		const currentLine = "fn(a, b)";
-		const m = tsMsg({ line: 1, column: 3, message: "Expected 2 arguments" });
-		const { start, end } = range(currentLine, m);
-		expect(end).toBeGreaterThan(start);
-		expect(end).toBeLessThanOrEqual(currentLine.length);
+describe("calculateHighlightRange — typescript 'Expected arguments'", () => {
+	it("function call context advances to next arg (+1)", () => {
+		expectValidRange(
+			"fn(a, b)",
+			tsMsg({ line: 1, column: 3, message: "Expected 2 arguments" }),
+		);
 	});
 
-	it("Expected ... arguments — only open paren with spaces uses skipWhitespace", () => {
-		const currentLine = "fn(   ";
-		const m = tsMsg({ line: 1, column: 3, message: "Expected 2 arguments" });
-		const { start, end } = range(currentLine, m);
-		expect(end).toBeGreaterThan(start);
-		expect(end).toBeLessThanOrEqual(currentLine.length);
+	it("only open paren with spaces uses skipWhitespace", () => {
+		expectValidRange(
+			"fn(   ",
+			tsMsg({ line: 1, column: 3, message: "Expected 2 arguments" }),
+		);
 	});
 
-	it("Expected ... arguments — no call context → single char", () => {
+	it("no call context → single char", () => {
 		expectSingleChar(
 			"return a + b",
 			tsMsg({ line: 1, column: 3, message: "Expected 2 arguments" }),
 		);
 	});
 
-	it("Other TS message — word heuristic when starting at letter", () => {
-		const currentLine = "fooBar baz";
-		const m = tsMsg({ line: 1, column: 1, message: "Some TS message" });
-		const { start, end } = range(currentLine, m);
-		expect(start).toBe(0);
-		expect(end).toBe(6); // "fooBar"
+	// CHANGE: Add edge case for characters immediately after paren
+	// WHY: Cover skipWhitespace non-whitespace break branch (highlight.ts:75)
+	// PURITY: CORE
+	it("open paren followed immediately by non-whitespace", () => {
+		expectValidRange(
+			"fn(x",
+			tsMsg({ line: 1, column: 3, message: "Expected 2 arguments" }),
+		);
+	});
+});
+
+describe("calculateHighlightRange — typescript other messages", () => {
+	it("word heuristic when starting at letter", () => {
+		expectSingleCharAt("fooBar baz", 1, 0, 6);
 	});
 
-	it("Other TS message — non-word start defaults to single char", () => {
-		const currentLine = "(foo)";
-		const m = tsMsg({ line: 1, column: 1, message: "TS message" });
-		const { start, end } = range(currentLine, m);
-		expect(end - start).toBe(1);
+	it("non-word start defaults to single char", () => {
+		expectSingleCharAt("(foo)", 1, 0, 1);
+	});
+
+	// CHANGE: Add edge case tests for single-char identifiers
+	// WHY: Ensure calculateWordEnd handles minimal valid identifiers
+	// INVARIANT: ∀ word ∈ ValidIdentifiers: |word| ≥ 1 → highlighted
+	// PURITY: CORE
+	it("single-char identifier ($)", () => {
+		expectSingleCharAt("$ + 1", 1, 0, 1);
+	});
+
+	it("single-char identifier (_)", () => {
+		expectSingleCharAt("_ = 2", 1, 0, 1);
+	});
+
+	it("identifier at end of line", () => {
+		expectSingleCharAt("return x", 8, 7, 8);
 	});
 });

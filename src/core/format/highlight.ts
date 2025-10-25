@@ -63,12 +63,16 @@ export function calculateColumnPosition(
  * Skip whitespace in a line starting from given index.
  *
  * @pure true
+ * @invariant while ensures pos < length → charAt(pos) !== ""
  */
 function skipWhitespace(line: string, start: number): number {
 	let pos = start;
 	while (pos < line.length) {
 		const ch = line.charAt(pos);
-		if (ch === "" || !/\s/.test(ch)) break;
+		// CHANGE: Remove ch === "" check (unreachable due to while condition)
+		// WHY: while ensures pos < line.length → charAt never returns ""
+		// INVARIANT: ∀ pos < line.length. charAt(pos) ∈ line (non-empty)
+		if (!/\s/.test(ch)) break;
 		pos += 1;
 	}
 	return pos;
@@ -79,6 +83,7 @@ function skipWhitespace(line: string, start: number): number {
  * from next argument position.
  *
  * @pure true
+ * @invariant funcCallMatch exists → "(" found in string → openParenPos ≥ 0
  */
 function calculateFunctionArgsEnd(
 	currentLine: string,
@@ -90,10 +95,12 @@ function calculateFunctionArgsEnd(
 	);
 	if (!funcCallMatch) return startCol + 1;
 
+	// CHANGE: Remove targetPos === -1 check (unreachable)
+	// WHY: Regex /\([^)]*$/ guarantees "(" exists → indexOf("(") >= 0
+	// INVARIANT: funcCallMatch exists → openParenPos >= 0 → targetPos >= 0
 	const lastCommaPos = beforeCursor.lastIndexOf(",");
 	const openParenPos = beforeCursor.lastIndexOf("(");
 	const targetPos = Math.max(lastCommaPos, openParenPos);
-	if (targetPos === -1) return startCol + 1;
 
 	const newStartCol = skipWhitespace(currentLine, targetPos + 1);
 	return newStartCol + 1;
@@ -103,18 +110,20 @@ function calculateFunctionArgsEnd(
  * Heuristic: highlight a word at the given start when not TypeScript specific.
  *
  * @pure true
+ * @invariant charAtPos ∈ [a-zA-Z_$] → wordMatch !== null
  */
 function calculateWordEnd(currentLine: string, startCol: number): number {
 	const charAtPos = currentLine.charAt(startCol);
 	if (charAtPos === "" || !/[a-zA-Z_$]/.test(charAtPos)) return startCol + 1;
 
+	// CHANGE: Remove unreachable defensive code
+	// WHY: After charAtPos passes /[a-zA-Z_$]/ test, match always succeeds
+	// INVARIANT: ∀ line, col: charAt(col) ∈ [a-zA-Z_$] → match finds ≥1 char
 	const remainingLine = currentLine.substring(startCol);
 	const wordMatch = remainingLine.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*/);
-	if (wordMatch) {
-		const wordLen = wordMatch[0].length;
-		return Math.min(startCol + wordLen, currentLine.length);
-	}
-	return startCol + 1;
+	// wordMatch is never null here due to previous check
+	const wordLen = wordMatch![0].length;
+	return Math.min(startCol + wordLen, currentLine.length);
 }
 
 /**
