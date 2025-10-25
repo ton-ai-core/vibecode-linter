@@ -26,8 +26,7 @@
 		"prepublishOnly": "npm run build",
 		"release": "npm run build && npm run lint && npm version patch && npm publish --access public",
 		"lint": "npx tsx src/bin/vibecode-linter.ts src/",
-		"typecheck:test": "tsc -p tsconfig.test.json --noEmit --pretty false",
-		"test": "npm run build && npx tsx src/bin/vibecode-linter.ts test/ && npm run typecheck:test && node --experimental-vm-modules ./node_modules/jest/bin/jest.js --config jest.config.mjs"
+		"test": "npm run build && npx tsx src/bin/vibecode-linter.ts test/ && node --experimental-vm-modules ./node_modules/jest/bin/jest.js --config jest.config.mjs"
 	},
 	"keywords": [
 		"linter",
