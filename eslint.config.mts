@@ -435,23 +435,6 @@ export default tseslint.config(
 			"no-restricted-globals": ["error", "process"],
 		},
 	},
-	{
-		files: [
-			"src/bin/**/*.ts",
-			"src/linters/**/*.ts",
-			"src/output/**/*.ts",
-			"src/git/**/*.ts",
-			"src/utils/**/*.ts",
-			"src/analysis/**/*.ts",
-			"src/config/**/*.ts",
-			"src/app/**/*.ts",
-			"src/shell/**/*.ts",
-			"src/main.ts",
-		],
-		rules: {
-			"no-console": "off",
-		},
-	},
 
 	// Тесты
 	{
