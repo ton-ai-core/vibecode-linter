@@ -54,7 +54,10 @@ function hasTsLikeExt(spec: string): boolean {
  *  - spec.ts / spec.tsx / spec.mts / spec.cts
  *  - spec/index.ts* (если указан каталог)
  */
-function resolveCandidates(fromDir: string, rawSpec: string): ReadonlyArray<string> {
+function resolveCandidates(
+	fromDir: string,
+	rawSpec: string,
+): ReadonlyArray<string> {
 	const base = path.resolve(fromDir, rawSpec);
 	const files = [
 		`${base}.ts`,
@@ -103,11 +106,18 @@ function normalizeSpecifier(spec: string, fromFile: string): string {
 	for (const c of fileCandidates) {
 		if (existsSync(c)) {
 			// Если нашли точный файл (spec.ts*), то достаточно добавить .js к исходному spec
-			if (!c.endsWith(`${path.sep}index.ts`) && !c.endsWith(`${path.sep}index.tsx`) && !c.endsWith(`${path.sep}index.mts`) && !c.endsWith(`${path.sep}index.cts`)) {
+			if (
+				!c.endsWith(`${path.sep}index.ts`) &&
+				!c.endsWith(`${path.sep}index.tsx`) &&
+				!c.endsWith(`${path.sep}index.mts`) &&
+				!c.endsWith(`${path.sep}index.cts`)
+			) {
 				return `${spec}.js`;
 			}
 			// Если нашли каталог/индекс — явно дописываем '/index.js'
-			const withIndex = spec.endsWith("/") ? `${spec}index.js` : `${spec}/index.js`;
+			const withIndex = spec.endsWith("/")
+				? `${spec}index.js`
+				: `${spec}/index.js`;
 			return withIndex;
 		}
 	}
@@ -240,7 +250,9 @@ async function main(): Promise<void> {
 	function diagText(d: import("ts-morph").Diagnostic): string {
 		const msg = d.getMessageText();
 		// msg can be a chain; best-effort stringify
-		return typeof msg === "string" ? msg : (msg as { messageText?: string }).messageText ?? String(msg);
+		return typeof msg === "string"
+			? msg
+			: ((msg as { messageText?: string }).messageText ?? String(msg));
 	}
 	const diags = allDiags.filter((d) => {
 		const sf = d.getSourceFile();

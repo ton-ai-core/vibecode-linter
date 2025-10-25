@@ -59,16 +59,16 @@ export default tseslint.config(
 			globals: { ...globals.node, ...globals.browser },
 			parserOptions: {
 				tsconfigRootDir: import.meta.dirname,
-				projectService: true
+				projectService: true,
 			},
 		},
 		settings: {
 			// Резолверы для import-x: TS-алиасы + node:* core-модули
 			"import-x/resolver": {
-				typescript: { 
-					alwaysTryTypes: true, 
-					project: './tsconfig.json'
-			    },
+				typescript: {
+					alwaysTryTypes: true,
+					project: "./tsconfig.json",
+				},
 				node: {
 					extensions: [".ts", ".tsx", ".d.ts", ".js", ".jsx", ".json", ".node"],
 					preferBuiltins: true,
@@ -107,25 +107,32 @@ export default tseslint.config(
 					skipComments: true,
 				},
 			],
-			'import-x/no-cycle': ['error', { maxDepth: 10 }], // maxDepth - ограничение глубины поиска цикла
-			'no-restricted-imports': ['error', {
-			"patterns": [
-				// Запрет прямых импортов из domain в UI (пример)
-				"src/domain/**"
+			"import-x/no-cycle": ["error", { maxDepth: 10 }], // maxDepth - ограничение глубины поиска цикла
+			"no-restricted-imports": [
+				"error",
+				{
+					patterns: [
+						// Запрет прямых импортов из domain в UI (пример)
+						"src/domain/**",
+					],
+					paths: [
+						// Доп. наглядное правило с сообщением
+						{
+							name: "src/domain",
+							message:
+								"Domain layer must not be imported by UI layer. Use domain/public-api instead.",
+						},
+					],
+				},
 			],
-			"paths": [
-				// Доп. наглядное правило с сообщением
-				{ "name": "src/domain", "message": "Domain layer must not be imported by UI layer. Use domain/public-api instead."}
-			]
-			}],
 			// TS строгие правила
 			"@typescript-eslint/no-unused-vars": [
 				"error",
 				{
-				  "argsIgnorePattern": "^_",
-				  "varsIgnorePattern": "^_"
-				}
-			  ],
+					argsIgnorePattern: "^_",
+					varsIgnorePattern: "^_",
+				},
+			],
 			"@typescript-eslint/no-explicit-any": "error",
 			"@typescript-eslint/no-unused-expressions": "error",
 			"@typescript-eslint/explicit-function-return-type": "error",
@@ -194,8 +201,8 @@ export default tseslint.config(
 						"  const result = match(item)",
 						"    .with({ type: 'this' }, (item) => processThis(item))",
 						"    .with({ type: 'that' }, (item) => processThat(item))",
-						"    .exhaustive();"
-					].join("\n")
+						"    .exhaustive();",
+					].join("\n"),
 				},
 			],
 
@@ -268,7 +275,6 @@ export default tseslint.config(
 			"promise/param-names": "error",
 			"promise/no-multiple-resolved": "error",
 			"no-restricted-globals": ["error", "Reflect"],
-
 
 			// // Точечные запреты с пояснениями
 			// "no-restricted-syntax": ["error",
@@ -418,7 +424,7 @@ export default tseslint.config(
 								"path",
 								"url",
 								"buffer",
-								"process"
+								"process",
 							],
 							message:
 								"CORE layer must be pure: no Node I/O modules or process",
@@ -440,10 +446,10 @@ export default tseslint.config(
 			"src/config/**/*.ts",
 			"src/app/**/*.ts",
 			"src/shell/**/*.ts",
-			"src/main.ts"
+			"src/main.ts",
 		],
 		rules: {
-			"no-console": "off"
+			"no-console": "off",
 		},
 	},
 
@@ -451,13 +457,13 @@ export default tseslint.config(
 	{
 		files: ["**/*.spec.{ts,tsx}", "**/*.test.{ts,tsx}"],
 		plugins: { jest: jestPlugin },
-		languageOptions: { 
+		languageOptions: {
 			globals: { ...globals.jest },
 			// CHANGE: Use projectService — ESLint выберет нужный tsconfig (src/test) сам по references
 			parserOptions: {
 				tsconfigRootDir: import.meta.dirname,
-				projectService: true
-			}
+				projectService: true,
+			},
 		},
 		rules: {
 			...(jestPlugin.configs.recommended?.rules ?? {}),

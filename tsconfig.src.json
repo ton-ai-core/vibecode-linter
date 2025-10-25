@@ -1,33 +1,27 @@
 {
-  // CHANGE: Solution-style build config for source code (src)
-  // WHY: Senior practice — separate build profile; root tsconfig references src+test; ESLint uses root
-  // QUOTE(ТЗ): "Давать проверяемые решения через формализацию и строгую типизацию"
-  // REF: REQ-TS-SOLUTION-STYLE
-  "extends": "./tsconfig.base.json",
-  "compilerOptions": {
-    // Output for build
-    "outDir": "./dist",
-    "rootDir": "./src",
-    // CHANGE: Enable composite for project references (solution-style)
-    // WHY: Required by TypeScript when this config is referenced from the root tsconfig
-    // QUOTE(ТЗ): "Старшие практики: solution-style с references"
-    // REF: REQ-TS-SOLUTION-STYLE
-    "composite": true,
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
-    // CHANGE: Store TS incremental build metadata inside dist to avoid dirty working tree
-    // WHY: tsc writes .tsbuildinfo when composite/incremental; keeping it under dist/ (already ignored) prevents VCS noise
-    // REF: TypeScript compiler option "tsBuildInfoFile"
-    "tsBuildInfoFile": "./dist/.tsbuildinfo",
-    "removeComments": false
-  },
-  "include": ["src/**/*.ts"],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "test",
-    "**/*.test.ts",
-    "**/*.spec.ts"
-  ]
+	// CHANGE: Solution-style build config for source code (src)
+	// WHY: Senior practice — separate build profile; root tsconfig references src+test; ESLint uses root
+	// QUOTE(ТЗ): "Давать проверяемые решения через формализацию и строгую типизацию"
+	// REF: REQ-TS-SOLUTION-STYLE
+	"extends": "./tsconfig.base.json",
+	"compilerOptions": {
+		// Output for build
+		"outDir": "./dist",
+		"rootDir": "./src",
+		// CHANGE: Enable composite for project references (solution-style)
+		// WHY: Required by TypeScript when this config is referenced from the root tsconfig
+		// QUOTE(ТЗ): "Старшие практики: solution-style с references"
+		// REF: REQ-TS-SOLUTION-STYLE
+		"composite": true,
+		"declaration": true,
+		"declarationMap": true,
+		"sourceMap": true,
+		// CHANGE: Store TS incremental build metadata inside dist to avoid dirty working tree
+		// WHY: tsc writes .tsbuildinfo when composite/incremental; keeping it under dist/ (already ignored) prevents VCS noise
+		// REF: TypeScript compiler option "tsBuildInfoFile"
+		"tsBuildInfoFile": "./dist/.tsbuildinfo",
+		"removeComments": false
+	},
+	"include": ["src/**/*.ts"],
+	"exclude": ["node_modules", "dist", "test", "**/*.test.ts", "**/*.spec.ts"]
 }

@@ -1,22 +1,16 @@
 {
-  // CHANGE: Dedicated TS config for ESLint type-aware rules including tests
-  // WHY: Root tsconfig excludes tests (rootDir: src). ESLint project service needs a config that includes test/**/*.ts
-  // QUOTE(ТЗ): "Тесты должны проходить линт без ошибок конфигурации"
-  // REF: test/utils/tempProject.ts parsing error
-  "extends": "./tsconfig.json",
-  "compilerOptions": {
-    "noEmit": true,
-    "rootDir": ".",
-    "module": "CommonJS",
-    "moduleResolution": "node",
-    "types": ["jest"]
-  },
-  "include": [
-    "src/**/*.ts",
-    "test/**/*.ts"
-  ],
-  "exclude": [
-    "dist",
-    "node_modules"
-  ]
+	// CHANGE: Dedicated TS config for ESLint type-aware rules including tests
+	// WHY: Root tsconfig excludes tests (rootDir: src). ESLint project service needs a config that includes test/**/*.ts
+	// QUOTE(ТЗ): "Тесты должны проходить линт без ошибок конфигурации"
+	// REF: test/utils/tempProject.ts parsing error
+	"extends": "./tsconfig.json",
+	"compilerOptions": {
+		"noEmit": true,
+		"rootDir": ".",
+		"module": "CommonJS",
+		"moduleResolution": "node",
+		"types": ["jest"]
+	},
+	"include": ["src/**/*.ts", "test/**/*.ts"],
+	"exclude": ["dist", "node_modules"]
 }
