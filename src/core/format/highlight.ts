@@ -116,13 +116,16 @@ function calculateWordEnd(currentLine: string, startCol: number): number {
 	const charAtPos = currentLine.charAt(startCol);
 	if (charAtPos === "" || !/[a-zA-Z_$]/.test(charAtPos)) return startCol + 1;
 
-	// CHANGE: Remove unreachable defensive code, use optional chaining for type safety
+	// CHANGE: Use non-null assertion based on mathematical proof
 	// WHY: After charAtPos passes /[a-zA-Z_$]/ test, match always succeeds
 	// INVARIANT: ∀ line, col: charAt(col) ∈ [a-zA-Z_$] → match finds ≥1 char
-	// NOTE: Using ?. instead of ! to satisfy Biome linter (mathematically guaranteed non-null)
+	// PROOF: If charAt(startCol) ∈ [a-zA-Z_$], then substring(startCol)[0] ∈ [a-zA-Z_$]
+	//        Therefore regex /^[a-zA-Z_$][a-zA-Z0-9_$]*/ must match at least 1 char
+	//        Thus wordMatch cannot be null (mathematical guarantee, not runtime check)
 	const remainingLine = currentLine.substring(startCol);
 	const wordMatch = remainingLine.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*/);
-	const wordLen = wordMatch?.[0].length ?? 1;
+	// biome-ignore lint/style/noNonNullAssertion: mathematically proven non-null by invariant above
+	const wordLen = wordMatch![0].length;
 	return Math.min(startCol + wordLen, currentLine.length);
 }
 

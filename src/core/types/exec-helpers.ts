@@ -11,23 +11,24 @@ import type { ExecError } from "./config.js";
  *
  * @param error Ошибка выполнения
  * @returns stdout или null
+ *
+ * @pure true
+ * @invariant error is (Error | { stdout?: string }) → error !== null (type guarantee)
+ * @invariant "stdout" in error ∧ stdout !== undefined → typeof stdout === "string" (type guarantee)
  */
 export function extractStdoutFromError(
 	error: Error | { stdout?: string },
 ): string | null {
-	// CHANGE: Avoid truthiness and handle object/field presence explicitly
-	// WHY: strict-boolean-expressions — forbid using objects/nullable strings in conditionals
-	// QUOTE(ТЗ): "Исправить все ошибки линтера"
-	// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
-	const hasStdout =
-		typeof error === "object" &&
-		error !== null &&
-		"stdout" in (error as { stdout?: string });
-	if (!hasStdout) {
+	// CHANGE: Trust type system, remove defensive checks
+	// WHY: Type Error | { stdout?: string } guarantees non-null and correct types
+	// INVARIANT: Type system ensures error !== null and stdout?: string
+	if (!("stdout" in error)) {
 		return null;
 	}
 	const stdout = (error as ExecError).stdout;
-	if (typeof stdout !== "string" || stdout.trim().length === 0) {
+	// Type system guarantees stdout is string | undefined
+	// Only need to check for undefined and empty values
+	if (stdout === undefined || stdout.trim().length === 0) {
 		return null;
 	}
 	return stdout;
