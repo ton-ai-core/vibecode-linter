@@ -163,6 +163,15 @@ function calculatePositions(
 		diagnostic.category === "assist/source/organizeImports" &&
 		fileText
 	) {
+		// CHANGE: Anchor organizeImports diagnostics to first import when Biome omits spans
+		// WHY: Biome assists sometimes lack byte ranges; we must still surface a deterministic cursor for VSCode quick fixes
+		// QUOTE(REQ-LINT-FIX): "Организовать импорты должно подсвечивать точку вставки"
+		// REF: REQ-LINT-FIX
+		// SOURCE: n/a
+		// FORMAT THEOREM: ∀d ∈ Diagnostics: missingSpan(d) ∧ category(d)="assist/source/organizeImports" → position(d)=firstImport(text)
+		// PURITY: CORE
+		// INVARIANT: location reported for organizeImports always equals first import or BOF
+		// COMPLEXITY: O(n)/O(1) where n = file length scanned once
 		const p = firstImportOrBOF(fileText);
 		line = p.line;
 		column = p.column;
@@ -193,6 +202,15 @@ function processDiagnostic(
 		filePath,
 	);
 
+	// CHANGE: Normalize Biome severities to error level for legacy consumers
+	// WHY: Current LintResult pipeline models only binary error/no-error; warnings would silently pass CI otherwise
+	// QUOTE(RTM-LINT-RIGOR): "Любая внешняя диагностика должна завершать проверку с ошибкой"
+	// REF: RTM-LINT-RIGOR
+	// SOURCE: n/a
+	// FORMAT THEOREM: ∀d ∈ Diagnostics: emit(d) → severityNumber(d)=2
+	// PURITY: CORE
+	// INVARIANT: resultMessage.severity is always 2 until multi-level severities land
+	// COMPLEXITY: O(1)/O(1)
 	const severityNumber = 2;
 	const resultMessage = {
 		// CHANGE: Avoid truthiness on possibly empty string
