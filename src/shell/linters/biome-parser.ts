@@ -237,36 +237,51 @@ function processDiagnostic(
 	(existingResult.messages as Array<typeof resultMessage>).push(resultMessage);
 }
 
+// CHANGE: Introduced parsed-flag container for Biome diagnostics
+// WHY: Distinguish "no diagnostics" from "invalid JSON" to avoid false fallbacks
+// QUOTE(RTM-BIOME-FALLBACK): "Не показывать fallback, если Biome вернул пустой, но валидный отчёт"
+// REF: RTM-BIOME-FALLBACK
+// SOURCE: n/a
+// FORMAT THEOREM: ∀output: validJSON(output) ↔ parsed=true
+// PURITY: CORE
+// INVARIANT: parsed=false ⇒ diagnostics=[]
+// COMPLEXITY: O(1)
+export type ParsedBiomeDiagnostics = {
+	readonly diagnostics: ReadonlyArray<BiomeResult>;
+	readonly parsed: boolean;
+};
+
 /**
- * Парсит вывод Biome в JSON формате.
+ * Парсит вывод Biome в JSON формате с признаком успешности.
  *
- * CHANGE: Refactored to reduce complexity and line count
- * WHY: Original function had 130 lines and complexity 23
- * QUOTE(LINT): "Function has too many lines/complexity"
- * REF: ESLint max-lines-per-function, complexity
+ * CHANGE: Preserve parse success flag for shell logic
+ * WHY: Shell должна понимать, что пустой массив = отсутствие диагностик, а не ошибка JSON
+ * QUOTE(RTM-BIOME-FALLBACK): "Не показывать fallback, если Biome вернул пустой, но валидный отчёт"
+ * REF: RTM-BIOME-FALLBACK
  * SOURCE: n/a
  *
  * @param stdout Вывод Biome
- * @returns Массив результатов
+ * @returns Struct с diagnostics и parsed
  *
  * @pure true
- * @invariant result.length >= 0
+ * @effect none
+ * @invariant parsed=false ⇒ diagnostics.length = 0
  * @complexity O(n) where n = |diagnostics|
  */
-export function parseBiomeOutput(stdout: string): ReadonlyArray<BiomeResult> {
+export function parseBiomeOutput(stdout: string): ParsedBiomeDiagnostics {
 	try {
 		const biomeOutput = JSON.parse(stdout) as BiomeOutput;
-		const results: BiomeResult[] = [];
+		const diagnostics: BiomeResult[] = [];
 
 		if (Array.isArray(biomeOutput.diagnostics)) {
 			for (const item of biomeOutput.diagnostics) {
 				const diagnostic = item as BiomeDiagnostic;
-				processDiagnostic(diagnostic, results);
+				processDiagnostic(diagnostic, diagnostics);
 			}
 		}
 
-		return results;
+		return { diagnostics, parsed: true };
 	} catch {
-		return [];
+		return { diagnostics: [], parsed: false };
 	}
 }

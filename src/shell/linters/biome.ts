@@ -126,20 +126,22 @@ export function getBiomeDiagnostics(
 
 		// CHANGE: Use Effect.sync for parsing
 		// WHY: parseBiomeOutput is synchronous
-		const results = yield* Effect.sync(() => parseBiomeOutput(stdout));
+		const parsed = yield* Effect.sync(() => parseBiomeOutput(stdout));
 
-		// CHANGE: Fallback to per-file checking if needed
-		// WHY: Directory scanning may require individual file checks
-		if (
-			results.length === 0 &&
+		// CHANGE: Trigger fallback only when Biome JSON is invalid (parsed=false)
+		// WHY: Avoid spurious per-file scans when Biome simply found no diagnostics
+		// QUOTE(RTM-BIOME-FALLBACK): "Не показывать fallback, если Biome вернул пустой, но валидный отчёт"
+		// REF: RTM-BIOME-FALLBACK
+		const shouldFallback =
+			!parsed.parsed &&
 			!targetPath.endsWith(".ts") &&
-			!targetPath.endsWith(".tsx")
-		) {
+			!targetPath.endsWith(".tsx");
+		if (shouldFallback) {
 			console.log("🔄 Biome: Falling back to individual file checking...");
 			return yield* getBiomeDiagnosticsPerFileEffect(targetPath);
 		}
 
-		return results;
+		return parsed.diagnostics;
 	});
 }
 
@@ -162,55 +164,108 @@ function getBiomeDiagnosticsPerFileEffect(
 	targetPath: string,
 ): Effect.Effect<ReadonlyArray<BiomeResult>, ExternalToolError> {
 	return Effect.gen(function* () {
-		// CHANGE: Use Effect.promise for file listing (use git instead of find)
-		// WHY: git ls-files is more reliable and respects .gitignore
-		const lsOutput = yield* Effect.promise(async () => {
-			try {
-				return await execAsync(
-					`find "${targetPath}" -name "*.ts" -o -name "*.tsx" | head -20`,
-				);
-			} catch (error) {
-				console.error("Failed to list files:", error);
-				throw error;
-			}
-		}).pipe(
-			Effect.catchAll((error) =>
-				Effect.fail(
-					new ExternalToolError({
-						tool: "git",
-						reason: `Failed to list TypeScript files: ${String(error)}`,
-					}),
-				),
-			),
-		);
-
-		const files = pipe(lsOutput.stdout.trim().split("\n"), (lines) =>
-			lines.filter((f) => f.trim().length > 0),
-		);
-
-		const allResults: BiomeResult[] = [];
-
-		// CHANGE: Use for-loop with Effect.promise for each file
-		// WHY: Allows continuing on per-file failures
-		for (const file of files) {
-			const stdout = yield* Effect.promise(async () => {
-				try {
-					const result = await execAsync(
-						`npx biome check "${file}" --reporter=json`,
-					);
-					return result.stdout;
-				} catch (error) {
-					const stdout = extractStdoutFromError(error as Error);
-					return stdout ?? "";
-				}
-			}).pipe(Effect.catchAll(() => Effect.succeed("")));
-
-			if (stdout.length > 0) {
-				const results = parseBiomeOutput(stdout);
-				allResults.push(...results);
-			}
-		}
-
-		return allResults;
+		const files = yield* listBiomeTargetFiles(targetPath);
+		return yield* collectPerFileDiagnostics(files);
 	});
 }
+
+// CHANGE: Extracted file listing effect for Biome per-file fallback
+// WHY: Keep getBiomeDiagnosticsPerFileEffect under max-lines while isolating IO concerns
+// QUOTE(LINT): "Function 'getBiomeDiagnosticsPerFileEffect' has too many lines (51). Maximum allowed is 50."
+// REF: ESLint max-lines-per-function
+// SOURCE: n/a
+// FORMAT THEOREM: ∀targetPath: listBiomeTargetFiles(targetPath).length ≤ 20
+// PURITY: SHELL
+// EFFECT: Effect<ReadonlyArray<string>, ExternalToolError>
+// INVARIANT: Returned list contains only non-empty .ts/.tsx paths
+// COMPLEXITY: O(n) where n = matched files (bounded by head -20)
+const listBiomeTargetFiles = (
+	targetPath: string,
+): Effect.Effect<ReadonlyArray<string>, ExternalToolError> =>
+	Effect.promise(async () => {
+		try {
+			return await execAsync(
+				`find "${targetPath}" -name "*.ts" -o -name "*.tsx" | head -20`,
+			);
+		} catch (error) {
+			console.error("Failed to list files:", error);
+			throw error;
+		}
+	}).pipe(
+		Effect.catchAll((error) =>
+			Effect.fail(
+				new ExternalToolError({
+					tool: "git",
+					reason: `Failed to list TypeScript files: ${String(error)}`,
+				}),
+			),
+		),
+		Effect.map((lsOutput) =>
+			pipe(lsOutput.stdout.trim().split("\n"), (lines) =>
+				lines.filter((f) => f.trim().length > 0),
+			),
+		),
+	);
+
+// CHANGE: Extracted per-file aggregation logic
+// WHY: Maintain single responsibility and keep orchestrator slim
+// QUOTE(LINT): "Function 'getBiomeDiagnosticsPerFileEffect' has too many lines (51). Maximum allowed is 50."
+// REF: ESLint max-lines-per-function
+// SOURCE: n/a
+// FORMAT THEOREM: ∀files: collectPerFileDiagnostics(files)=⋃ runBiomeCheckForFile(file)
+// PURITY: SHELL
+// EFFECT: Effect<ReadonlyArray<BiomeResult>, never>
+// INVARIANT: Results preserve concatenation order of input files
+// COMPLEXITY: O(n) where n = |files|
+const collectPerFileDiagnostics = (
+	files: ReadonlyArray<string>,
+): Effect.Effect<ReadonlyArray<BiomeResult>, never> =>
+	Effect.gen(function* () {
+		const allResults: BiomeResult[] = [];
+		for (const file of files) {
+			const diagnostics = yield* runBiomeCheckForFile(file);
+			allResults.push(...diagnostics);
+		}
+		return allResults;
+	});
+
+// CHANGE: Isolated single-file Biome execution with parse guard
+// WHY: Reuse per file and keep control flow explicit
+// QUOTE(RTM-BIOME-FALLBACK): "Не показывать fallback, если Biome вернул пустой, но валидный отчёт"
+// REF: RTM-BIOME-FALLBACK
+// SOURCE: n/a
+// FORMAT THEOREM: stdout="" → diagnostics=[]
+// PURITY: SHELL
+// EFFECT: Effect<ReadonlyArray<BiomeResult>, never>
+// INVARIANT: parsed=false ⇒ emitted diagnostics=[]
+// COMPLEXITY: O(1) per file (Biome CLI dominates)
+const runBiomeCheckForFile = (
+	file: string,
+): Effect.Effect<ReadonlyArray<BiomeResult>, never> =>
+	Effect.promise(async () => {
+		try {
+			const result = await execAsync(
+				`npx biome check "${file}" --reporter=json`,
+			);
+			return result.stdout;
+		} catch (error) {
+			const stdout = extractStdoutFromError(error as Error);
+			return stdout ?? "";
+		}
+	})
+		.pipe(Effect.catchAll(() => Effect.succeed("")))
+		.pipe(
+			Effect.flatMap((stdout) =>
+				Effect.sync(() => {
+					if (stdout.length === 0) {
+						return [];
+					}
+					const parsed = parseBiomeOutput(stdout);
+					if (!parsed.parsed) {
+						console.warn(`⚠️ Biome JSON parse failed for ${file}; skipping.`);
+						return [];
+					}
+					return parsed.diagnostics;
+				}),
+			),
+		);
