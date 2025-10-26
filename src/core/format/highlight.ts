@@ -6,6 +6,7 @@
 // INVARIANT: No side effects; deterministic mapping from inputs to outputs
 // COMPLEXITY: O(n) per line where n = |currentLine|
 
+import { pipe } from "effect";
 import type { LintMessageWithFile } from "../types/index.js";
 
 /**
@@ -146,26 +147,36 @@ export function calculateHighlightRange(
 	currentLine: string,
 	startCol: number,
 ): { start: number; end: number } {
-	const { source, message } = m;
+	return pipe(
+		m,
+		// CHANGE: Use pipe for functional composition of highlight calculation
+		// WHY: Makes control flow explicit and composable
+		// INVARIANT: endCol computation is pure deterministic function of (m, currentLine, startCol)
+		(msg) => {
+			const { source, message } = msg;
 
-	let endCol: number;
-	if (
-		"endColumn" in m &&
-		typeof m.endColumn === "number" &&
-		Number.isFinite(m.endColumn)
-	) {
-		endCol = Math.min(m.endColumn - 1, currentLine.length);
-	} else if (source === "typescript") {
-		if (message.includes("Expected") && message.includes("arguments")) {
-			endCol = calculateFunctionArgsEnd(currentLine, startCol);
-		} else {
-			endCol = calculateWordEnd(currentLine, startCol);
-		}
-	} else {
-		endCol = startCol + 1;
-	}
+			if (
+				"endColumn" in msg &&
+				typeof msg.endColumn === "number" &&
+				Number.isFinite(msg.endColumn)
+			) {
+				return Math.min(msg.endColumn - 1, currentLine.length);
+			}
 
-	const start = startCol;
-	const end = Math.max(start, Math.min(endCol, currentLine.length));
-	return { start, end };
+			if (source === "typescript") {
+				if (message.includes("Expected") && message.includes("arguments")) {
+					return calculateFunctionArgsEnd(currentLine, startCol);
+				}
+				return calculateWordEnd(currentLine, startCol);
+			}
+
+			return startCol + 1;
+		},
+		// CHANGE: Compose endCol → {start, end} transformation
+		// INVARIANT: start ≤ end ≤ currentLine.length
+		(endCol) => ({
+			start: startCol,
+			end: Math.max(startCol, Math.min(endCol, currentLine.length)),
+		}),
+	);
 }

@@ -106,7 +106,9 @@ function flushSnippet(state: SnippetState): DiffSnippet | null {
  *  line3`;
  * const snippet = extractDiffSnippet(diff, 2);
  * // Returns snippet with pointerIndex pointing to "line2 modified"
- * ```
+ * @pure true
+ * @invariant result === null || result.pointerIndex >= 0
+ * @complexity O(n) где n = количество строк в diff
  */
 export function extractDiffSnippet(
 	unifiedDiff: string,
@@ -178,7 +180,9 @@ export function extractDiffSnippet(
  * if (result) {
  *   console.log(`Found in diff #${result.index}`);
  * }
- * ```
+ * @pure true
+ * @invariant result === null || result.index >= 0
+ * @complexity O(m*n) где m = количество кандидатов, n = количество строк в каждом diff
  */
 export function pickSnippetForLine(
 	candidates: ReadonlyArray<string>,

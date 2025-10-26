@@ -2,6 +2,8 @@
 // WHY: ESLint operations should be in a separate module
 // QUOTE(ТЗ): "Разбить lint.ts на подфайлы, каждый файл желательно должен быть не больше 300 строчек кода"
 // REF: REQ-20250210-MODULAR-ARCH
+// PURITY: SHELL
+// EFFECT: Effect<LintResult[], ExternalToolError | ParseError>
 // SOURCE: lint.ts lines 1026-1056, 1289-1360
 
 // CHANGE: Use node: protocol for Node.js built-in modules
@@ -10,9 +12,12 @@
 // SOURCE: https://biomejs.dev/linter/rules/lint/style/useNodejsImportProtocol
 import { exec } from "node:child_process";
 import { promisify } from "node:util";
+import { Effect } from "effect";
 
+import { ExternalToolError, ParseError } from "../../core/errors.js";
 import type { LintResult } from "../../core/types/index.js";
 import { extractStdoutFromError } from "../../core/types/index.js";
+import { extractStdoutOrThrow } from "./linter-helpers.js";
 
 const execAsync = promisify(exec);
 
@@ -24,83 +29,125 @@ export type ESLintResult = LintResult;
 /**
  * Запускает ESLint auto-fix на указанном пути.
  *
- * @param targetPath Путь для линтинга
- * @returns Promise<void>
+ * CHANGE: Use Effect.gen for typed error handling
+ * WHY: Replace Promise + try/catch with Effect
+ * QUOTE(ТЗ): "Effect-TS для всех эффектов"
+ * REF: Architecture plan - Effect-based SHELL
  *
+ * @param targetPath Путь для линтинга
+ * @returns Effect с void или typed error
+ *
+ * @pure false - modifies files via ESLint
+ * @effect Effect<void, ExternalToolError>
  * @invariant targetPath не пустой
  */
-export async function runESLintFix(targetPath: string): Promise<void> {
-	console.log(`🔧 Running ESLint auto-fix on: ${targetPath}`);
-	try {
-		// CHANGE: Removed special handling for manager files
-		// WHY: Unnecessary conditional logic removed per user request
-		// REF: user-request-remove-manager-check
+export function runESLintFix(
+	targetPath: string,
+): Effect.Effect<void, ExternalToolError> {
+	return Effect.gen(function* () {
+		console.log(`🔧 Running ESLint auto-fix on: ${targetPath}`);
+
 		const eslintCommand = `npx eslint "${targetPath}" --ext .ts,.tsx --fix --fix-type directive,problem,suggestion,layout`;
 
-		await execAsync(eslintCommand);
+		// CHANGE: Use Effect.tryPromise with error recovery
+		// WHY: ESLint returns non-zero exit code even on successful fix with warnings
+		yield* Effect.tryPromise({
+			try: async () => execAsync(eslintCommand),
+			catch: (error) => {
+				// CHANGE: Check if error has stdout (indicates warnings, not failure)
+				// WHY: ESLint --fix succeeds but returns non-zero with warnings
+				const out = extractStdoutFromError(error as Error);
+				if (typeof out === "string") {
+					console.log(`✅ ESLint auto-fix completed with warnings`);
+					return undefined; // Success with warnings
+				}
+				console.error(`❌ ESLint auto-fix failed:`, error);
+				return new ExternalToolError({
+					tool: "eslint",
+					reason: `ESLint auto-fix failed: ${String(error)}`,
+				});
+			},
+		}).pipe(
+			Effect.catchAll((err) => {
+				// CHANGE: If error is undefined (warnings case), return success
+				// WHY: Warnings are acceptable for auto-fix
+				if (err === undefined) {
+					return Effect.succeed(undefined);
+				}
+				return Effect.fail(err);
+			}),
+		);
+
 		console.log(`✅ ESLint auto-fix completed`);
-	} catch (error) {
-		// CHANGE: Use shared helper to extract stdout from exec errors
-		// WHY: Remove duplicated pattern across modules (jscpd hit)
-		// QUOTE(ТЗ): "Убрать дубли кода"
-		// REF: REQ-LINT-FIX, extractStdoutFromError
-		const out = extractStdoutFromError(error as Error);
-		if (typeof out === "string") {
-			console.log(`✅ ESLint auto-fix completed with warnings`);
-		} else {
-			console.error(`❌ ESLint auto-fix failed:`, error);
-		}
-	}
+	});
 }
 
 /**
  * Получает результаты ESLint для указанного пути.
  *
- * @param targetPath Путь для линтинга
- * @returns Promise с массивом результатов
+ * CHANGE: Use Effect.gen for typed async error handling
+ * WHY: Replace Promise + try/catch with Effect for provability
+ * QUOTE(ТЗ): "Effect-TS для всех эффектов"
+ * REF: Architecture plan - Effect-based SHELL
  *
+ * @param targetPath Путь для линтинга
+ * @returns Effect с массивом результатов или typed error
+ *
+ * @pure false - executes external process
+ * @effect Effect<ESLintResult[], ExternalToolError | ParseError>
  * @invariant targetPath не пустой
+ * @complexity O(n) where n = number of files to lint
  */
-export async function getESLintResults(
+export function getESLintResults(
 	targetPath: string,
-): Promise<ReadonlyArray<ESLintResult>> {
-	try {
-		// CHANGE: Increase maxBuffer for large projects and skip source fields in JSON output
-		// WHY: Massive JSON payloads with source fields can overflow the default exec buffer
-		// QUOTE(SPEC): "Failed to parse ESLint output. Parse error: SyntaxError: Unterminated string in JSON"
-		// REF: user-msg-fix-json-parse-error
-		// SOURCE: n/a
-		// CHANGE: Removed special handling for manager files
-		// WHY: Unnecessary conditional logic removed per user request
-		// REF: user-request-remove-manager-check
+): Effect.Effect<ReadonlyArray<ESLintResult>, ExternalToolError | ParseError> {
+	return Effect.gen(function* () {
 		const eslintCommand = `npx eslint "${targetPath}" --ext .ts,.tsx --format json`;
 
-		const { stdout } = await execAsync(eslintCommand, {
-			maxBuffer: 10 * 1024 * 1024,
-		}); // 10MB buffer
-		return JSON.parse(stdout) as ReadonlyArray<ESLintResult>;
-	} catch (error) {
-		const stdout = extractStdoutFromError(error as Error);
-		// CHANGE: Avoid truthiness check on string
-		// WHY: strict-boolean-expressions — check type and length explicitly
-		// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
-		if (typeof stdout !== "string" || stdout.length === 0) {
-			throw error;
-		}
-		try {
-			return JSON.parse(stdout) as ReadonlyArray<ESLintResult>;
-		} catch (parseError) {
-			// CHANGE: Provide more detailed parser errors
-			// WHY: Helps understand whether the failure is related to size, position, or payload
-			// QUOTE(SPEC): "Unterminated string in JSON at position 1006125"
-			// REF: user-msg-fix-json-parse-error
-			// SOURCE: n/a
-			console.error("Failed to parse ESLint JSON output");
-			console.error("Parse error:", parseError);
-			console.error("Output length:", stdout.length);
-			console.error("Output preview (first 500 chars):", stdout.slice(0, 500));
-			console.error("Output preview (last 500 chars):", stdout.slice(-500));
-			return [];
-		}
-	}
+		// CHANGE: Use Effect.promise to always get stdout (even on non-zero exit)
+		// WHY: ESLint returns non-zero on lint errors but with valid JSON
+		const stdout = yield* Effect.promise(async () => {
+			try {
+				const result = await execAsync(eslintCommand, {
+					maxBuffer: 10 * 1024 * 1024,
+				});
+				return result.stdout;
+			} catch (error) {
+				// CHANGE: Use extractStdoutOrThrow to remove code duplication
+				// WHY: Identical pattern in biome.ts (jscpd DUPLICATE #1)
+				// REF: linter-helpers.ts, REQ-LINT-FIX
+				return extractStdoutOrThrow(error as Error);
+			}
+		}).pipe(
+			Effect.catchAll((error) =>
+				Effect.fail(
+					new ExternalToolError({
+						tool: "eslint",
+						reason: `Failed to run ESLint: ${String(error)}`,
+					}),
+				),
+			),
+		);
+
+		// CHANGE: Use Effect.try for JSON parsing
+		// WHY: JSON.parse can throw, we want typed ParseError
+		return yield* Effect.try({
+			try: () => JSON.parse(stdout) as ReadonlyArray<ESLintResult>,
+			catch: (parseError) => {
+				console.error("Failed to parse ESLint JSON output");
+				console.error("Parse error:", parseError);
+				console.error("Output length:", stdout.length);
+				console.error(
+					"Output preview (first 500 chars):",
+					stdout.slice(0, 500),
+				);
+				console.error("Output preview (last 500 chars):", stdout.slice(-500));
+
+				return new ParseError({
+					entity: "eslint",
+					detail: `Failed to parse ESLint JSON: ${String(parseError)}`,
+				});
+			},
+		});
+	});
 }

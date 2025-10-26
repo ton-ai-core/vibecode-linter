@@ -4,8 +4,8 @@
 // REF: REQ-20250210-MODULAR-ARCH
 // SOURCE: n/a
 
-export type { BiomeResult } from "./biome.js";
 export { getBiomeDiagnostics, runBiomeFix } from "./biome.js";
+export type { BiomeResult } from "./biome-parser.js";
 export type { ESLintResult } from "./eslint.js";
 export { getESLintResults, runESLintFix } from "./eslint.js";
 export { getTypeScriptDiagnostics } from "./typescript.js";

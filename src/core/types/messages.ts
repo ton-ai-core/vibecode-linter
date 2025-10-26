@@ -79,6 +79,9 @@ export type LintMessageWithFile = LintMessage;
  * CHANGE: Added type guards to help TypeScript narrow union types
  * WHY: ESLint complains about unsafe member access without type guards
  * QUOTE(ERROR): "Unsafe member access on error typed value"
+ * @pure true
+ * @invariant result === (message.source === "typescript")
+ * @complexity O(1)
  * REF: ESLint @typescript-eslint/no-unsafe-member-access
  */
 export function isTypeScriptMessage(
@@ -87,12 +90,26 @@ export function isTypeScriptMessage(
 	return message.source === "typescript";
 }
 
+/**
+ * Проверяет, является ли сообщение ESLint сообщением
+ *
+ * @pure true
+ * @invariant result === (message.source === "eslint")
+ * @complexity O(1)
+ */
 export function isESLintMessage(
 	message: LintMessage,
 ): message is ESLintMessage {
 	return message.source === "eslint";
 }
 
+/**
+ * Проверяет, является ли сообщение Biome сообщением
+ *
+ * @pure true
+ * @invariant result === (message.source === "biome")
+ * @complexity O(1)
+ */
 export function isBiomeMessage(message: LintMessage): message is BiomeMessage {
 	return message.source === "biome";
 }

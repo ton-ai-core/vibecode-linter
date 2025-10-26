@@ -13,8 +13,10 @@ import type { ExecError } from "./config.js";
  * @returns stdout или null
  *
  * @pure true
+ * @pure true
  * @invariant error is (Error | { stdout?: string }) → error !== null (type guarantee)
  * @invariant "stdout" in error ∧ stdout !== undefined → typeof stdout === "string" (type guarantee)
+ * @complexity O(1)
  */
 export function extractStdoutFromError(
 	error: Error | { stdout?: string },

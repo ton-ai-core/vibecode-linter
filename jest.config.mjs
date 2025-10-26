@@ -35,6 +35,7 @@ export default {
 		"!src/**/*.test.ts",
 		"!src/**/*.spec.ts",
 		"!src/**/__tests__/**",
+		"!scripts/**/*.ts",
 	],
 	forceCoverageMatch: ["<rootDir>/src/core/**/*.ts"],
 	coverageThreshold: {

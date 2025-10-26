@@ -2,13 +2,17 @@
 // WHY: Enforce correctness with respect to tsconfig.json (solution-style + extends) and check exactly the subtree passed by targetPath
 // QUOTE(ТЗ): "Исходить из того, что описано в tsconfig.json; применять именно эти правила"
 // REF: REQ-TS-SOLUTION-STYLE, REQ-LINT-FIX
+// PURITY: SHELL
+// EFFECT: Effect<TypeScriptMessage[], ParseError | InvariantViolation>
 // FORMAT THEOREME:
 // Let R be the root tsconfig with project references P = {p_i}. For any targetPath T, we select p in P whose ParsedCommandLine.fileNames intersects T (file or directory).
 // We build Program from p (respecting extends tsconfig.base.json) and filter diagnostics to files within T. Thus diagnostics(T) ⊆ diagnostics(p) and is consistent with TypeScript semantics.
 
 import * as path from "node:path";
+import { Effect, pipe } from "effect";
 import ts from "typescript";
 
+import { InvariantViolation, ParseError } from "../../core/errors.js";
 import type { TypeScriptMessage } from "../../core/types/index.js";
 
 // CHANGE: Add optional debug logger controlled by env VCL_DEBUG_TS
@@ -277,48 +281,140 @@ function filterMessagesByTargetPath(
 }
 
 /**
+ * CHANGE: Extracted helper to load and select TypeScript project
+ * WHY: Reduce getTypeScriptDiagnostics line count to satisfy ESLint max-lines-per-function
+ * QUOTE(LINT): "Function 'getTypeScriptDiagnostics' has too many lines (56). Maximum allowed is 50"
+ * REF: ESLint max-lines-per-function
+ */
+function loadAndSelectProject(
+	targetPath: string,
+): Effect.Effect<
+	{ rootTsconfig: string; selected: ParsedProject },
+	ParseError | InvariantViolation
+> {
+	return Effect.gen(function* () {
+		const rootTsconfig = path.resolve("tsconfig.json");
+
+		// CHANGE: Explicit type annotation to satisfy TypeScript strict mode
+		// WHY: yield* in Effect.gen requires explicit types when strictNullChecks enabled
+		// REF: TypeScript TS7022 - implicitly has type 'any'
+		const projects: ReadonlyArray<ParsedProject> = yield* Effect.try({
+			try: () => loadRootAndReferences(rootTsconfig),
+			catch: (error) =>
+				new ParseError({
+					entity: "eslint",
+					detail: `Failed to load tsconfig.json: ${String(error)}`,
+				}),
+		});
+
+		const selected: ParsedProject = yield* Effect.try({
+			try: () => pickProjectForTarget(targetPath, projects),
+			catch: (error) =>
+				new InvariantViolation({
+					where: "pickProjectForTarget",
+					detail: `No TypeScript project covers targetPath: ${String(error)}`,
+				}),
+		});
+
+		return { rootTsconfig, selected };
+	});
+}
+
+/**
+ * CHANGE: Extracted helper to create TS program and get diagnostics
+ * WHY: Reduce getTypeScriptDiagnostics line count to satisfy ESLint max-lines-per-function
+ * QUOTE(LINT): "Function 'getTypeScriptDiagnostics' has too many lines (56). Maximum allowed is 50"
+ * REF: ESLint max-lines-per-function
+ */
+function getProgramDiagnostics(
+	selected: ParsedProject,
+	targetPath: string,
+): Effect.Effect<
+	{ diags: ReadonlyArray<ts.Diagnostic>; allMessages: TypeScriptMessage[] },
+	never
+> {
+	return Effect.gen(function* () {
+		const absTarget = path.resolve(targetPath);
+		const rootNames = computeRootNames(selected.parsed, absTarget);
+
+		// CHANGE: Explicit type annotation to satisfy TypeScript strict mode
+		// WHY: yield* in Effect.gen requires explicit types when strictNullChecks enabled
+		// REF: TypeScript TS7022 - implicitly has type 'any'
+		const program: ts.Program = yield* Effect.sync(() =>
+			ts.createProgram({
+				rootNames,
+				options: selected.parsed.options,
+			}),
+		);
+
+		const diags: ReadonlyArray<ts.Diagnostic> = yield* Effect.sync(() =>
+			ts.getPreEmitDiagnostics(program),
+		);
+
+		// CHANGE: Explicit type annotations for reduce accumulator and parameter
+		// WHY: TypeScript requires explicit types in strict mode
+		// REF: TypeScript TS7006 - Parameter implicitly has 'any' type
+		const allMessages = pipe(
+			diags,
+			(diagnostics: ReadonlyArray<ts.Diagnostic>) =>
+				diagnostics.reduce<TypeScriptMessage[]>(
+					(acc: TypeScriptMessage[], d: ts.Diagnostic) => {
+						const m = diagToMessage(d);
+						if (m !== null) {
+							acc.push(m);
+						}
+						return acc;
+					},
+					[],
+				),
+		);
+
+		return { diags, allMessages };
+	});
+}
+
+/**
  * Получает диагностику TypeScript для указанного targetPath, исходя строго из настроек tsconfig.json (solution-style + extends).
  *
+ * CHANGE: Refactored to reduce line count by extracting helpers
+ * WHY: Satisfy ESLint max-lines-per-function rule (was 56 lines > 50 limit)
+ * QUOTE(ТЗ): "Effect-TS для всех эффектов: Effect<Success, Error, Requirements>"
+ * REF: Architecture plan - Effect-based SHELL, ESLint max-lines-per-function
+ *
  * @param targetPath Путь для проверки (директория или файл)
- * @returns Промис с массивом сообщений (только из targetPath)
+ * @returns Effect с массивом сообщений (только из targetPath) или typed error
+ *
+ * @pure false - reads filesystem, creates TS program
+ * @effect Effect<TypeScriptMessage[], ParseError | InvariantViolation>
  * @invariant Конфигурация проекта берётся из корневого tsconfig.json и его references; extends на tsconfig.base.json применяются TypeScript API
+ * @complexity O(n) where n = number of files in project
  */
 export function getTypeScriptDiagnostics(
 	targetPath: string,
-): Promise<ReadonlyArray<TypeScriptMessage>> {
-	const rootTsconfig = path.resolve("tsconfig.json");
-	const projects = loadRootAndReferences(rootTsconfig);
-	// CHANGE: pickProjectForTarget already guarantees non-empty selection or throws
-	const selected = pickProjectForTarget(targetPath, projects);
-	const absTarget = path.resolve(targetPath);
+): Effect.Effect<
+	ReadonlyArray<TypeScriptMessage>,
+	ParseError | InvariantViolation
+> {
+	return Effect.gen(function* () {
+		const { rootTsconfig, selected } = yield* loadAndSelectProject(targetPath);
+		const { diags, allMessages } = yield* getProgramDiagnostics(
+			selected,
+			targetPath,
+		);
 
-	// CHANGE: Compute root names with fresh file inclusion logic extracted (reduces complexity)
-	const rootNames = computeRootNames(selected.parsed, absTarget);
+		const filtered = filterMessagesByTargetPath(allMessages, targetPath);
 
-	const program = ts.createProgram({
-		rootNames,
-		options: selected.parsed.options,
+		debugSnapshot({
+			rootTsconfig,
+			selectedConfig: selected.configPath,
+			targetPath,
+			projectFiles: selected.parsed.fileNames.length,
+			preFilter: diags.length,
+			postFilter: filtered.length,
+			samplePre: diags.slice(0, 3).map((d) => d.file?.fileName),
+			samplePost: filtered.slice(0, 3).map((m) => m.filePath),
+		});
+
+		return filtered;
 	});
-
-	const diags: ReadonlyArray<ts.Diagnostic> = ts.getPreEmitDiagnostics(program);
-
-	const allMessages: TypeScriptMessage[] = [];
-	for (const d of diags) {
-		const m = diagToMessage(d);
-		if (m !== null) {
-			allMessages.push(m);
-		}
-	}
-	const filtered = filterMessagesByTargetPath(allMessages, targetPath);
-	debugSnapshot({
-		rootTsconfig,
-		selectedConfig: selected.configPath,
-		targetPath,
-		projectFiles: selected.parsed.fileNames.length,
-		preFilter: diags.length,
-		postFilter: filtered.length,
-		samplePre: diags.slice(0, 3).map((d) => d.file?.fileName),
-		samplePost: filtered.slice(0, 3).map((m) => m.filePath),
-	});
-	return Promise.resolve(filtered);
 }

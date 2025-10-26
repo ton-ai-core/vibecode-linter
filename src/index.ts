@@ -100,8 +100,18 @@ export type {
  * @pure true
  * @invariant ∀ state: computeExitCode(state) ∈ {0, 1}
  * @complexity O(1)
+ *
+ * @remarks
+ * Multiple implementations for different use cases:
+ * - computeExitCode: Pure function using pipe
+ * - computeExitCodeFlow: Flow composition for currying
+ * - computeExitCodeEffect: Effect wrapper for Effect pipelines
  */
-export { computeExitCode } from "./core/decision.js";
+export {
+	computeExitCode,
+	computeExitCodeEffect,
+	computeExitCodeFlow,
+} from "./core/decision.js";
 
 /**
  * Priority level and grouping utilities for lint messages.
@@ -128,3 +138,35 @@ export {
 	isESLintMessage,
 	isTypeScriptMessage,
 } from "./core/types/index.js";
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// TYPED ERRORS (Effect-based)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Typed application errors for Effect-based error handling
+ *
+ * @pure true (Data classes)
+ * @invariant All errors extend Data.TaggedError
+ * @complexity O(1)
+ *
+ * @example
+ * ```ts
+ * import { Effect } from "effect";
+ * import { ExternalToolError } from "@ton-ai-core/vibecode-linter";
+ *
+ * const program = Effect.fail(
+ *   new ExternalToolError({ tool: "eslint", reason: "Config not found" })
+ * );
+ * ```
+ */
+export {
+	type AppError,
+	ExecError,
+	ExternalToolError,
+	FSError,
+	InvariantViolation,
+	MissingDeps,
+	ParseError,
+	PreflightFailed,
+} from "./core/errors.js";

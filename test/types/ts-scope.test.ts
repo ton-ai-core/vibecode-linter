@@ -1,5 +1,6 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
+import { Effect } from "effect";
 import { getTypeScriptDiagnostics } from "../../src/shell/linters/index.js";
 
 // CHANGE: Deterministic test that our TS diagnostics respect targetPath scope
@@ -40,8 +41,8 @@ describe("TypeScript diagnostics scope (solution-style tsconfig, NodeNext)", () 
 			encoding: "utf-8",
 		});
 
-		// Act
-		const msgs = await getTypeScriptDiagnostics(badFile);
+		// Act: Use Effect.runPromise to execute Effect-based linter
+		const msgs = await Effect.runPromise(getTypeScriptDiagnostics(badFile));
 
 		// Assert: at least one TS2322 reported for bad.ts in the requested subtree
 		expect(msgs.length).toBeGreaterThan(0);
@@ -54,8 +55,8 @@ describe("TypeScript diagnostics scope (solution-style tsconfig, NodeNext)", () 
 	});
 
 	test("does not leak test/ diagnostics into src/ scope", async () => {
-		// Act
-		const msgs = await getTypeScriptDiagnostics("src/");
+		// Act: Use Effect.runPromise to execute Effect-based linter
+		const msgs = await Effect.runPromise(getTypeScriptDiagnostics("src/"));
 
 		// Assert: diagnostics from bad.ts must not appear when scoping to src/
 		const leaked = msgs.some(

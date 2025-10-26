@@ -71,7 +71,9 @@ function processTabCharacter(
  * @param tabSize Размер табуляции; по умолчанию 8, как в git diff и ESLint
  * @returns Реальный индекс символа (0-based)
  *
+ * @pure true
  * @invariant visualColumn >= 0
+ * @complexity O(n) где n = длина строки
  *
  * @example
  * ```ts
@@ -138,6 +140,10 @@ export function computeRealColumnFromVisual(
  * @param tabWidth Размер табуляции
  * @returns Визуальная колонка (0-based)
  *
+ * @pure true
+ * @invariant result >= 0
+ * @complexity O(n) где n = index
+ *
  * @example
  * ```ts
  * // Строка: "x\ty" (x, tab, y)
@@ -170,6 +176,10 @@ export function visualColumnAt(
  * @param content Строка исходного кода с табуляцией
  * @param tabWidth Размер табуляции
  * @returns Строка с раскрытыми табуляциями
+ *
+ * @pure true
+ * @invariant result.length >= content.length
+ * @complexity O(n) где n = длина строки
  *
  * @example
  * ```ts
