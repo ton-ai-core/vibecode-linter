@@ -28,6 +28,7 @@ import {
 	parseSarifReport,
 	processResults,
 } from "../shell/output/index.js";
+import { reportProjectInsightsEffect } from "../shell/project-info/index.js";
 import {
 	checkDependencies,
 	reportMissingDependencies,
@@ -250,6 +251,15 @@ export async function runLinter(cliOptions: CLIOptions): Promise<ExitCode> {
 	const hasLintErrors = await processResults(allMessages, config, cliOptions);
 
 	const hasDuplicates = handleDuplicates(hasLintErrors, sarifPath, cliOptions);
+
+	const shouldReportInsights = !hasLintErrors && !hasDuplicates;
+	if (shouldReportInsights) {
+		// CHANGE: Only print project snapshot/insights when lint + duplicate checks pass
+		// WHY: Avoid noisy output when errors remain; surface insights after fixes
+		// QUOTE(USER): "Я думаю не стоит отображать Project snapshot если в коде есть ошибки"
+		// REF: user-request-project-info
+		await Effect.runPromise(reportProjectInsightsEffect(cliOptions.targetPath));
+	}
 
 	return computeExitCode({ hasLintErrors, hasDuplicates });
 }

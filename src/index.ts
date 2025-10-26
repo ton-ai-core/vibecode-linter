@@ -126,6 +126,12 @@ export {
 	groupBySections,
 	ruleIdOfCore,
 } from "./core/format/priority.js";
+export { formatChangeTree } from "./core/project/change-tree.js";
+export { deriveFileContentMetrics } from "./core/project/metrics.js";
+export {
+	createProjectSnapshot,
+	formatProjectTree,
+} from "./core/project/tree.js";
 
 /**
  * Type guards for discriminating lint message sources.

@@ -38,6 +38,18 @@ export {
 	isTypeScriptMessage,
 } from "./messages.js";
 export type {
+	FileChangeCategory,
+	FileChangeInfo,
+	FileContentMetrics,
+	ProjectAggregateMetrics,
+	ProjectFileRecord,
+	ProjectSnapshot,
+	ProjectTreeDirectory,
+	ProjectTreeFile,
+	ProjectTreeNode,
+	TreeFormatOptions,
+} from "./project-info.js";
+export type {
 	DuplicateInfo,
 	SarifLocation,
 	SarifReport,
