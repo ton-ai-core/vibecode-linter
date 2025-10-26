@@ -396,6 +396,18 @@ export function getTypeScriptDiagnostics(
 	ParseError | InvariantViolation
 > {
 	return Effect.gen(function* () {
+		const equivalentCommand = `npx tsc --project tsconfig.json --noEmit --pretty false`;
+		// CHANGE: Log TypeScript diagnostic equivalent command on execution
+		// WHY: Although diagnostics run via Compiler API, operators need a CLI they can replay
+		// QUOTE(USER-LOG-CMDS): "Потом хочу видеть команды для вызова ошибок ... typescript"
+		// REF: USER-LOG-CMDS
+		// SOURCE: n/a
+		// FORMAT THEOREM: ∀target: logged command approximates internal TypeScript run
+		// PURITY: SHELL
+		// INVARIANT: Equivalent command string stays synced with API options (tsconfig + noEmit)
+		// COMPLEXITY: O(1)
+		console.log(`🧪 Running TypeScript diagnostics on: ${targetPath}`);
+		console.log(`   ↳ Equivalent command: ${equivalentCommand}`);
 		const { rootTsconfig, selected } = yield* loadAndSelectProject(targetPath);
 		const { diags, allMessages } = yield* getProgramDiagnostics(
 			selected,

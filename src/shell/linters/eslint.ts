@@ -45,9 +45,18 @@ export function runESLintFix(
 	targetPath: string,
 ): Effect.Effect<void, ExternalToolError> {
 	return Effect.gen(function* () {
-		console.log(`🔧 Running ESLint auto-fix on: ${targetPath}`);
-
 		const eslintCommand = `npx eslint "${targetPath}" --ext .ts,.tsx --fix --fix-type directive,problem,suggestion,layout`;
+		console.log(`🔧 Running ESLint auto-fix on: ${targetPath}`);
+		// CHANGE: Surface exact ESLint command for reproducibility
+		// WHY: Operator must be able to rerun the same invocation outside vibecode-linter
+		// QUOTE(USER-LOG-CMDS): "Я хочу добавить это в лог ... Что бы если что я мог бы повторить этот результат"
+		// REF: USER-LOG-CMDS
+		// SOURCE: n/a
+		// FORMAT THEOREM: ∀target: runESLintFix(target) → shellCommand(target)=eslintCommand(target)
+		// PURITY: SHELL
+		// INVARIANT: Logged command string matches the exec invocation exactly
+		// COMPLEXITY: O(1)
+		console.log(`   ↳ Command: ${eslintCommand}`);
 
 		// CHANGE: Use Effect.tryPromise with error recovery
 		// WHY: ESLint returns non-zero exit code even on successful fix with warnings
@@ -103,6 +112,17 @@ export function getESLintResults(
 ): Effect.Effect<ReadonlyArray<ESLintResult>, ExternalToolError | ParseError> {
 	return Effect.gen(function* () {
 		const eslintCommand = `npx eslint "${targetPath}" --ext .ts,.tsx --format json`;
+		// CHANGE: Log ESLint diagnostics invocation exactly when it runs
+		// WHY: Give operators immediate visibility into the command they can replay
+		// QUOTE(USER-LOG-CMDS): "Я хочу что бы он как только их вызывает он бы писал что за команду"
+		// REF: USER-LOG-CMDS
+		// SOURCE: n/a
+		// FORMAT THEOREM: ∀target: diagnostics(target) prints same command executed
+		// PURITY: SHELL
+		// INVARIANT: Logged command string equals `eslintCommand`
+		// COMPLEXITY: O(1)
+		console.log(`🧪 Running ESLint diagnostics on: ${targetPath}`);
+		console.log(`   ↳ Command: ${eslintCommand}`);
 
 		// CHANGE: Use Effect.promise to always get stdout (even on non-zero exit)
 		// WHY: ESLint returns non-zero on lint errors but with valid JSON

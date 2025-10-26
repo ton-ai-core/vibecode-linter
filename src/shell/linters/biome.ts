@@ -42,7 +42,18 @@ export function runBiomeFix(
 	targetPath: string,
 ): Effect.Effect<void, ExternalToolError> {
 	return Effect.gen(function* () {
+		const biomeFixCommand = `npx biome check --write "${targetPath}"`;
 		console.log(`🔧 Running Biome auto-fix on: ${targetPath}`);
+		// CHANGE: Log exact Biome CLI command for reproducibility
+		// WHY: Allows manual reruns that mirror automatic auto-fix behavior
+		// QUOTE(USER-LOG-CMDS): "Хочу добавить это в лог ... Что бы если что я мог бы повторить этот результат"
+		// REF: USER-LOG-CMDS
+		// SOURCE: n/a
+		// FORMAT THEOREM: ∀target: autoFix(target) uses same biomeFixCommand(target) in every pass
+		// PURITY: SHELL
+		// INVARIANT: Logged command equals the one executed inside each attempt
+		// COMPLEXITY: O(1)
+		console.log(`   ↳ Command: ${biomeFixCommand}`);
 
 		const maxAttempts = 3;
 
@@ -51,7 +62,7 @@ export function runBiomeFix(
 		// INVARIANT: Executes exactly maxAttempts passes
 		for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
 			yield* Effect.tryPromise({
-				try: async () => execAsync(`npx biome check --write "${targetPath}"`),
+				try: async () => execAsync(biomeFixCommand),
 				catch: (error) => {
 					// Biome returns non-zero on fixed issues - this is expected
 					const out = extractStdoutFromError(error as Error);
@@ -100,11 +111,21 @@ export function getBiomeDiagnostics(
 	return Effect.gen(function* () {
 		// CHANGE: Use Effect.promise to always get stdout (even on non-zero exit)
 		// WHY: Biome returns non-zero on lint errors but with valid JSON
+		const biomeDiagnosticsCommand = `npx biome check "${targetPath}" --reporter=json`;
+		// CHANGE: Log Biome diagnostics invocation when it actually executes
+		// WHY: Display reproducible command inline instead of at start
+		// QUOTE(USER-LOG-CMDS): "как только их вызывает он бы писал что за команду"
+		// REF: USER-LOG-CMDS
+		// SOURCE: n/a
+		// FORMAT THEOREM: ∀target: logged command equals CLI invoked
+		// PURITY: SHELL
+		// INVARIANT: Message emitted once per diagnostics run
+		// COMPLEXITY: O(1)
+		console.log(`🧪 Running Biome diagnostics on: ${targetPath}`);
+		console.log(`   ↳ Command: ${biomeDiagnosticsCommand}`);
 		const stdout = yield* Effect.promise(async () => {
 			try {
-				const result = await execAsync(
-					`npx biome check "${targetPath}" --reporter=json`,
-				);
+				const result = await execAsync(biomeDiagnosticsCommand);
 				return result.stdout;
 			} catch (error) {
 				// CHANGE: Use extractStdoutOrThrow to remove code duplication
