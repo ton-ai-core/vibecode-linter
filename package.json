@@ -33,8 +33,7 @@
 		"prepublishOnly": "npm run build",
 		"release": "npm run build && npm run lint && npm version patch && npm publish --access public",
 		"lint": "npx tsx src/bin/vibecode-linter.ts src/",
-		"verify:arch": "npx tsx scripts/verify-architecture.ts",
-		"test": "npm run verify:arch && npm run build && (npx tsx src/bin/vibecode-linter.ts test/ || echo 'Ты математик программист. Ты пишешь только максимально доказуемый код. Никогда не используешь ANY.') && node --experimental-vm-modules ./node_modules/jest/bin/jest.js --config jest.config.mjs"
+		"test": "npm run lint && npm run build && npx tsx src/bin/vibecode-linter.ts test/ && node --experimental-vm-modules ./node_modules/jest/bin/jest.js --config jest.config.mjs"
 	},
 	"keywords": [
 		"linter",

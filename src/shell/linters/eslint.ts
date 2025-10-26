@@ -45,7 +45,7 @@ export function runESLintFix(
 	targetPath: string,
 ): Effect.Effect<void, ExternalToolError> {
 	return Effect.gen(function* () {
-		const eslintCommand = `npx eslint "${targetPath}" --ext .ts,.tsx --fix --fix-type directive,problem,suggestion,layout`;
+		const eslintCommand = `npx eslint "${targetPath}" --ext .ts,.tsx --fix`;
 		console.log(`🔧 Running ESLint auto-fix on: ${targetPath}`);
 		// CHANGE: Surface exact ESLint command for reproducibility
 		// WHY: Operator must be able to rerun the same invocation outside vibecode-linter
