@@ -133,15 +133,6 @@ function handleDuplicates(
 	return hasDuplicates;
 }
 
-// CHANGE: Provide explicit CLI commands for manual reproduction of diagnostics
-// WHY: Operators requested visibility into the exact invocations vibecode-linter performs
-// QUOTE(USER-LOG-CMDS): "Потом хочу видеть команды для вызова ошибок eslint, biome, typescript"
-// REF: USER-LOG-CMDS
-// SOURCE: n/a
-// FORMAT THEOREM: ∀targetPath: logDiagnosticCommands(targetPath) enumerates ESLint/Biome/TypeScript invocations
-// PURITY: APP
-// INVARIANT: Logged command strings match the ones executed (ESLint/Biome) or their TypeScript approximation
-// COMPLEXITY: O(1)
 /**
  * Preflight validation. Returns boolean success instead of terminating.
  *
