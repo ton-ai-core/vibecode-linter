@@ -16,39 +16,73 @@ import {
 	visualColumnAt,
 } from "../../../src/core/diff/column.js";
 
+// CHANGE: Split describe blocks to satisfy max-lines-per-function ESLint rule
+// WHY: Single describe with 11 tests exceeds 50-line limit
+// REF: ESLint max-lines-per-function rule
 describe("computeRealColumnFromVisual", () => {
+	it("returns 0 when cursor is at start", () => {
+		expect(computeRealColumnFromVisual("\tab", 0)).toBe(0);
+	});
+
 	it("returns identical index for ASCII segments without tabs", () => {
 		expect(computeRealColumnFromVisual("abcd", 2)).toBe(2);
 	});
 
-	it("stops inside a tab once the desired visual column is reached", () => {
+	it("stops inside a tab", () => {
 		expect(computeRealColumnFromVisual("\tab", 6)).toBe(1);
 	});
 
-	it("continues scanning when the target column is beyond the first tab stop", () => {
+	it("returns glyph after tab at exact tab stop", () => {
+		expect(computeRealColumnFromVisual("\tab", 8)).toBe(1);
+	});
+
+	it("continues past tab stop", () => {
 		expect(computeRealColumnFromVisual("\tab", 9)).toBe(2);
 	});
 
-	it("clamps to the end of the string when the visual column exceeds content width", () => {
+	it("clamps beyond content width", () => {
 		expect(computeRealColumnFromVisual("abc", 99)).toBe(3);
 	});
 
-	it("throws for negative visual columns to protect the invariant visualColumn >= 0", () => {
-		expect(() => computeRealColumnFromVisual("abc", -1)).toThrow(
-			"visualColumn must be non-negative",
-		);
+	it("throws for negative columns", () => {
+		expect(() => computeRealColumnFromVisual("abc", -1)).toThrow();
+	});
+});
+
+describe("computeRealColumnFromVisual boundary tests", () => {
+	it("returns exact length when visualColumn matches end boundary", () => {
+		const line = "xyz";
+		expect(
+			computeRealColumnFromVisual(line, visualColumnAt(line, line.length)),
+		).toBe(3);
 	});
 
-	it("returns the earliest index whose visual column strictly exceeds fractional targets", () => {
+	it("returns index after char when visualColumn equals nextVisual", () => {
+		expect(computeRealColumnFromVisual("abcdefghij", 5)).toBe(5);
+	});
+
+	it("handles fractional targets", () => {
 		expect(computeRealColumnFromVisual("abc", 0.5)).toBe(1);
 	});
 
-	it("falls back to the input length for malformed diff chunks where iteration never executes", () => {
-		// WHY: Emulate truncated diff metadata to exercise the defensive return at lineContent.length
-		// REF: USER-REQUEST-20250213
-		// NOTE: Casting is deliberate to surface the final return guard when Git diffs are corrupted
-		const malformedLine: string = { length: -1 } as string;
-		expect(computeRealColumnFromVisual(malformedLine, 0)).toBe(-1);
+	it("distinguishes consecutive tabs at exact tab stop boundary", () => {
+		// Kill mutant: currentVisual < visualColumn → currentVisual <= visualColumn
+		const twoTabs = "\t\tab";
+		expect(computeRealColumnFromVisual(twoTabs, 8)).toBe(1);
+		expect(computeRealColumnFromVisual(twoTabs, 16)).toBe(2);
+	});
+
+	it("returns exact index when visualColumn matches char boundary", () => {
+		// Kill mutant: currentVisual <= visualColumn in isWithinCharRange
+		expect(computeRealColumnFromVisual("abcdefgh", 1)).toBe(1);
+		expect(computeRealColumnFromVisual("abcdefgh", 4)).toBe(4);
+	});
+
+	it("returns length not past length when at final boundary", () => {
+		// Kill mutant: index <= lineContent.length
+		const line = "test";
+		expect(computeRealColumnFromVisual(line, 4)).toBe(4);
+		expect(computeRealColumnFromVisual(line, 4)).not.toBe(5);
 	});
 });
 

@@ -9,56 +9,15 @@
  */
 export const TAB_WIDTH = 8;
 
-// CHANGE: Extracted helper to check if target reached
-// WHY: Reduces complexity and line count of computeRealColumnFromVisual
-// QUOTE(LINT): "Function has too many lines (51). Maximum allowed is 50"
-// REF: ESLint max-lines-per-function
-// SOURCE: n/a
-function isTargetReached(
-	currentVisual: number,
-	visualColumn: number,
-	index: number,
-	contentLength: number,
-): { readonly reached: boolean; readonly position: number } | null {
-	if (currentVisual === visualColumn) {
-		return { reached: true, position: index };
-	}
-	if (currentVisual > visualColumn) {
-		return { reached: true, position: index };
-	}
-	if (index >= contentLength) {
-		return { reached: true, position: contentLength };
-	}
-	return null;
-}
-
-// CHANGE: Extracted helper to process tab character
-// WHY: Reduces complexity of computeRealColumnFromVisual
-// QUOTE(LINT): "Function has a complexity of 9. Maximum allowed is 8"
-// REF: ESLint complexity
-// SOURCE: n/a
-function processTabCharacter(
-	currentVisual: number,
-	visualColumn: number,
-	tabSize: number,
-	index: number,
-): {
-	readonly newVisual: number;
-	readonly shouldBreak: boolean;
-	readonly position: number;
-} {
-	const nextTabStop = Math.floor(currentVisual / tabSize + 1) * tabSize;
-	if (nextTabStop >= visualColumn) {
-		return { newVisual: nextTabStop, shouldBreak: true, position: index + 1 };
-	}
-	return { newVisual: nextTabStop, shouldBreak: false, position: index + 1 };
-}
-
 /**
  * Конвертирует визуальную колонку (как в ESLint) в реальный индекс символа.
  *
- * CHANGE: Refactored to reduce complexity and line count
- * WHY: Original function had 51 lines and complexity 9
+ * CHANGE: Reworked iteration to compute target column purely through monotone visual offsets
+ * WHY: Stryker report highlighted equivalent mutants due to unused flags; tight loop makes every branch observable
+ * QUOTE(UserMsg#6): "Можешь так же тесты исправить о которых было описано в отчёте?"
+ * REF: output:849-897 ([Survived] BooleanLiteral / ConditionalExpression for column.ts)
+ * SOURCE: "Stryker Mutant Survivors Log" (output file)
+ * FORMAT THEOREM: ∀i ∈ ℤ≥0, visualOffset_i ≤ visualOffset_{i+1} ∧ target ∈ [visualOffset_i, visualOffset_{i+1}) ⇒ return index(i) + δ
  * QUOTE(LINT): "Function has too many lines/complexity"
  * REF: ESLint max-lines-per-function, complexity
  * SOURCE: n/a
@@ -101,34 +60,35 @@ export function computeRealColumnFromVisual(
 
 	let currentVisual = 0;
 
+	// CHANGE: Loop through string plus one iteration to handle end-of-string case
+	// WHY: index <= length allows checking if visualColumn matches final position
+	// INVARIANT: Loop handles positions [0..length] where length is past last char
 	for (let index = 0; index <= lineContent.length; index += 1) {
-		const target = isTargetReached(
-			currentVisual,
-			visualColumn,
-			index,
-			lineContent.length,
-		);
-		if (target) {
-			return target.position;
+		// CHANGE: Early exit when we've reached or passed target
+		// WHY: Returns immediately when accumulated visual width reaches goal
+		// INVARIANT: visualColumn <= currentVisual ⇒ return index
+		if (visualColumn <= currentVisual) {
+			return index;
+		}
+
+		// CHANGE: Exact equality check kills >= vs > mutant
+		// WHY: index === length is boundary; > length never happens due to loop condition
+		// INVARIANT: index === length ⇒ no more chars to process
+		if (index === lineContent.length) {
+			break;
 		}
 
 		const char = lineContent[index];
 		if (char === "\t") {
-			const tabResult = processTabCharacter(
-				currentVisual,
-				visualColumn,
-				tabSize,
-				index,
-			);
-			currentVisual = tabResult.newVisual;
-			if (tabResult.shouldBreak) {
-				return tabResult.position;
-			}
+			const nextTabStop = Math.floor(currentVisual / tabSize + 1) * tabSize;
+			currentVisual = nextTabStop;
 		} else {
 			currentVisual += 1;
 		}
 	}
 
+	// CHANGE: Target lies beyond last glyph — clamp to content length
+	// WHY: Aligns with invariant visualColumnAt(content, |content|, tab) ≥ visualColumn
 	return lineContent.length;
 }
 
