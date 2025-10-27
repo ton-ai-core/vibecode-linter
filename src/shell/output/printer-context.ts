@@ -14,7 +14,7 @@ import type { CommitDiffBlock } from "../git/history-helpers.js";
 
 export function printFileContext(
 	m: LintMessageWithFile,
-	lines: ReadonlyArray<string>,
+	lines: readonly string[],
 	diffBlock: GitDiffBlock | null,
 ): void {
 	const { line, column } = m;

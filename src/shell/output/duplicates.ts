@@ -39,7 +39,7 @@ function ensureReportsDir(): string {
 // QUOTE(ТЗ): "Решение должно быть устойчивым к версиям инструмента"
 // REF: REQ-DUP-SARIF-OUT
 function discoverSarifArtifact(reportsDir: string): string {
-	const candidates: ReadonlyArray<string> = [
+	const candidates: readonly string[] = [
 		path.join(reportsDir, "jscpd-sarif.json"),
 		path.join(reportsDir, "jscpd-report.sarif"),
 		path.join(reportsDir, "report.sarif"),
@@ -275,7 +275,7 @@ function toDuplicateFromLocations(result: SarifResult): DuplicateInfo | null {
 }
 
 function extractDuplicatesFromResults(
-	results: ReadonlyArray<SarifResult>,
+	results: readonly SarifResult[],
 ): DuplicateInfo[] {
 	const duplicates: DuplicateInfo[] = [];
 
@@ -311,9 +311,7 @@ function extractDuplicatesFromResults(
  * @param sarifPath Путь к SARIF файлу
  * @returns Массив информации о дубликатах
  */
-export function parseSarifReport(
-	sarifPath: string,
-): ReadonlyArray<DuplicateInfo> {
+export function parseSarifReport(sarifPath: string): readonly DuplicateInfo[] {
 	try {
 		const sarif = loadSarifContent(sarifPath);
 		if (!validateSarifStructure(sarif) || !sarif?.runs?.[0]?.results) {
@@ -469,7 +467,7 @@ function displaySingleDuplicate(
  * @param width Ширина терминала
  */
 export function displayClonesFromSarif(
-	duplicates: ReadonlyArray<DuplicateInfo>,
+	duplicates: readonly DuplicateInfo[],
 	maxClones: number,
 	width: number,
 ): void {

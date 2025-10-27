@@ -107,7 +107,7 @@ export function runBiomeFix(
  */
 export function getBiomeDiagnostics(
 	targetPath: string,
-): Effect.Effect<ReadonlyArray<BiomeResult>, ExternalToolError | ParseError> {
+): Effect.Effect<readonly BiomeResult[], ExternalToolError | ParseError> {
 	return Effect.gen(function* () {
 		// CHANGE: Use Effect.promise to always get stdout (even on non-zero exit)
 		// WHY: Biome returns non-zero on lint errors but with valid JSON
@@ -183,7 +183,7 @@ export function getBiomeDiagnostics(
  */
 function getBiomeDiagnosticsPerFileEffect(
 	targetPath: string,
-): Effect.Effect<ReadonlyArray<BiomeResult>, ExternalToolError> {
+): Effect.Effect<readonly BiomeResult[], ExternalToolError> {
 	return Effect.gen(function* () {
 		const files = yield* listBiomeTargetFiles(targetPath);
 		return yield* collectPerFileDiagnostics(files);
@@ -202,7 +202,7 @@ function getBiomeDiagnosticsPerFileEffect(
 // COMPLEXITY: O(n) where n = matched files (bounded by head -20)
 const listBiomeTargetFiles = (
 	targetPath: string,
-): Effect.Effect<ReadonlyArray<string>, ExternalToolError> =>
+): Effect.Effect<readonly string[], ExternalToolError> =>
 	Effect.promise(async () => {
 		try {
 			return await execAsync(
@@ -239,8 +239,8 @@ const listBiomeTargetFiles = (
 // INVARIANT: Results preserve concatenation order of input files
 // COMPLEXITY: O(n) where n = |files|
 const collectPerFileDiagnostics = (
-	files: ReadonlyArray<string>,
-): Effect.Effect<ReadonlyArray<BiomeResult>, never> =>
+	files: readonly string[],
+): Effect.Effect<readonly BiomeResult[], never> =>
 	Effect.gen(function* () {
 		const allResults: BiomeResult[] = [];
 		for (const file of files) {
@@ -262,7 +262,7 @@ const collectPerFileDiagnostics = (
 // COMPLEXITY: O(1) per file (Biome CLI dominates)
 const runBiomeCheckForFile = (
 	file: string,
-): Effect.Effect<ReadonlyArray<BiomeResult>, never> =>
+): Effect.Effect<readonly BiomeResult[], never> =>
 	Effect.promise(async () => {
 		try {
 			const result = await execAsync(

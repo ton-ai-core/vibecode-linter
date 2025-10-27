@@ -23,7 +23,7 @@ type JSONValue =
 	| number
 	| boolean
 	| null
-	| ReadonlyArray<JSONValue>
+	| readonly JSONValue[]
 	| { readonly [key: string]: JSONValue };
 
 /**
@@ -64,7 +64,7 @@ function isNumber(value: JSONValue): value is number {
  * @param value Value to check
  * @returns True if value is an array
  */
-function isArray(value: JSONValue): value is ReadonlyArray<JSONValue> {
+function isArray(value: JSONValue): value is readonly JSONValue[] {
 	return Array.isArray(value);
 }
 

@@ -39,7 +39,7 @@ function debugSnapshot(s: {
 	readonly preFilter: number;
 	readonly postFilter: number;
 	readonly samplePre: ReadonlyArray<string | undefined>;
-	readonly samplePost: ReadonlyArray<string>;
+	readonly samplePost: readonly string[];
 }): void {
 	if (!VCL_DEBUG_TS) return;
 	debugLog(`root=${s.rootTsconfig} selected=${s.selectedConfig}`);
@@ -90,7 +90,7 @@ function resolveRefConfigPath(baseDir: string, refPath: string): string | null {
 function computeRootNames(
 	parsed: ts.ParsedCommandLine,
 	absTarget: string,
-): ReadonlyArray<string> {
+): readonly string[] {
 	const isTsFile =
 		absTarget.endsWith(".ts") ||
 		absTarget.endsWith(".tsx") ||
@@ -170,7 +170,7 @@ function loadParsedConfig(configPath: string): ts.ParsedCommandLine {
  */
 function loadRootAndReferences(
 	rootTsconfigPath: string,
-): ReadonlyArray<ParsedProject> {
+): readonly ParsedProject[] {
 	const rootParsed = loadParsedConfig(rootTsconfigPath);
 	const projects: ParsedProject[] = [];
 
@@ -220,7 +220,7 @@ function projectCoversPath(
  */
 function pickProjectForTarget(
 	targetPath: string,
-	projects: ReadonlyArray<ParsedProject>,
+	projects: readonly ParsedProject[],
 ): ParsedProject {
 	// CHANGE: Explicit non-empty guard for soundness
 	// WHY: TypeScript cannot infer non-emptiness from construction
@@ -270,9 +270,9 @@ function diagToMessage(diag: ts.Diagnostic): TypeScriptMessage | null {
 
 /** Keep only diagnostics from files under targetPath (file or directory). */
 function filterMessagesByTargetPath(
-	messages: ReadonlyArray<TypeScriptMessage>,
+	messages: readonly TypeScriptMessage[],
 	targetPath: string,
-): ReadonlyArray<TypeScriptMessage> {
+): readonly TypeScriptMessage[] {
 	const { absTarget, isDir } = resolveTarget(targetPath);
 
 	return messages.filter((m) =>
@@ -298,7 +298,7 @@ function loadAndSelectProject(
 		// CHANGE: Explicit type annotation to satisfy TypeScript strict mode
 		// WHY: yield* in Effect.gen requires explicit types when strictNullChecks enabled
 		// REF: TypeScript TS7022 - implicitly has type 'any'
-		const projects: ReadonlyArray<ParsedProject> = yield* Effect.try({
+		const projects: readonly ParsedProject[] = yield* Effect.try({
 			try: () => loadRootAndReferences(rootTsconfig),
 			catch: (error) =>
 				new ParseError({
@@ -330,7 +330,7 @@ function getProgramDiagnostics(
 	selected: ParsedProject,
 	targetPath: string,
 ): Effect.Effect<
-	{ diags: ReadonlyArray<ts.Diagnostic>; allMessages: TypeScriptMessage[] },
+	{ diags: readonly ts.Diagnostic[]; allMessages: TypeScriptMessage[] },
 	never
 > {
 	return Effect.gen(function* () {
@@ -347,26 +347,24 @@ function getProgramDiagnostics(
 			}),
 		);
 
-		const diags: ReadonlyArray<ts.Diagnostic> = yield* Effect.sync(() =>
+		const diags: readonly ts.Diagnostic[] = yield* Effect.sync(() =>
 			ts.getPreEmitDiagnostics(program),
 		);
 
 		// CHANGE: Explicit type annotations for reduce accumulator and parameter
 		// WHY: TypeScript requires explicit types in strict mode
 		// REF: TypeScript TS7006 - Parameter implicitly has 'any' type
-		const allMessages = pipe(
-			diags,
-			(diagnostics: ReadonlyArray<ts.Diagnostic>) =>
-				diagnostics.reduce<TypeScriptMessage[]>(
-					(acc: TypeScriptMessage[], d: ts.Diagnostic) => {
-						const m = diagToMessage(d);
-						if (m !== null) {
-							acc.push(m);
-						}
-						return acc;
-					},
-					[],
-				),
+		const allMessages = pipe(diags, (diagnostics: readonly ts.Diagnostic[]) =>
+			diagnostics.reduce<TypeScriptMessage[]>(
+				(acc: TypeScriptMessage[], d: ts.Diagnostic) => {
+					const m = diagToMessage(d);
+					if (m !== null) {
+						acc.push(m);
+					}
+					return acc;
+				},
+				[],
+			),
 		);
 
 		return { diags, allMessages };
@@ -392,7 +390,7 @@ function getProgramDiagnostics(
 export function getTypeScriptDiagnostics(
 	targetPath: string,
 ): Effect.Effect<
-	ReadonlyArray<TypeScriptMessage>,
+	readonly TypeScriptMessage[],
 	ParseError | InvariantViolation
 > {
 	return Effect.gen(function* () {

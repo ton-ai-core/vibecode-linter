@@ -33,7 +33,7 @@ export interface DiffLineView {
  */
 export interface DiffSnippet {
 	readonly header: string;
-	readonly lines: ReadonlyArray<DiffLineView>;
+	readonly lines: readonly DiffLineView[];
 	readonly pointerIndex: number | null;
 }
 

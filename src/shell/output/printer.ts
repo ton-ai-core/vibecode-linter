@@ -26,7 +26,7 @@ async function printSections(
 ): Promise<void> {
 	for (const [name, arr] of sections) {
 		console.log(`\n=== ${name} (${arr.length} issues) ===`);
-		const cache = new Map<string, ReadonlyArray<string>>();
+		const cache = new Map<string, readonly string[]>();
 		for (const m of arr) {
 			await printMessage(m, cache, diffRange, diffContext);
 		}
@@ -42,7 +42,7 @@ async function printSections(
  * @returns True если есть ошибки
  */
 export async function processResults(
-	messages: ReadonlyArray<LintMessageWithFile>,
+	messages: readonly LintMessageWithFile[],
 	config: LinterConfig | null,
 	cliOptions: CLIOptions,
 ): Promise<boolean> {

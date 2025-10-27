@@ -13,7 +13,7 @@ import { parseCLIArgs } from "../../src/shell/config/index.js";
  * Invariants:
  * - Always restore original argv to avoid cross-test contamination.
  */
-function withArgv<T>(args: ReadonlyArray<string>, fn: () => T): T {
+function withArgv<T>(args: readonly string[], fn: () => T): T {
 	const original = process.argv.slice();
 	try {
 		// First two entries are node and script placeholders

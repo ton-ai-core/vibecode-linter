@@ -79,7 +79,7 @@ export async function processCommitSegment(
 	relativePath: string,
 ): Promise<{
 	readonly lines: string[];
-	readonly snippet: ReadonlyArray<string> | undefined;
+	readonly snippet: readonly string[] | undefined;
 } | null> {
 	const lines = segment.split(/\r?\n/u);
 	const info = extractCommitBasicInfo(lines);

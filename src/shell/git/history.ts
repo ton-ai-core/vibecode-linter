@@ -30,7 +30,7 @@ async function buildHistoryResult(
 ): Promise<GitHistoryBlock | null> {
 	const header = "--- history (recent line updates) -------------------------";
 	const result: string[] = [header];
-	let latestSnippet: ReadonlyArray<string> | undefined;
+	let latestSnippet: readonly string[] | undefined;
 
 	// CHANGE: Bound iteration upfront to avoid loop guard inside (reduces complexity)
 	// WHY: ESLint complexity threshold
@@ -105,7 +105,7 @@ export async function getCommitDiffBlocks(
 	line: number,
 	limit: number,
 	contextLines = 3,
-): Promise<ReadonlyArray<CommitDiffBlock> | null> {
+): Promise<readonly CommitDiffBlock[] | null> {
 	const commits = await fetchCommitHistoryForLine(filePath, line, limit);
 	// CHANGE: Avoid truthiness on nullable array
 	// WHY: strict-boolean-expressions — explicit null check

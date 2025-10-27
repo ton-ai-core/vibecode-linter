@@ -17,7 +17,7 @@ import { Data } from "effect";
  * @complexity O(1)
  */
 export class PreflightFailed extends Data.TaggedError("PreflightFailed")<{
-	readonly issues: ReadonlyArray<string>;
+	readonly issues: readonly string[];
 }> {}
 
 /**

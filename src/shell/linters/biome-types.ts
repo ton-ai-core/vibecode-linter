@@ -12,7 +12,7 @@ export interface BiomeDiagnostic {
 	readonly category?: string;
 	readonly description?: string;
 	readonly title?: string;
-	readonly message?: string | ReadonlyArray<BiomeMessagePart>;
+	readonly message?: string | readonly BiomeMessagePart[];
 	readonly location?: BiomeLocation;
 }
 
@@ -50,5 +50,5 @@ export interface BiomeSpan {
  * Корневой объект вывода Biome.
  */
 export interface BiomeOutput {
-	readonly diagnostics?: ReadonlyArray<BiomeDiagnostic>;
+	readonly diagnostics?: readonly BiomeDiagnostic[];
 }

@@ -41,7 +41,7 @@ function normalizePath(input: string): string {
 	return input.replace(/\\/g, "/").replace(/^\.\/+/u, "");
 }
 
-function splitNonEmptyLines(raw: string): ReadonlyArray<string> {
+function splitNonEmptyLines(raw: string): readonly string[] {
 	return raw
 		.split(/\r?\n/u)
 		.map((line) => line.trim())

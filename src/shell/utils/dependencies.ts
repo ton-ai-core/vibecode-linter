@@ -23,7 +23,7 @@ interface Dependency {
 /**
  * Список всех необходимых зависимостей.
  */
-const DEPENDENCIES: ReadonlyArray<Dependency> = [
+const DEPENDENCIES: readonly Dependency[] = [
 	{
 		name: "Git",
 		command: "git",
@@ -88,7 +88,7 @@ async function isCommandAvailable(checkCommand: string): Promise<boolean> {
  */
 interface DependencyCheckResult {
 	readonly allAvailable: boolean;
-	readonly missing: ReadonlyArray<Dependency>;
+	readonly missing: readonly Dependency[];
 }
 
 /**
@@ -118,7 +118,7 @@ export async function checkDependencies(): Promise<DependencyCheckResult> {
  * @param missing Список недостающих зависимостей
  */
 export function reportMissingDependencies(
-	missing: ReadonlyArray<Dependency>,
+	missing: readonly Dependency[],
 ): void {
 	console.error("\n❌ Missing required dependencies:\n");
 

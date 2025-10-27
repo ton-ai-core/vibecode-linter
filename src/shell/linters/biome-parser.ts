@@ -247,7 +247,7 @@ function processDiagnostic(
 // INVARIANT: parsed=false ⇒ diagnostics=[]
 // COMPLEXITY: O(1)
 export type ParsedBiomeDiagnostics = {
-	readonly diagnostics: ReadonlyArray<BiomeResult>;
+	readonly diagnostics: readonly BiomeResult[];
 	readonly parsed: boolean;
 };
 

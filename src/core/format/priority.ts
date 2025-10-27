@@ -105,7 +105,7 @@ export function getPriorityName(
  * ```
  */
 export function groupByLevel(
-	messages: ReadonlyArray<LintMessageWithFile>,
+	messages: readonly LintMessageWithFile[],
 	ruleLevelMap: RuleLevelMapLike | null,
 ): Map<number, LintMessageWithFile[]> {
 	// CHANGE: Use functional reduce instead of imperative for loop
@@ -147,7 +147,7 @@ export function groupByLevel(
  * ```
  */
 export const groupBySections = (
-	messages: ReadonlyArray<LintMessageWithFile>,
+	messages: readonly LintMessageWithFile[],
 	ruleLevelMap: RuleLevelMapLike | null,
 ): Map<string, LintMessageWithFile[]> =>
 	pipe(

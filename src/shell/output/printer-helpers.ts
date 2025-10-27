@@ -60,7 +60,7 @@ export function getPriorityName(
 }
 
 export function sortMessages(
-	messages: ReadonlyArray<LintMessageWithFile>,
+	messages: readonly LintMessageWithFile[],
 ): LintMessageWithFile[] {
 	const program = buildProgram();
 	const sortedMessages = [...messages];
@@ -98,21 +98,21 @@ export function sortMessages(
 }
 
 export function groupByLevel(
-	messages: ReadonlyArray<LintMessageWithFile>,
+	messages: readonly LintMessageWithFile[],
 	ruleLevelMap: RuleLevelMap | null,
 ): Map<number, LintMessageWithFile[]> {
 	return coreGroupByLevel(messages, toRuleLevelMapLike(ruleLevelMap));
 }
 
 export function groupBySections(
-	messages: ReadonlyArray<LintMessageWithFile>,
+	messages: readonly LintMessageWithFile[],
 	ruleLevelMap: RuleLevelMap | null,
 ): Map<string, LintMessageWithFile[]> {
 	return coreGroupBySections(messages, toRuleLevelMapLike(ruleLevelMap));
 }
 
 export function printStatistics(
-	messages: ReadonlyArray<LintMessageWithFile>,
+	messages: readonly LintMessageWithFile[],
 ): void {
 	const errorCount = messages.filter((m) => m.severity === 2).length;
 	const warningCount = messages.filter((m) => m.severity === 1).length;
@@ -168,8 +168,8 @@ export async function printDiffBlock(
 
 export function loadFileLines(
 	filePath: string,
-	cache: Map<string, ReadonlyArray<string>>,
-): ReadonlyArray<string> | null {
+	cache: Map<string, readonly string[]>,
+): readonly string[] | null {
 	if (!cache.has(filePath)) {
 		try {
 			cache.set(filePath, fs.readFileSync(filePath, "utf8").split("\n"));
@@ -183,7 +183,7 @@ export function loadFileLines(
 
 export async function printMessage(
 	m: LintMessageWithFile,
-	cache: Map<string, ReadonlyArray<string>>,
+	cache: Map<string, readonly string[]>,
 	diffRange: DiffRangeConfig,
 	diffContext: number,
 ): Promise<void> {

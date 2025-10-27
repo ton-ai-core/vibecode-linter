@@ -37,7 +37,7 @@ type ErrorLike =
 	| symbol
 	| null
 	| undefined
-	| ReadonlyArray<ErrorLike>
+	| readonly ErrorLike[]
 	| { readonly [key: string]: ErrorLike };
 
 function stringifyStructured(value: ErrorLike): string {
@@ -182,7 +182,7 @@ async function createFileRecord(
 async function walkDirectory(
 	absoluteDir: string,
 	relativeBase: string,
-): Promise<ReadonlyArray<ProjectFileRecord>> {
+): Promise<readonly ProjectFileRecord[]> {
 	const dirents = await fsPromises.readdir(absoluteDir, {
 		withFileTypes: true,
 	});
@@ -226,7 +226,7 @@ async function walkDirectory(
  */
 export function collectProjectFilesEffect(
 	targetPath: string,
-): Effect.Effect<ReadonlyArray<ProjectFileRecord>, never> {
+): Effect.Effect<readonly ProjectFileRecord[], never> {
 	return Effect.tryPromise(async () => {
 		const absoluteTarget = path.resolve(process.cwd(), targetPath);
 		try {
@@ -251,6 +251,6 @@ export function collectProjectFilesEffect(
 			return [];
 		}
 	}).pipe(
-		Effect.catchAll(() => Effect.succeed<ReadonlyArray<ProjectFileRecord>>([])),
+		Effect.catchAll(() => Effect.succeed<readonly ProjectFileRecord[]>([])),
 	);
 }

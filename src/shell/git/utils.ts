@@ -26,7 +26,7 @@ export function getWorkspaceSnippet(
 	filePath: string,
 	centerLine: number,
 	context = 2,
-): ReadonlyArray<string> | null {
+): readonly string[] | null {
 	try {
 		const fileContent = fs.readFileSync(filePath, "utf8").split(/\r?\n/u);
 		const start = Math.max(0, centerLine - context - 1);
@@ -58,7 +58,7 @@ export async function getCommitSnippetForLine(
 	filePath: string,
 	lineNumber: number,
 	context = 3,
-): Promise<ReadonlyArray<string> | null> {
+): Promise<readonly string[] | null> {
 	const relativePath = path
 		.relative(process.cwd(), filePath)
 		.replace(/\\/g, "/");

@@ -130,7 +130,7 @@ export function getPosition(
 export function getDefinitionSymbols(
 	checker: ts.TypeChecker,
 	node: ts.Node,
-): ReadonlyArray<ts.Symbol> {
+): readonly ts.Symbol[] {
 	const locus = ts.isIdentifier(node)
 		? node
 		: ts.isPropertyAccessExpression(node)
@@ -160,7 +160,7 @@ export function getDefinitionSymbols(
  * @returns Карта файл -> сообщения
  */
 export function groupMessagesByFile(
-	messages: ReadonlyArray<LintMessageWithFile>,
+	messages: readonly LintMessageWithFile[],
 ): Map<string, LintMessageWithFile[]> {
 	const byFile = new Map<string, LintMessageWithFile[]>();
 	for (const message of messages) {

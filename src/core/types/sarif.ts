@@ -31,8 +31,8 @@ export interface SarifLocation {
  * @property message Сообщение о проблеме
  */
 export interface SarifResult {
-	readonly locations: ReadonlyArray<SarifLocation>;
-	readonly relatedLocations: ReadonlyArray<SarifLocation>;
+	readonly locations: readonly SarifLocation[];
+	readonly relatedLocations: readonly SarifLocation[];
 	readonly message: {
 		readonly text: string;
 	};
@@ -45,7 +45,7 @@ export interface SarifResult {
  */
 export interface SarifReport {
 	readonly runs: ReadonlyArray<{
-		readonly results: ReadonlyArray<SarifResult>;
+		readonly results: readonly SarifResult[];
 	}>;
 }
 

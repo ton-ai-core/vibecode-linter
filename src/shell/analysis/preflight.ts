@@ -41,7 +41,7 @@ export type PreflightIssueCode =
  */
 export interface PreflightResult {
 	readonly ok: boolean;
-	readonly issues: ReadonlyArray<PreflightIssueCode>;
+	readonly issues: readonly PreflightIssueCode[];
 }
 
 /**
@@ -256,7 +256,7 @@ function printMissingBiome(): void {
  * REF: ESLint max-lines-per-function
  */
 function printBlockingIssues(
-	blockingIssues: ReadonlyArray<PreflightIssueCode>,
+	blockingIssues: readonly PreflightIssueCode[],
 ): void {
 	console.error(
 		"\n[ERROR] Environment preflight failed. Please resolve the following issues:\n",
@@ -290,7 +290,7 @@ function printBlockingIssues(
 // QUOTE(LINT): "Function has too many lines (max 50)"
 // REF: ESLint max-lines-per-function
 function printAdvisoryWarnings(
-	advisories: ReadonlyArray<PreflightIssueCode>,
+	advisories: readonly PreflightIssueCode[],
 ): void {
 	if (advisories.length === 0) return;
 	// Currently the only advisory is npxIsolated
@@ -313,7 +313,7 @@ function printAdvisoryWarnings(
  * No side-effects other than stdout/stderr. Does not exit the process.
  */
 export function printPreflightReport(
-	issues: ReadonlyArray<PreflightIssueCode>,
+	issues: readonly PreflightIssueCode[],
 ): void {
 	// CHANGE: Keep this function concise by delegating detailed output to helpers
 	// WHY: Satisfy max-lines-per-function while preserving actionable guidance

@@ -17,7 +17,7 @@ interface GitStatusSummary {
 	readonly upstreamBranch: string | null;
 	readonly aheadBehind: string | null;
 	readonly isRepository: boolean;
-	readonly statusLines: ReadonlyArray<string>;
+	readonly statusLines: readonly string[];
 	readonly hasUncommitted: boolean;
 }
 
@@ -30,8 +30,8 @@ export interface GitCommitInfo {
 
 export interface GitInsight {
 	readonly status: GitStatusSummary;
-	readonly headCommits: ReadonlyArray<GitCommitInfo>;
-	readonly upstreamCommits: ReadonlyArray<GitCommitInfo>;
+	readonly headCommits: readonly GitCommitInfo[];
+	readonly upstreamCommits: readonly GitCommitInfo[];
 }
 
 const DEFAULT_STATUS: GitStatusSummary = {
@@ -232,10 +232,10 @@ function sanitizeGitRef(ref: string | null): string | null {
 
 function fetchRecentCommitsEffect(
 	targetRef: string | null,
-): Effect.Effect<ReadonlyArray<GitCommitInfo>, never> {
+): Effect.Effect<readonly GitCommitInfo[], never> {
 	const ref = sanitizeGitRef(targetRef);
 	if (ref === null) {
-		return Effect.succeed<ReadonlyArray<GitCommitInfo>>([]);
+		return Effect.succeed<readonly GitCommitInfo[]>([]);
 	}
 	return Effect.tryPromise(async () => {
 		const raw =
@@ -254,9 +254,7 @@ function fetchRecentCommitsEffect(
 			}
 		}
 		return commits;
-	}).pipe(
-		Effect.catchAll(() => Effect.succeed<ReadonlyArray<GitCommitInfo>>([])),
-	);
+	}).pipe(Effect.catchAll(() => Effect.succeed<readonly GitCommitInfo[]>([])));
 }
 
 /**

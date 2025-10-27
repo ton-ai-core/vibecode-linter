@@ -14,7 +14,7 @@
 export interface PriorityLevel {
 	readonly level: number;
 	readonly name: string;
-	readonly rules: ReadonlyArray<string>;
+	readonly rules: readonly string[];
 }
 
 /**
@@ -23,7 +23,7 @@ export interface PriorityLevel {
  * @property priorityLevels Список уровней приоритета
  */
 export interface LinterConfig {
-	readonly priorityLevels: ReadonlyArray<PriorityLevel>;
+	readonly priorityLevels: readonly PriorityLevel[];
 }
 
 /**

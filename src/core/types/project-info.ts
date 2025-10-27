@@ -90,7 +90,7 @@ export interface ProjectTreeDirectory {
 	readonly kind: "directory";
 	readonly name: string;
 	readonly relativePath: string;
-	readonly entries: ReadonlyArray<ProjectTreeNode>;
+	readonly entries: readonly ProjectTreeNode[];
 	readonly metrics: FileContentMetrics;
 	readonly fileCount: number;
 	readonly directoryCount: number;

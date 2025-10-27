@@ -52,8 +52,8 @@ function formatCommitEntry(commit: GitCommitInfo): string {
  * COMPLEXITY: O(n)
  */
 function commitSequencesEqual(
-	left: ReadonlyArray<GitCommitInfo>,
-	right: ReadonlyArray<GitCommitInfo>,
+	left: readonly GitCommitInfo[],
+	right: readonly GitCommitInfo[],
 ): boolean {
 	if (left.length !== right.length) {
 		return false;
@@ -156,8 +156,8 @@ function logProjectSummary(
  * COMPLEXITY: O(1)
  */
 function hasAnyCommits(
-	headCommits: ReadonlyArray<GitCommitInfo>,
-	upstreamCommits: ReadonlyArray<GitCommitInfo>,
+	headCommits: readonly GitCommitInfo[],
+	upstreamCommits: readonly GitCommitInfo[],
 ): boolean {
 	return headCommits.length > 0 || upstreamCommits.length > 0;
 }
@@ -174,8 +174,8 @@ function hasAnyCommits(
  * COMPLEXITY: O(n)
  */
 function hasDistinctHistories(
-	headCommits: ReadonlyArray<GitCommitInfo>,
-	upstreamCommits: ReadonlyArray<GitCommitInfo>,
+	headCommits: readonly GitCommitInfo[],
+	upstreamCommits: readonly GitCommitInfo[],
 ): boolean {
 	if (headCommits.length === 0 || upstreamCommits.length === 0) {
 		return false;
@@ -197,8 +197,8 @@ function hasDistinctHistories(
  */
 function logRecentCommits(
 	status: GitInsight["status"],
-	headCommits: ReadonlyArray<GitCommitInfo>,
-	upstreamCommits: ReadonlyArray<GitCommitInfo>,
+	headCommits: readonly GitCommitInfo[],
+	upstreamCommits: readonly GitCommitInfo[],
 ): void {
 	console.log("\n🧾 Recent commits (last 5)");
 	const headPresent = headCommits.length > 0;
@@ -273,7 +273,7 @@ function logGitSection(insight: GitInsight): void {
  * INVARIANT: Handles empty tree gracefully
  * COMPLEXITY: O(n)
  */
-function logChangeTree(lines: ReadonlyArray<string>): void {
+function logChangeTree(lines: readonly string[]): void {
 	console.log("\n🌳 Git change tree (status + +/- lines)");
 	if (lines.length === 0) {
 		console.log("   • No files discovered");

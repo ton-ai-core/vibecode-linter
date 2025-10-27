@@ -109,7 +109,7 @@ export function runESLintFix(
  */
 export function getESLintResults(
 	targetPath: string,
-): Effect.Effect<ReadonlyArray<ESLintResult>, ExternalToolError | ParseError> {
+): Effect.Effect<readonly ESLintResult[], ExternalToolError | ParseError> {
 	return Effect.gen(function* () {
 		const eslintCommand = `npx eslint "${targetPath}" --ext .ts,.tsx --format json`;
 		// CHANGE: Log ESLint diagnostics invocation exactly when it runs
@@ -152,7 +152,7 @@ export function getESLintResults(
 		// CHANGE: Use Effect.try for JSON parsing
 		// WHY: JSON.parse can throw, we want typed ParseError
 		return yield* Effect.try({
-			try: () => JSON.parse(stdout) as ReadonlyArray<ESLintResult>,
+			try: () => JSON.parse(stdout) as readonly ESLintResult[],
 			catch: (parseError) => {
 				console.error("Failed to parse ESLint JSON output");
 				console.error("Parse error:", parseError);

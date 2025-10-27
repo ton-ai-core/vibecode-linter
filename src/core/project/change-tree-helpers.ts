@@ -90,7 +90,7 @@ function insertSnapshotDirectory(
 
 function ensureDirectoryForPath(
 	root: DirectoryRenderNode,
-	segments: ReadonlyArray<string>,
+	segments: readonly string[],
 ): DirectoryRenderNode {
 	let current = root;
 	for (const segment of segments) {

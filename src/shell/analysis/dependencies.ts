@@ -106,8 +106,7 @@ function processNodeDeclarations(
 	const edges: Array<readonly [MsgId, MsgId]> = [];
 
 	for (const symbol of symbols) {
-		const declarations: ReadonlyArray<ts.Declaration> =
-			symbol.declarations ?? [];
+		const declarations: readonly ts.Declaration[] = symbol.declarations ?? [];
 		for (const declaration of declarations) {
 			const result = findDeclarationMessage(declaration, context);
 			if (result !== null) {
@@ -132,7 +131,7 @@ function processNodeDeclarations(
 function processImportDeclarations(
 	sourceFile: ts.SourceFile,
 	file: string,
-	msgs: ReadonlyArray<LintMessageWithFile>,
+	msgs: readonly LintMessageWithFile[],
 	context: DependencyContext,
 ): ReadonlyArray<readonly [MsgId, MsgId]> {
 	const edges: Array<readonly [MsgId, MsgId]> = [];
@@ -195,7 +194,7 @@ function processImportDeclarations(
  * @returns Массив рёбер графа [from, to]
  */
 export function buildDependencyEdges(
-	messages: ReadonlyArray<LintMessageWithFile>,
+	messages: readonly LintMessageWithFile[],
 	program: ts.Program,
 ): ReadonlyArray<readonly [MsgId, MsgId]> {
 	const byFile = groupMessagesByFile(messages);
@@ -244,7 +243,7 @@ export function buildDependencyEdges(
 // QUOTE(LINT): "Function has too many lines (51). Maximum allowed is 50"
 // REF: ESLint max-lines-per-function
 // SOURCE: n/a
-function initializeGraph(ids: ReadonlyArray<MsgId>): {
+function initializeGraph(ids: readonly MsgId[]): {
 	readonly successors: Map<MsgId, Set<MsgId>>;
 	readonly inDegree: Map<MsgId, number>;
 } {
@@ -287,7 +286,7 @@ function buildGraphFromEdges(
 // REF: ESLint complexity
 // SOURCE: n/a
 function performKahnsAlgorithm(
-	ids: ReadonlyArray<MsgId>,
+	ids: readonly MsgId[],
 	successors: Map<MsgId, Set<MsgId>>,
 	inDegree: Map<MsgId, number>,
 ): MsgId[] {
@@ -320,7 +319,7 @@ function performKahnsAlgorithm(
 // QUOTE(LINT): "Function has a complexity of 18. Maximum allowed is 8"
 // REF: ESLint complexity
 // SOURCE: n/a
-function addRemainingNodes(order: MsgId[], ids: ReadonlyArray<MsgId>): MsgId[] {
+function addRemainingNodes(order: MsgId[], ids: readonly MsgId[]): MsgId[] {
 	if (order.length === ids.length) {
 		return order;
 	}
@@ -348,7 +347,7 @@ function addRemainingNodes(order: MsgId[], ids: ReadonlyArray<MsgId>): MsgId[] {
  * @returns Карта: MsgId -> ранг в топологическом порядке
  */
 export function topologicalSort(
-	messages: ReadonlyArray<LintMessageWithFile>,
+	messages: readonly LintMessageWithFile[],
 	edges: ReadonlyArray<readonly [MsgId, MsgId]>,
 ): Map<MsgId, number> {
 	const ids: MsgId[] = messages.map((m) => createMessageId(m.filePath, m));

@@ -95,7 +95,7 @@ describe("preflight: runPreflight scenarios (positive)", () => {
 			const result = runPreflight(t.cwd);
 			expect(result.ok).toBe(true);
 			// No blocking issues expected
-			const blocking: ReadonlyArray<PreflightIssueCode> = result.issues.filter(
+			const blocking: readonly PreflightIssueCode[] = result.issues.filter(
 				(c) =>
 					c === "noPackageJson" ||
 					c === "missingTypescript" ||
@@ -128,7 +128,7 @@ describe("preflight: printPreflightReport messages (English, actionable)", () =>
 
 	test("printPreflightReport prints guidance for missing TypeScript and Biome", (): void => {
 		const { err, warn } = setupSpies();
-		const issues: ReadonlyArray<PreflightIssueCode> = [
+		const issues: readonly PreflightIssueCode[] = [
 			"missingTypescript",
 			"missingBiome",
 		];
@@ -151,7 +151,7 @@ describe("preflight: printPreflightReport messages (English, actionable)", () =>
 
 	test("printPreflightReport prints advisory for npxIsolated", (): void => {
 		const { err, warn } = setupSpies();
-		const issues: ReadonlyArray<PreflightIssueCode> = ["npxIsolated"];
+		const issues: readonly PreflightIssueCode[] = ["npxIsolated"];
 
 		printPreflightReport(issues);
 

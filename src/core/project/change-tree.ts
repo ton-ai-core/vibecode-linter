@@ -57,7 +57,7 @@ export function formatChangeTree(
 	root: ProjectTreeDirectory,
 	changeMap: ReadonlyMap<string, FileChangeInfo>,
 	options: ChangeTreeFormatOptions = {},
-): ReadonlyArray<string> {
+): readonly string[] {
 	const specifiedLimit = options.maxInlineEntries;
 	const inlineLimit =
 		typeof specifiedLimit === "number" &&

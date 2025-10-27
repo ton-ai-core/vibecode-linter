@@ -25,7 +25,7 @@ export interface DiffRangeConfig {
  */
 export interface GitDiffBlock {
 	readonly heading: string;
-	readonly lines: ReadonlyArray<string>;
+	readonly lines: readonly string[];
 	readonly footer: string;
 	readonly headLineNumbers: ReadonlySet<number>;
 }
@@ -38,7 +38,7 @@ export interface GitDiffBlock {
  */
 export interface GitBlameOptions {
 	readonly historyCount?: number;
-	readonly fallbackSnippet?: ReadonlyArray<string>;
+	readonly fallbackSnippet?: readonly string[];
 }
 
 /**
@@ -49,7 +49,7 @@ export interface GitBlameOptions {
  * @property shortHash Короткий хэш коммита или null
  */
 export interface GitBlameResult {
-	readonly lines: ReadonlyArray<string>;
+	readonly lines: readonly string[];
 	readonly commitHash: string | null;
 	readonly shortHash: string | null;
 }
@@ -62,7 +62,7 @@ export interface GitBlameResult {
  * @property latestSnippet Фрагмент кода из последнего коммита (опционально)
  */
 export interface GitHistoryBlock {
-	readonly lines: ReadonlyArray<string>;
+	readonly lines: readonly string[];
 	readonly totalCommits: number;
-	readonly latestSnippet?: ReadonlyArray<string>;
+	readonly latestSnippet?: readonly string[];
 }

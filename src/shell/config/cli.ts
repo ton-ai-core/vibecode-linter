@@ -28,7 +28,7 @@ interface ArgProcessResult {
 // REF: ESLint complexity
 // SOURCE: n/a
 type NumericFlagHandler = (
-	args: ReadonlyArray<string>,
+	args: readonly string[],
 	index: number,
 	current: Omit<ArgProcessResult, "skipNext">,
 ) => ArgProcessResult | null;
@@ -61,7 +61,7 @@ const numericHandlers: Record<string, NumericFlagHandler> = {
 // SOURCE: n/a
 function processArgument(
 	arg: string,
-	args: ReadonlyArray<string>,
+	args: readonly string[],
 	index: number,
 	current: Omit<ArgProcessResult, "skipNext">,
 ): ArgProcessResult {

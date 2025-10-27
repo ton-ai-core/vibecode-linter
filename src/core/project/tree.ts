@@ -60,7 +60,7 @@ function createMutableDirectory(
  * INVARIANT: Returns [] for empty/"."
  * COMPLEXITY: O(k) where k = |path|
  */
-function normalizeSegments(relativePath: string): ReadonlyArray<string> {
+function normalizeSegments(relativePath: string): readonly string[] {
 	const trimmed = relativePath.replace(/\\/g, "/").replace(/^\.\/+/u, "");
 	if (trimmed.length === 0 || trimmed === ".") return [];
 	return trimmed
@@ -181,7 +181,7 @@ function finalizeDirectory(dir: MutableDirectory): ProjectTreeDirectory {
  */
 export function createProjectSnapshot(
 	rootLabel: string,
-	files: ReadonlyArray<ProjectFileRecord>,
+	files: readonly ProjectFileRecord[],
 ): ProjectSnapshot {
 	const root = createMutableDirectory(rootLabel, ".");
 	for (const record of files) {
@@ -250,7 +250,7 @@ function formatSize(sizeBytes: number): string {
 export function formatProjectTree(
 	root: ProjectTreeDirectory,
 	options?: TreeFormatOptions,
-): ReadonlyArray<string> {
+): readonly string[] {
 	const includeSize = options?.includeSize === true;
 	const lines: string[] = [];
 
@@ -273,10 +273,7 @@ export function formatProjectTree(
 
 	lines.push(describeDirectory(root));
 
-	const walk = (
-		nodes: ReadonlyArray<ProjectTreeNode>,
-		prefix: string,
-	): void => {
+	const walk = (nodes: readonly ProjectTreeNode[], prefix: string): void => {
 		nodes.forEach((node, index) => {
 			const isLast = index === nodes.length - 1;
 			const connector = isLast ? "└── " : "├── ";
