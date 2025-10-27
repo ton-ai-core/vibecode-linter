@@ -19,7 +19,9 @@ export type JSONValue =
 	| JSONPrimitive
 	| readonly JSONValue[]
 	| { readonly [key: string]: JSONValue };
-type JSONObject = { readonly [key: string]: JSONValue };
+interface JSONObject {
+	readonly [key: string]: JSONValue;
+}
 
 /**
  * Options controlling which parts of a temporary project to materialize.

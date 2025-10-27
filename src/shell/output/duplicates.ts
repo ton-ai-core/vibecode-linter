@@ -113,14 +113,14 @@ export async function generateSarifReport(targetPath: string): Promise<string> {
  * QUOTE(ТЗ): "Исправить все ошибки линтера"
  * REF: REQ-LINT-FIX, ESLint complexity
  */
-type CloneGroups = {
+interface CloneGroups {
 	fileA: string;
 	startLineA: string;
 	endLineA: string;
 	fileB: string;
 	startLineB: string;
 	endLineB: string;
-};
+}
 
 // CHANGE: Helper to normalize regex group access without using nullish coalescing
 // WHY: Reduce cyclomatic complexity in extractCloneGroups; centralize safety checks
@@ -216,11 +216,11 @@ function isValidResult(result: {
  *
  * Предусловие: result.locations имеет минимум 2 элемента с заполненным region.
  */
-type RegionInfo = {
+interface RegionInfo {
 	readonly uri: string;
 	readonly start: number;
 	readonly end: number;
-};
+}
 
 // CHANGE: Type guards to reduce per-function complexity
 // WHY: Move branching out of extractRegion to satisfy complexity thresholds

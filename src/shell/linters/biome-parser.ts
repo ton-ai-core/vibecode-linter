@@ -20,7 +20,7 @@ export type BiomeResult = LintResult;
 // QUOTE(LINT): "Function parseBiomeOutput has too many lines (130)"
 // REF: ESLint max-lines-per-function
 // SOURCE: n/a
-type BiomeDiagnostic = {
+interface BiomeDiagnostic {
 	severity: string;
 	location?: {
 		path?: { file?: string };
@@ -30,7 +30,7 @@ type BiomeDiagnostic = {
 	description?: string;
 	message?: string | ReadonlyArray<string | BiomeMessagePart>;
 	title?: string;
-};
+}
 
 // CHANGE: Extracted helper to parse diagnostic message
 // WHY: Reduces complexity and max-depth of parseBiomeOutput
@@ -246,10 +246,10 @@ function processDiagnostic(
 // PURITY: CORE
 // INVARIANT: parsed=false ⇒ diagnostics=[]
 // COMPLEXITY: O(1)
-export type ParsedBiomeDiagnostics = {
+export interface ParsedBiomeDiagnostics {
 	readonly diagnostics: readonly BiomeResult[];
 	readonly parsed: boolean;
-};
+}
 
 /**
  * Парсит вывод Biome в JSON формате с признаком успешности.

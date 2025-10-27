@@ -1,0 +1,2340 @@
+{
+  "files": {
+    "src/core/diff/column.ts": {
+      "language": "typescript",
+      "mutants": [
+        {
+          "id": "1",
+          "mutatorName": "ConditionalExpression",
+          "replacement": "true",
+          "statusReason": "Error: visualColumn must be non-negative, received 0\n    at computeRealColumnFromVisual (/home/user/vibecode-linter/.stryker-tmp/sandbox-LAgUCU/src/core/diff/column.ts:148:15)\n    at Object.<anonymous> (/home/user/vibecode-linter/.stryker-tmp/sandbox-LAgUCU/test/core/diff/column.test.ts:25:10)\n    at Promise.then.completed (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:231:10)\n    at _callCircusTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:316:40)\n    at _runTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:252:3)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:126:9)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:121:9)\n    at run (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:71:3)\n    at runAndTransformResultsToJestFormat (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)\n    at jestAdapter (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)\n    at runTestInternal (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:367:16)\n    at runTest (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:444:34)",
+          "status": "Killed",
+          "testsCompleted": 11,
+          "static": false,
+          "killedBy": [
+            "0"
+          ],
+          "coveredBy": [
+            "0",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
+            "19"
+          ],
+          "location": {
+            "end": {
+              "column": 22,
+              "line": 55
+            },
+            "start": {
+              "column": 6,
+              "line": 55
+            }
+          }
+        },
+        {
+          "id": "2",
+          "mutatorName": "ConditionalExpression",
+          "replacement": "false",
+          "statusReason": "Error: expect(received).toThrow()\n\nReceived function did not throw\n    at Object.<anonymous> (/home/user/vibecode-linter/.stryker-tmp/sandbox-LAgUCU/test/core/diff/column.test.ts:49:56)\n    at Promise.then.completed (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:231:10)\n    at _callCircusTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:316:40)\n    at _runTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:252:3)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:126:9)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:121:9)\n    at run (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:71:3)\n    at runAndTransformResultsToJestFormat (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)\n    at jestAdapter (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)\n    at runTestInternal (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:367:16)\n    at runTest (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:444:34)",
+          "status": "Killed",
+          "testsCompleted": 11,
+          "static": false,
+          "killedBy": [
+            "6"
+          ],
+          "coveredBy": [
+            "0",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
+            "19"
+          ],
+          "location": {
+            "end": {
+              "column": 22,
+              "line": 55
+            },
+            "start": {
+              "column": 6,
+              "line": 55
+            }
+          }
+        },
+        {
+          "id": "3",
+          "mutatorName": "EqualityOperator",
+          "replacement": "visualColumn <= 0",
+          "statusReason": "Error: visualColumn must be non-negative, received 0\n    at computeRealColumnFromVisual (/home/user/vibecode-linter/.stryker-tmp/sandbox-LAgUCU/src/core/diff/column.ts:148:15)\n    at Object.<anonymous> (/home/user/vibecode-linter/.stryker-tmp/sandbox-LAgUCU/test/core/diff/column.test.ts:25:10)\n    at Promise.then.completed (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:231:10)\n    at _callCircusTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:316:40)\n    at _runTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:252:3)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:126:9)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:121:9)\n    at run (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:71:3)\n    at runAndTransformResultsToJestFormat (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)\n    at jestAdapter (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)\n    at runTestInternal (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:367:16)\n    at runTest (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:444:34)",
+          "status": "Killed",
+          "testsCompleted": 11,
+          "static": false,
+          "killedBy": [
+            "0"
+          ],
+          "coveredBy": [
+            "0",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
+            "19"
+          ],
+          "location": {
+            "end": {
+              "column": 22,
+              "line": 55
+            },
+            "start": {
+              "column": 6,
+              "line": 55
+            }
+          }
+        },
+        {
+          "id": "4",
+          "mutatorName": "EqualityOperator",
+          "replacement": "visualColumn >= 0",
+          "statusReason": "Error: visualColumn must be non-negative, received 0\n    at computeRealColumnFromVisual (/home/user/vibecode-linter/.stryker-tmp/sandbox-LAgUCU/src/core/diff/column.ts:148:15)\n    at Object.<anonymous> (/home/user/vibecode-linter/.stryker-tmp/sandbox-LAgUCU/test/core/diff/column.test.ts:25:10)\n    at Promise.then.completed (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:231:10)\n    at _callCircusTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:316:40)\n    at _runTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:252:3)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:126:9)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:121:9)\n    at run (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:71:3)\n    at runAndTransformResultsToJestFormat (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)\n    at jestAdapter (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)\n    at runTestInternal (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:367:16)\n    at runTest (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:444:34)",
+          "status": "Killed",
+          "testsCompleted": 11,
+          "static": false,
+          "killedBy": [
+            "0"
+          ],
+          "coveredBy": [
+            "0",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
+            "19"
+          ],
+          "location": {
+            "end": {
+              "column": 22,
+              "line": 55
+            },
+            "start": {
+              "column": 6,
+              "line": 55
+            }
+          }
+        },
+        {
+          "id": "5",
+          "mutatorName": "BlockStatement",
+          "replacement": "{}",
+          "statusReason": "Error: expect(received).toThrow()\n\nReceived function did not throw\n    at Object.<anonymous> (/home/user/vibecode-linter/.stryker-tmp/sandbox-LAgUCU/test/core/diff/column.test.ts:49:56)\n    at Promise.then.completed (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:231:10)\n    at _callCircusTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:316:40)\n    at _runTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:252:3)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:126:9)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:121:9)\n    at run (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:71:3)\n    at runAndTransformResultsToJestFormat (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)\n    at jestAdapter (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)\n    at runTestInternal (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:367:16)\n    at runTest (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:444:34)",
+          "status": "Killed",
+          "testsCompleted": 1,
+          "static": false,
+          "killedBy": [
+            "6"
+          ],
+          "coveredBy": [
+            "6"
+          ],
+          "location": {
+            "end": {
+              "column": 3,
+              "line": 59
+            },
+            "start": {
+              "column": 24,
+              "line": 55
+            }
+          }
+        },
+        {
+          "id": "6",
+          "mutatorName": "StringLiteral",
+          "replacement": "``",
+          "status": "Survived",
+          "testsCompleted": 1,
+          "static": false,
+          "killedBy": [],
+          "coveredBy": [
+            "6"
+          ],
+          "location": {
+            "end": {
+              "column": 65,
+              "line": 57
+            },
+            "start": {
+              "column": 4,
+              "line": 57
+            }
+          }
+        },
+        {
+          "id": "7",
+          "mutatorName": "ConditionalExpression",
+          "replacement": "false",
+          "statusReason": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 0\nReceived: 3\n    at Object.<anonymous> (/home/user/vibecode-linter/.stryker-tmp/sandbox-bc0ojq/test/core/diff/column.test.ts:25:50)\n    at Promise.then.completed (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:231:10)\n    at _callCircusTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:316:40)\n    at _runTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:252:3)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:126:9)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:121:9)\n    at run (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:71:3)\n    at runAndTransformResultsToJestFormat (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)\n    at jestAdapter (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)\n    at runTestInternal (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:367:16)\n    at runTest (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:444:34)",
+          "status": "Killed",
+          "testsCompleted": 13,
+          "static": false,
+          "killedBy": [
+            "0"
+          ],
+          "coveredBy": [
+            "0",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
+            "19"
+          ],
+          "location": {
+            "end": {
+              "column": 49,
+              "line": 66
+            },
+            "start": {
+              "column": 22,
+              "line": 66
+            }
+          }
+        },
+        {
+          "id": "8",
+          "mutatorName": "EqualityOperator",
+          "replacement": "index < lineContent.length",
+          "status": "Survived",
+          "testsCompleted": 13,
+          "static": false,
+          "killedBy": [],
+          "coveredBy": [
+            "0",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
+            "19"
+          ],
+          "location": {
+            "end": {
+              "column": 49,
+              "line": 66
+            },
+            "start": {
+              "column": 22,
+              "line": 66
+            }
+          }
+        },
+        {
+          "id": "9",
+          "mutatorName": "EqualityOperator",
+          "replacement": "index > lineContent.length",
+          "statusReason": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 0\nReceived: 3\n    at Object.<anonymous> (/home/user/vibecode-linter/.stryker-tmp/sandbox-bc0ojq/test/core/diff/column.test.ts:25:50)\n    at Promise.then.completed (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:231:10)\n    at _callCircusTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:316:40)\n    at _runTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:252:3)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:126:9)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:121:9)\n    at run (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:71:3)\n    at runAndTransformResultsToJestFormat (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)\n    at jestAdapter (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)\n    at runTestInternal (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:367:16)\n    at runTest (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:444:34)",
+          "status": "Killed",
+          "testsCompleted": 13,
+          "static": false,
+          "killedBy": [
+            "0"
+          ],
+          "coveredBy": [
+            "0",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
+            "19"
+          ],
+          "location": {
+            "end": {
+              "column": 49,
+              "line": 66
+            },
+            "start": {
+              "column": 22,
+              "line": 66
+            }
+          }
+        },
+        {
+          "id": "10",
+          "mutatorName": "AssignmentOperator",
+          "replacement": "index -= 1",
+          "statusReason": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 2\nReceived: 0\n    at Object.<anonymous> (/home/user/vibecode-linter/.stryker-tmp/sandbox-LAgUCU/test/core/diff/column.test.ts:29:50)\n    at Promise.then.completed (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:231:10)\n    at _callCircusTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:316:40)\n    at _runTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:252:3)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:126:9)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:121:9)\n    at run (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:71:3)\n    at runAndTransformResultsToJestFormat (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)\n    at jestAdapter (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)\n    at runTestInternal (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:367:16)\n    at runTest (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:444:34)",
+          "status": "Killed",
+          "testsCompleted": 6,
+          "static": false,
+          "killedBy": [
+            "1"
+          ],
+          "coveredBy": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
+            "19"
+          ],
+          "location": {
+            "end": {
+              "column": 61,
+              "line": 66
+            },
+            "start": {
+              "column": 51,
+              "line": 66
+            }
+          }
+        },
+        {
+          "id": "12",
+          "mutatorName": "ConditionalExpression",
+          "replacement": "true",
+          "statusReason": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 2\nReceived: 0\n    at Object.<anonymous> (/home/user/vibecode-linter/.stryker-tmp/sandbox-bc0ojq/test/core/diff/column.test.ts:29:50)\n    at Promise.then.completed (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:231:10)\n    at _callCircusTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:316:40)\n    at _runTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:252:3)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:126:9)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:121:9)\n    at run (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:71:3)\n    at runAndTransformResultsToJestFormat (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)\n    at jestAdapter (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)\n    at runTestInternal (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:367:16)\n    at runTest (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:444:34)",
+          "status": "Killed",
+          "testsCompleted": 13,
+          "static": false,
+          "killedBy": [
+            "1"
+          ],
+          "coveredBy": [
+            "0",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
+            "19"
+          ],
+          "location": {
+            "end": {
+              "column": 36,
+              "line": 70
+            },
+            "start": {
+              "column": 7,
+              "line": 70
+            }
+          }
+        },
+        {
+          "id": "13",
+          "mutatorName": "ConditionalExpression",
+          "replacement": "false",
+          "statusReason": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 0\nReceived: 3\n    at Object.<anonymous> (/home/user/vibecode-linter/.stryker-tmp/sandbox-bc0ojq/test/core/diff/column.test.ts:25:50)\n    at Promise.then.completed (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:231:10)\n    at _callCircusTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:316:40)\n    at _runTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:252:3)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:126:9)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:121:9)\n    at run (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:71:3)\n    at runAndTransformResultsToJestFormat (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)\n    at jestAdapter (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)\n    at runTestInternal (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:367:16)\n    at runTest (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:444:34)",
+          "status": "Killed",
+          "testsCompleted": 13,
+          "static": false,
+          "killedBy": [
+            "0"
+          ],
+          "coveredBy": [
+            "0",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
+            "19"
+          ],
+          "location": {
+            "end": {
+              "column": 36,
+              "line": 70
+            },
+            "start": {
+              "column": 7,
+              "line": 70
+            }
+          }
+        },
+        {
+          "id": "14",
+          "mutatorName": "EqualityOperator",
+          "replacement": "visualColumn < currentVisual",
+          "statusReason": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 0\nReceived: 1\n    at Object.<anonymous> (/home/user/vibecode-linter/.stryker-tmp/sandbox-bc0ojq/test/core/diff/column.test.ts:25:50)\n    at Promise.then.completed (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:231:10)\n    at _callCircusTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:316:40)\n    at _runTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:252:3)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:126:9)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:121:9)\n    at run (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:71:3)\n    at runAndTransformResultsToJestFormat (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)\n    at jestAdapter (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)\n    at runTestInternal (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:367:16)\n    at runTest (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:444:34)",
+          "status": "Killed",
+          "testsCompleted": 13,
+          "static": false,
+          "killedBy": [
+            "0"
+          ],
+          "coveredBy": [
+            "0",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
+            "19"
+          ],
+          "location": {
+            "end": {
+              "column": 36,
+              "line": 70
+            },
+            "start": {
+              "column": 7,
+              "line": 70
+            }
+          }
+        },
+        {
+          "id": "15",
+          "mutatorName": "EqualityOperator",
+          "replacement": "visualColumn > currentVisual",
+          "statusReason": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 0\nReceived: 3\n    at Object.<anonymous> (/home/user/vibecode-linter/.stryker-tmp/sandbox-bc0ojq/test/core/diff/column.test.ts:25:50)\n    at Promise.then.completed (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:231:10)\n    at _callCircusTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:316:40)\n    at _runTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:252:3)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:126:9)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:121:9)\n    at run (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:71:3)\n    at runAndTransformResultsToJestFormat (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)\n    at jestAdapter (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)\n    at runTestInternal (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:367:16)\n    at runTest (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:444:34)",
+          "status": "Killed",
+          "testsCompleted": 13,
+          "static": false,
+          "killedBy": [
+            "0"
+          ],
+          "coveredBy": [
+            "0",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
+            "19"
+          ],
+          "location": {
+            "end": {
+              "column": 36,
+              "line": 70
+            },
+            "start": {
+              "column": 7,
+              "line": 70
+            }
+          }
+        },
+        {
+          "id": "16",
+          "mutatorName": "BlockStatement",
+          "replacement": "{}",
+          "statusReason": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 0\nReceived: 3\n    at Object.<anonymous> (/home/user/vibecode-linter/.stryker-tmp/sandbox-bc0ojq/test/core/diff/column.test.ts:25:50)\n    at Promise.then.completed (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:231:10)\n    at _callCircusTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:316:40)\n    at _runTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:252:3)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:126:9)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:121:9)\n    at run (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:71:3)\n    at runAndTransformResultsToJestFormat (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)\n    at jestAdapter (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)\n    at runTestInternal (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:367:16)\n    at runTest (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:444:34)",
+          "status": "Killed",
+          "testsCompleted": 12,
+          "static": false,
+          "killedBy": [
+            "0"
+          ],
+          "coveredBy": [
+            "0",
+            "1",
+            "2",
+            "3",
+            "4",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
+            "19"
+          ],
+          "location": {
+            "end": {
+              "column": 4,
+              "line": 72
+            },
+            "start": {
+              "column": 38,
+              "line": 70
+            }
+          }
+        },
+        {
+          "id": "21",
+          "mutatorName": "ConditionalExpression",
+          "replacement": "true",
+          "statusReason": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 2\nReceived: 1\n    at Object.<anonymous> (/home/user/vibecode-linter/.stryker-tmp/sandbox-bc0ojq/test/core/diff/column.test.ts:29:50)\n    at Promise.then.completed (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:231:10)\n    at _callCircusTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:316:40)\n    at _runTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:252:3)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:126:9)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:121:9)\n    at run (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:71:3)\n    at runAndTransformResultsToJestFormat (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)\n    at jestAdapter (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)\n    at runTestInternal (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:367:16)\n    at runTest (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:444:34)",
+          "status": "Killed",
+          "testsCompleted": 12,
+          "static": false,
+          "killedBy": [
+            "1"
+          ],
+          "coveredBy": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
+            "19"
+          ],
+          "location": {
+            "end": {
+              "column": 20,
+              "line": 82
+            },
+            "start": {
+              "column": 7,
+              "line": 82
+            }
+          }
+        },
+        {
+          "id": "22",
+          "mutatorName": "ConditionalExpression",
+          "replacement": "false",
+          "statusReason": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 1\nReceived: 3\n    at Object.<anonymous> (/home/user/vibecode-linter/.stryker-tmp/sandbox-bc0ojq/test/core/diff/column.test.ts:33:50)\n    at Promise.then.completed (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:231:10)\n    at _callCircusTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:316:40)\n    at _runTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:252:3)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:126:9)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:121:9)\n    at run (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:71:3)\n    at runAndTransformResultsToJestFormat (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)\n    at jestAdapter (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)\n    at runTestInternal (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:367:16)\n    at runTest (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:444:34)",
+          "status": "Killed",
+          "testsCompleted": 12,
+          "static": false,
+          "killedBy": [
+            "2"
+          ],
+          "coveredBy": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
+            "19"
+          ],
+          "location": {
+            "end": {
+              "column": 20,
+              "line": 82
+            },
+            "start": {
+              "column": 7,
+              "line": 82
+            }
+          }
+        },
+        {
+          "id": "23",
+          "mutatorName": "EqualityOperator",
+          "replacement": "char !== \"\\t\"",
+          "statusReason": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 2\nReceived: 1\n    at Object.<anonymous> (/home/user/vibecode-linter/.stryker-tmp/sandbox-bc0ojq/test/core/diff/column.test.ts:29:50)\n    at Promise.then.completed (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:231:10)\n    at _callCircusTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:316:40)\n    at _runTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:252:3)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:126:9)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:121:9)\n    at run (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:71:3)\n    at runAndTransformResultsToJestFormat (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)\n    at jestAdapter (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)\n    at runTestInternal (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:367:16)\n    at runTest (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:444:34)",
+          "status": "Killed",
+          "testsCompleted": 12,
+          "static": false,
+          "killedBy": [
+            "1"
+          ],
+          "coveredBy": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
+            "19"
+          ],
+          "location": {
+            "end": {
+              "column": 20,
+              "line": 82
+            },
+            "start": {
+              "column": 7,
+              "line": 82
+            }
+          }
+        },
+        {
+          "id": "24",
+          "mutatorName": "StringLiteral",
+          "replacement": "\"\"",
+          "statusReason": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 1\nReceived: 3\n    at Object.<anonymous> (/home/user/vibecode-linter/.stryker-tmp/sandbox-bc0ojq/test/core/diff/column.test.ts:33:50)\n    at Promise.then.completed (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:231:10)\n    at _callCircusTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:316:40)\n    at _runTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:252:3)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:126:9)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:121:9)\n    at run (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:71:3)\n    at runAndTransformResultsToJestFormat (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)\n    at jestAdapter (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)\n    at runTestInternal (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:367:16)\n    at runTest (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:444:34)",
+          "status": "Killed",
+          "testsCompleted": 12,
+          "static": false,
+          "killedBy": [
+            "2"
+          ],
+          "coveredBy": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
+            "19"
+          ],
+          "location": {
+            "end": {
+              "column": 20,
+              "line": 82
+            },
+            "start": {
+              "column": 16,
+              "line": 82
+            }
+          }
+        },
+        {
+          "id": "25",
+          "mutatorName": "BlockStatement",
+          "replacement": "{}",
+          "statusReason": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 1\nReceived: 3\n    at Object.<anonymous> (/home/user/vibecode-linter/.stryker-tmp/sandbox-bc0ojq/test/core/diff/column.test.ts:33:50)\n    at Promise.then.completed (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:231:10)\n    at _callCircusTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:316:40)\n    at _runTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:252:3)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:126:9)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:121:9)\n    at run (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:71:3)\n    at runAndTransformResultsToJestFormat (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)\n    at jestAdapter (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)\n    at runTestInternal (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:367:16)\n    at runTest (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:444:34)",
+          "status": "Killed",
+          "testsCompleted": 5,
+          "static": false,
+          "killedBy": [
+            "2"
+          ],
+          "coveredBy": [
+            "2",
+            "3",
+            "4",
+            "10",
+            "19"
+          ],
+          "location": {
+            "end": {
+              "column": 4,
+              "line": 85
+            },
+            "start": {
+              "column": 22,
+              "line": 82
+            }
+          }
+        },
+        {
+          "id": "26",
+          "mutatorName": "ArithmeticOperator",
+          "replacement": "Math.floor(currentVisual / tabSize + 1) / tabSize",
+          "statusReason": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 1\nReceived: 3\n    at Object.<anonymous> (/home/user/vibecode-linter/.stryker-tmp/sandbox-bc0ojq/test/core/diff/column.test.ts:33:50)\n    at Promise.then.completed (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:231:10)\n    at _callCircusTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:316:40)\n    at _runTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:252:3)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:126:9)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:121:9)\n    at run (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:71:3)\n    at runAndTransformResultsToJestFormat (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)\n    at jestAdapter (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)\n    at runTestInternal (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:367:16)\n    at runTest (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:444:34)",
+          "status": "Killed",
+          "testsCompleted": 5,
+          "static": false,
+          "killedBy": [
+            "2"
+          ],
+          "coveredBy": [
+            "2",
+            "3",
+            "4",
+            "10",
+            "19"
+          ],
+          "location": {
+            "end": {
+              "column": 73,
+              "line": 83
+            },
+            "start": {
+              "column": 24,
+              "line": 83
+            }
+          }
+        },
+        {
+          "id": "27",
+          "mutatorName": "ArithmeticOperator",
+          "replacement": "currentVisual / tabSize - 1",
+          "statusReason": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 1\nReceived: 3\n    at Object.<anonymous> (/home/user/vibecode-linter/.stryker-tmp/sandbox-bc0ojq/test/core/diff/column.test.ts:33:50)\n    at Promise.then.completed (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:231:10)\n    at _callCircusTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:316:40)\n    at _runTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:252:3)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:126:9)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:121:9)\n    at run (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:71:3)\n    at runAndTransformResultsToJestFormat (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)\n    at jestAdapter (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)\n    at runTestInternal (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:367:16)\n    at runTest (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:444:34)",
+          "status": "Killed",
+          "testsCompleted": 5,
+          "static": false,
+          "killedBy": [
+            "2"
+          ],
+          "coveredBy": [
+            "2",
+            "3",
+            "4",
+            "10",
+            "19"
+          ],
+          "location": {
+            "end": {
+              "column": 62,
+              "line": 83
+            },
+            "start": {
+              "column": 35,
+              "line": 83
+            }
+          }
+        },
+        {
+          "id": "28",
+          "mutatorName": "ArithmeticOperator",
+          "replacement": "currentVisual * tabSize",
+          "statusReason": "Error: Property failed after 18 tests\n{ seed: -1051258789, path: \"17:2:1:6:5:4:5:4:5:5\", endOnFailure: true }\nCounterexample: [\"\\t\\t\\t\",3,2]\nShrunk 9 time(s)\n\nHint: Enable verbose mode in order to have the list of all failing values encountered during the run\n    at buildError (/home/user/vibecode-linter/node_modules/fast-check/lib/check/runner/utils/RunDetailsFormatter.js:156:19)\n    at throwIfFailed (/home/user/vibecode-linter/node_modules/fast-check/lib/check/runner/utils/RunDetailsFormatter.js:165:11)\n    at reportRunDetails (/home/user/vibecode-linter/node_modules/fast-check/lib/check/runner/utils/RunDetailsFormatter.js:178:16)\n    at Module.assert (/home/user/vibecode-linter/node_modules/fast-check/lib/check/runner/Runner.js:61:9)\n    at Object.<anonymous> (/home/user/vibecode-linter/.stryker-tmp/sandbox-bc0ojq/test/core/diff/column.test.ts:126:6)\n    at Promise.then.completed (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:231:10)\n    at _callCircusTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:316:40)\n    at _runTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:252:3)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:126:9)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:121:9)\n    at run (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:71:3)\n    at runAndTransformResultsToJestFormat (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)\n    at jestAdapter (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)\n    at runTestInternal (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:367:16)\n    at runTest (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:444:34)",
+          "status": "Killed",
+          "testsCompleted": 5,
+          "static": false,
+          "killedBy": [
+            "19"
+          ],
+          "coveredBy": [
+            "2",
+            "3",
+            "4",
+            "10",
+            "19"
+          ],
+          "location": {
+            "end": {
+              "column": 58,
+              "line": 83
+            },
+            "start": {
+              "column": 35,
+              "line": 83
+            }
+          }
+        },
+        {
+          "id": "29",
+          "mutatorName": "BlockStatement",
+          "replacement": "{}",
+          "statusReason": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 2\nReceived: 4\n    at Object.<anonymous> (/home/user/vibecode-linter/.stryker-tmp/sandbox-bc0ojq/test/core/diff/column.test.ts:29:50)\n    at Promise.then.completed (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:231:10)\n    at _callCircusTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:316:40)\n    at _runTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:252:3)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:126:9)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:121:9)\n    at run (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:71:3)\n    at runAndTransformResultsToJestFormat (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)\n    at jestAdapter (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)\n    at runTestInternal (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:367:16)\n    at runTest (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:444:34)",
+          "status": "Killed",
+          "testsCompleted": 9,
+          "static": false,
+          "killedBy": [
+            "1"
+          ],
+          "coveredBy": [
+            "1",
+            "4",
+            "5",
+            "7",
+            "8",
+            "9",
+            "11",
+            "12",
+            "19"
+          ],
+          "location": {
+            "end": {
+              "column": 4,
+              "line": 87
+            },
+            "start": {
+              "column": 10,
+              "line": 85
+            }
+          }
+        },
+        {
+          "id": "30",
+          "mutatorName": "AssignmentOperator",
+          "replacement": "currentVisual -= 1",
+          "statusReason": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 2\nReceived: 4\n    at Object.<anonymous> (/home/user/vibecode-linter/.stryker-tmp/sandbox-bc0ojq/test/core/diff/column.test.ts:29:50)\n    at Promise.then.completed (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:231:10)\n    at _callCircusTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:316:40)\n    at _runTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:252:3)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:126:9)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:121:9)\n    at run (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:71:3)\n    at runAndTransformResultsToJestFormat (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)\n    at jestAdapter (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)\n    at runTestInternal (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:367:16)\n    at runTest (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:444:34)",
+          "status": "Killed",
+          "testsCompleted": 9,
+          "static": false,
+          "killedBy": [
+            "1"
+          ],
+          "coveredBy": [
+            "1",
+            "4",
+            "5",
+            "7",
+            "8",
+            "9",
+            "11",
+            "12",
+            "19"
+          ],
+          "location": {
+            "end": {
+              "column": 22,
+              "line": 86
+            },
+            "start": {
+              "column": 4,
+              "line": 86
+            }
+          }
+        },
+        {
+          "id": "31",
+          "mutatorName": "BlockStatement",
+          "replacement": "{}",
+          "statusReason": "src/core/diff/column.ts(161,4): error TS2355: A function whose declared type is neither 'undefined', 'void', nor 'any' must return a value.\n",
+          "status": "CompileError",
+          "static": false,
+          "killedBy": [],
+          "coveredBy": [
+            "7",
+            "13",
+            "14",
+            "15",
+            "16",
+            "19",
+            "20"
+          ],
+          "location": {
+            "end": {
+              "column": 2,
+              "line": 131
+            },
+            "start": {
+              "column": 11,
+              "line": 118
+            }
+          }
+        },
+        {
+          "id": "32",
+          "mutatorName": "MethodExpression",
+          "replacement": "Math.min(0, Math.min(index, content.length))",
+          "statusReason": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 3\nReceived: 0\n    at Object.<anonymous> (/home/user/vibecode-linter/.stryker-tmp/sandbox-DYVzzo/test/core/diff/column.test.ts:72:37)\n    at Promise.then.completed (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:231:10)\n    at _callCircusTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:316:40)\n    at _runTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:252:3)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:126:9)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:121:9)\n    at run (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:71:3)\n    at runAndTransformResultsToJestFormat (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)\n    at jestAdapter (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)\n    at runTestInternal (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:367:16)\n    at runTest (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:444:34)",
+          "status": "Killed",
+          "testsCompleted": 6,
+          "static": false,
+          "killedBy": [
+            "13"
+          ],
+          "coveredBy": [
+            "7",
+            "13",
+            "14",
+            "15",
+            "16",
+            "19",
+            "20"
+          ],
+          "location": {
+            "end": {
+              "column": 60,
+              "line": 120
+            },
+            "start": {
+              "column": 16,
+              "line": 120
+            }
+          }
+        },
+        {
+          "id": "33",
+          "mutatorName": "MethodExpression",
+          "replacement": "Math.max(index, content.length)",
+          "statusReason": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 3\nReceived: 4\n    at Object.<anonymous> (/home/user/vibecode-linter/.stryker-tmp/sandbox-DYVzzo/test/core/diff/column.test.ts:72:37)\n    at Promise.then.completed (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:231:10)\n    at _callCircusTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:316:40)\n    at _runTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:252:3)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:126:9)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:121:9)\n    at run (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:71:3)\n    at runAndTransformResultsToJestFormat (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)\n    at jestAdapter (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)\n    at runTestInternal (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:367:16)\n    at runTest (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:444:34)",
+          "status": "Killed",
+          "testsCompleted": 6,
+          "static": false,
+          "killedBy": [
+            "13"
+          ],
+          "coveredBy": [
+            "7",
+            "13",
+            "14",
+            "15",
+            "16",
+            "19",
+            "20"
+          ],
+          "location": {
+            "end": {
+              "column": 59,
+              "line": 120
+            },
+            "start": {
+              "column": 28,
+              "line": 120
+            }
+          }
+        },
+        {
+          "id": "34",
+          "mutatorName": "ConditionalExpression",
+          "replacement": "false",
+          "statusReason": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 3\nReceived: 0\n    at Object.<anonymous> (/home/user/vibecode-linter/.stryker-tmp/sandbox-DYVzzo/test/core/diff/column.test.ts:72:37)\n    at Promise.then.completed (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:231:10)\n    at _callCircusTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:316:40)\n    at _runTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:252:3)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:126:9)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:121:9)\n    at run (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:71:3)\n    at runAndTransformResultsToJestFormat (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)\n    at jestAdapter (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)\n    at runTestInternal (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:367:16)\n    at runTest (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:444:34)",
+          "status": "Killed",
+          "testsCompleted": 6,
+          "static": false,
+          "killedBy": [
+            "13"
+          ],
+          "coveredBy": [
+            "7",
+            "13",
+            "14",
+            "15",
+            "16",
+            "19",
+            "20"
+          ],
+          "location": {
+            "end": {
+              "column": 27,
+              "line": 121
+            },
+            "start": {
+              "column": 18,
+              "line": 121
+            }
+          }
+        },
+        {
+          "id": "35",
+          "mutatorName": "EqualityOperator",
+          "replacement": "i <= limit",
+          "statusReason": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 3\nReceived: 4\n    at Object.<anonymous> (/home/user/vibecode-linter/.stryker-tmp/sandbox-DYVzzo/test/core/diff/column.test.ts:72:37)\n    at Promise.then.completed (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:231:10)\n    at _callCircusTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:316:40)\n    at _runTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:252:3)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:126:9)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:121:9)\n    at run (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:71:3)\n    at runAndTransformResultsToJestFormat (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)\n    at jestAdapter (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)\n    at runTestInternal (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:367:16)\n    at runTest (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:444:34)",
+          "status": "Killed",
+          "testsCompleted": 6,
+          "static": false,
+          "killedBy": [
+            "13"
+          ],
+          "coveredBy": [
+            "7",
+            "13",
+            "14",
+            "15",
+            "16",
+            "19",
+            "20"
+          ],
+          "location": {
+            "end": {
+              "column": 27,
+              "line": 121
+            },
+            "start": {
+              "column": 18,
+              "line": 121
+            }
+          }
+        },
+        {
+          "id": "36",
+          "mutatorName": "EqualityOperator",
+          "replacement": "i >= limit",
+          "statusReason": "Hit limit reached (85009/85000)",
+          "status": "Timeout",
+          "static": false,
+          "killedBy": [],
+          "coveredBy": [
+            "7",
+            "13",
+            "14",
+            "15",
+            "16",
+            "19",
+            "20"
+          ],
+          "location": {
+            "end": {
+              "column": 27,
+              "line": 121
+            },
+            "start": {
+              "column": 18,
+              "line": 121
+            }
+          }
+        },
+        {
+          "id": "37",
+          "mutatorName": "AssignmentOperator",
+          "replacement": "i -= 1",
+          "statusReason": "Hit limit reached (64516/64500)",
+          "status": "Timeout",
+          "static": false,
+          "killedBy": [],
+          "coveredBy": [
+            "7",
+            "13",
+            "14",
+            "16",
+            "19",
+            "20"
+          ],
+          "location": {
+            "end": {
+              "column": 35,
+              "line": 121
+            },
+            "start": {
+              "column": 29,
+              "line": 121
+            }
+          }
+        },
+        {
+          "id": "38",
+          "mutatorName": "BlockStatement",
+          "replacement": "{}",
+          "statusReason": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 3\nReceived: 0\n    at Object.<anonymous> (/home/user/vibecode-linter/.stryker-tmp/sandbox-DYVzzo/test/core/diff/column.test.ts:72:37)\n    at Promise.then.completed (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:231:10)\n    at _callCircusTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:316:40)\n    at _runTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:252:3)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:126:9)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:121:9)\n    at run (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:71:3)\n    at runAndTransformResultsToJestFormat (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)\n    at jestAdapter (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)\n    at runTestInternal (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:367:16)\n    at runTest (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:444:34)",
+          "status": "Killed",
+          "testsCompleted": 5,
+          "static": false,
+          "killedBy": [
+            "13"
+          ],
+          "coveredBy": [
+            "7",
+            "13",
+            "14",
+            "16",
+            "19",
+            "20"
+          ],
+          "location": {
+            "end": {
+              "column": 3,
+              "line": 129
+            },
+            "start": {
+              "column": 37,
+              "line": 121
+            }
+          }
+        },
+        {
+          "id": "39",
+          "mutatorName": "ConditionalExpression",
+          "replacement": "true",
+          "statusReason": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 3\nReceived: 24\n    at Object.<anonymous> (/home/user/vibecode-linter/.stryker-tmp/sandbox-DYVzzo/test/core/diff/column.test.ts:72:37)\n    at Promise.then.completed (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:231:10)\n    at _callCircusTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:316:40)\n    at _runTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:252:3)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:126:9)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:121:9)\n    at run (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:71:3)\n    at runAndTransformResultsToJestFormat (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)\n    at jestAdapter (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)\n    at runTestInternal (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:367:16)\n    at runTest (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:444:34)",
+          "status": "Killed",
+          "testsCompleted": 5,
+          "static": false,
+          "killedBy": [
+            "13"
+          ],
+          "coveredBy": [
+            "7",
+            "13",
+            "14",
+            "16",
+            "19",
+            "20"
+          ],
+          "location": {
+            "end": {
+              "column": 18,
+              "line": 123
+            },
+            "start": {
+              "column": 7,
+              "line": 123
+            }
+          }
+        },
+        {
+          "id": "40",
+          "mutatorName": "ConditionalExpression",
+          "replacement": "false",
+          "statusReason": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 4\nReceived: 1\n    at Object.<anonymous> (/home/user/vibecode-linter/.stryker-tmp/sandbox-DYVzzo/test/core/diff/column.test.ts:76:40)\n    at Promise.then.completed (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:231:10)\n    at _callCircusTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:316:40)\n    at _runTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:252:3)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:126:9)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:121:9)\n    at run (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:71:3)\n    at runAndTransformResultsToJestFormat (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)\n    at jestAdapter (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)\n    at runTestInternal (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:367:16)\n    at runTest (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:444:34)",
+          "status": "Killed",
+          "testsCompleted": 5,
+          "static": false,
+          "killedBy": [
+            "14"
+          ],
+          "coveredBy": [
+            "7",
+            "13",
+            "14",
+            "16",
+            "19",
+            "20"
+          ],
+          "location": {
+            "end": {
+              "column": 18,
+              "line": 123
+            },
+            "start": {
+              "column": 7,
+              "line": 123
+            }
+          }
+        },
+        {
+          "id": "41",
+          "mutatorName": "EqualityOperator",
+          "replacement": "ch !== \"\\t\"",
+          "statusReason": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 3\nReceived: 24\n    at Object.<anonymous> (/home/user/vibecode-linter/.stryker-tmp/sandbox-DYVzzo/test/core/diff/column.test.ts:72:37)\n    at Promise.then.completed (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:231:10)\n    at _callCircusTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:316:40)\n    at _runTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:252:3)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:126:9)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:121:9)\n    at run (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:71:3)\n    at runAndTransformResultsToJestFormat (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)\n    at jestAdapter (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)\n    at runTestInternal (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:367:16)\n    at runTest (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:444:34)",
+          "status": "Killed",
+          "testsCompleted": 5,
+          "static": false,
+          "killedBy": [
+            "13"
+          ],
+          "coveredBy": [
+            "7",
+            "13",
+            "14",
+            "16",
+            "19",
+            "20"
+          ],
+          "location": {
+            "end": {
+              "column": 18,
+              "line": 123
+            },
+            "start": {
+              "column": 7,
+              "line": 123
+            }
+          }
+        },
+        {
+          "id": "42",
+          "mutatorName": "StringLiteral",
+          "replacement": "\"\"",
+          "statusReason": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 4\nReceived: 1\n    at Object.<anonymous> (/home/user/vibecode-linter/.stryker-tmp/sandbox-DYVzzo/test/core/diff/column.test.ts:76:40)\n    at Promise.then.completed (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:231:10)\n    at _callCircusTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:316:40)\n    at _runTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:252:3)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:126:9)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:121:9)\n    at run (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:71:3)\n    at runAndTransformResultsToJestFormat (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)\n    at jestAdapter (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)\n    at runTestInternal (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:367:16)\n    at runTest (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:444:34)",
+          "status": "Killed",
+          "testsCompleted": 5,
+          "static": false,
+          "killedBy": [
+            "14"
+          ],
+          "coveredBy": [
+            "7",
+            "13",
+            "14",
+            "16",
+            "19",
+            "20"
+          ],
+          "location": {
+            "end": {
+              "column": 18,
+              "line": 123
+            },
+            "start": {
+              "column": 14,
+              "line": 123
+            }
+          }
+        },
+        {
+          "id": "43",
+          "mutatorName": "BlockStatement",
+          "replacement": "{}",
+          "statusReason": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 4\nReceived: 0\n    at Object.<anonymous> (/home/user/vibecode-linter/.stryker-tmp/sandbox-DYVzzo/test/core/diff/column.test.ts:76:40)\n    at Promise.then.completed (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:231:10)\n    at _callCircusTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:316:40)\n    at _runTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:252:3)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:126:9)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:121:9)\n    at run (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:71:3)\n    at runAndTransformResultsToJestFormat (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)\n    at jestAdapter (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)\n    at runTestInternal (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:367:16)\n    at runTest (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:444:34)",
+          "status": "Killed",
+          "testsCompleted": 4,
+          "static": false,
+          "killedBy": [
+            "14"
+          ],
+          "coveredBy": [
+            "14",
+            "16",
+            "19",
+            "20"
+          ],
+          "location": {
+            "end": {
+              "column": 4,
+              "line": 126
+            },
+            "start": {
+              "column": 20,
+              "line": 123
+            }
+          }
+        },
+        {
+          "id": "44",
+          "mutatorName": "ArithmeticOperator",
+          "replacement": "tabWidth + column % tabWidth",
+          "statusReason": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 9\nReceived: 11\n    at Object.<anonymous> (/home/user/vibecode-linter/.stryker-tmp/sandbox-DYVzzo/test/core/diff/column.test.ts:84:42)\n    at Promise.then.completed (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:231:10)\n    at _callCircusTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:316:40)\n    at _runTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:252:3)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:126:9)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:121:9)\n    at run (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:71:3)\n    at runAndTransformResultsToJestFormat (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)\n    at jestAdapter (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)\n    at runTestInternal (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:367:16)\n    at runTest (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:444:34)",
+          "status": "Killed",
+          "testsCompleted": 4,
+          "static": false,
+          "killedBy": [
+            "16"
+          ],
+          "coveredBy": [
+            "14",
+            "16",
+            "19",
+            "20"
+          ],
+          "location": {
+            "end": {
+              "column": 49,
+              "line": 124
+            },
+            "start": {
+              "column": 19,
+              "line": 124
+            }
+          }
+        },
+        {
+          "id": "45",
+          "mutatorName": "ArithmeticOperator",
+          "replacement": "column * tabWidth",
+          "statusReason": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 9\nReceived: 2\n    at Object.<anonymous> (/home/user/vibecode-linter/.stryker-tmp/sandbox-DYVzzo/test/core/diff/column.test.ts:84:42)\n    at Promise.then.completed (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:231:10)\n    at _callCircusTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:316:40)\n    at _runTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:252:3)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:126:9)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:121:9)\n    at run (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:71:3)\n    at runAndTransformResultsToJestFormat (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)\n    at jestAdapter (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)\n    at runTestInternal (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:367:16)\n    at runTest (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:444:34)",
+          "status": "Killed",
+          "testsCompleted": 4,
+          "static": false,
+          "killedBy": [
+            "16"
+          ],
+          "coveredBy": [
+            "14",
+            "16",
+            "19",
+            "20"
+          ],
+          "location": {
+            "end": {
+              "column": 48,
+              "line": 124
+            },
+            "start": {
+              "column": 31,
+              "line": 124
+            }
+          }
+        },
+        {
+          "id": "46",
+          "mutatorName": "AssignmentOperator",
+          "replacement": "column -= offset",
+          "statusReason": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 4\nReceived: -4\n    at Object.<anonymous> (/home/user/vibecode-linter/.stryker-tmp/sandbox-DYVzzo/test/core/diff/column.test.ts:76:40)\n    at Promise.then.completed (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:231:10)\n    at _callCircusTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:316:40)\n    at _runTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:252:3)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:126:9)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:121:9)\n    at run (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:71:3)\n    at runAndTransformResultsToJestFormat (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)\n    at jestAdapter (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)\n    at runTestInternal (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:367:16)\n    at runTest (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:444:34)",
+          "status": "Killed",
+          "testsCompleted": 4,
+          "static": false,
+          "killedBy": [
+            "14"
+          ],
+          "coveredBy": [
+            "14",
+            "16",
+            "19",
+            "20"
+          ],
+          "location": {
+            "end": {
+              "column": 20,
+              "line": 125
+            },
+            "start": {
+              "column": 4,
+              "line": 125
+            }
+          }
+        },
+        {
+          "id": "47",
+          "mutatorName": "BlockStatement",
+          "replacement": "{}",
+          "statusReason": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 3\nReceived: 0\n    at Object.<anonymous> (/home/user/vibecode-linter/.stryker-tmp/sandbox-DYVzzo/test/core/diff/column.test.ts:72:37)\n    at Promise.then.completed (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:231:10)\n    at _callCircusTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:316:40)\n    at _runTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:252:3)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:126:9)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:121:9)\n    at run (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:71:3)\n    at runAndTransformResultsToJestFormat (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)\n    at jestAdapter (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)\n    at runTestInternal (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:367:16)\n    at runTest (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:444:34)",
+          "status": "Killed",
+          "testsCompleted": 4,
+          "static": false,
+          "killedBy": [
+            "13"
+          ],
+          "coveredBy": [
+            "7",
+            "13",
+            "16",
+            "19",
+            "20"
+          ],
+          "location": {
+            "end": {
+              "column": 4,
+              "line": 128
+            },
+            "start": {
+              "column": 10,
+              "line": 126
+            }
+          }
+        },
+        {
+          "id": "48",
+          "mutatorName": "AssignmentOperator",
+          "replacement": "column -= 1",
+          "statusReason": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 3\nReceived: -3\n    at Object.<anonymous> (/home/user/vibecode-linter/.stryker-tmp/sandbox-DYVzzo/test/core/diff/column.test.ts:72:37)\n    at Promise.then.completed (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:231:10)\n    at _callCircusTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:316:40)\n    at _runTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:252:3)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:126:9)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:121:9)\n    at run (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:71:3)\n    at runAndTransformResultsToJestFormat (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)\n    at jestAdapter (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)\n    at runTestInternal (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:367:16)\n    at runTest (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:444:34)",
+          "status": "Killed",
+          "testsCompleted": 4,
+          "static": false,
+          "killedBy": [
+            "13"
+          ],
+          "coveredBy": [
+            "7",
+            "13",
+            "16",
+            "19",
+            "20"
+          ],
+          "location": {
+            "end": {
+              "column": 15,
+              "line": 127
+            },
+            "start": {
+              "column": 4,
+              "line": 127
+            }
+          }
+        },
+        {
+          "id": "49",
+          "mutatorName": "BlockStatement",
+          "replacement": "{}",
+          "statusReason": "src/core/diff/column.ts(150,68): error TS2355: A function whose declared type is neither 'undefined', 'void', nor 'any' must return a value.\n",
+          "status": "CompileError",
+          "static": false,
+          "killedBy": [],
+          "coveredBy": [
+            "17",
+            "18",
+            "20"
+          ],
+          "location": {
+            "end": {
+              "column": 2,
+              "line": 164
+            },
+            "start": {
+              "column": 75,
+              "line": 150
+            }
+          }
+        },
+        {
+          "id": "50",
+          "mutatorName": "StringLiteral",
+          "replacement": "\"Stryker was here!\"",
+          "statusReason": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: \"a   b\"\nReceived: \"Stryker was here!a   b\"\n    at Object.<anonymous> (/home/user/vibecode-linter/.stryker-tmp/sandbox-DYVzzo/test/core/diff/column.test.ts:90:33)\n    at Promise.then.completed (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:231:10)\n    at _callCircusTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:316:40)\n    at _runTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:252:3)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:126:9)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:121:9)\n    at run (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:71:3)\n    at runAndTransformResultsToJestFormat (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)\n    at jestAdapter (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)\n    at runTestInternal (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:367:16)\n    at runTest (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:444:34)",
+          "status": "Killed",
+          "testsCompleted": 3,
+          "static": false,
+          "killedBy": [
+            "17"
+          ],
+          "coveredBy": [
+            "17",
+            "18",
+            "20"
+          ],
+          "location": {
+            "end": {
+              "column": 17,
+              "line": 152
+            },
+            "start": {
+              "column": 15,
+              "line": 152
+            }
+          }
+        },
+        {
+          "id": "51",
+          "mutatorName": "BlockStatement",
+          "replacement": "{}",
+          "statusReason": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: \"a   b\"\nReceived: \"\"\n    at Object.<anonymous> (/home/user/vibecode-linter/.stryker-tmp/sandbox-DYVzzo/test/core/diff/column.test.ts:90:33)\n    at Promise.then.completed (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:231:10)\n    at _callCircusTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:316:40)\n    at _runTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:252:3)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:126:9)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:121:9)\n    at run (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:71:3)\n    at runAndTransformResultsToJestFormat (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)\n    at jestAdapter (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)\n    at runTestInternal (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:367:16)\n    at runTest (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:444:34)",
+          "status": "Killed",
+          "testsCompleted": 3,
+          "static": false,
+          "killedBy": [
+            "17"
+          ],
+          "coveredBy": [
+            "17",
+            "18",
+            "20"
+          ],
+          "location": {
+            "end": {
+              "column": 3,
+              "line": 162
+            },
+            "start": {
+              "column": 28,
+              "line": 153
+            }
+          }
+        },
+        {
+          "id": "52",
+          "mutatorName": "ConditionalExpression",
+          "replacement": "true",
+          "statusReason": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: \"a   b\"\nReceived: \"            \"\n    at Object.<anonymous> (/home/user/vibecode-linter/.stryker-tmp/sandbox-DYVzzo/test/core/diff/column.test.ts:90:33)\n    at Promise.then.completed (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:231:10)\n    at _callCircusTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:316:40)\n    at _runTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:252:3)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:126:9)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:121:9)\n    at run (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:71:3)\n    at runAndTransformResultsToJestFormat (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)\n    at jestAdapter (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)\n    at runTestInternal (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:367:16)\n    at runTest (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:444:34)",
+          "status": "Killed",
+          "testsCompleted": 3,
+          "static": false,
+          "killedBy": [
+            "17"
+          ],
+          "coveredBy": [
+            "17",
+            "18",
+            "20"
+          ],
+          "location": {
+            "end": {
+              "column": 18,
+              "line": 154
+            },
+            "start": {
+              "column": 7,
+              "line": 154
+            }
+          }
+        },
+        {
+          "id": "53",
+          "mutatorName": "ConditionalExpression",
+          "replacement": "false",
+          "statusReason": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: \"a   b\"\nReceived: \"a\tb\"\n    at Object.<anonymous> (/home/user/vibecode-linter/.stryker-tmp/sandbox-DYVzzo/test/core/diff/column.test.ts:90:33)\n    at Promise.then.completed (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:231:10)\n    at _callCircusTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:316:40)\n    at _runTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:252:3)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:126:9)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:121:9)\n    at run (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:71:3)\n    at runAndTransformResultsToJestFormat (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)\n    at jestAdapter (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)\n    at runTestInternal (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:367:16)\n    at runTest (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:444:34)",
+          "status": "Killed",
+          "testsCompleted": 3,
+          "static": false,
+          "killedBy": [
+            "17"
+          ],
+          "coveredBy": [
+            "17",
+            "18",
+            "20"
+          ],
+          "location": {
+            "end": {
+              "column": 18,
+              "line": 154
+            },
+            "start": {
+              "column": 7,
+              "line": 154
+            }
+          }
+        },
+        {
+          "id": "54",
+          "mutatorName": "EqualityOperator",
+          "replacement": "ch !== \"\\t\"",
+          "statusReason": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: \"a   b\"\nReceived: \"    \t   \"\n    at Object.<anonymous> (/home/user/vibecode-linter/.stryker-tmp/sandbox-DYVzzo/test/core/diff/column.test.ts:90:33)\n    at Promise.then.completed (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:231:10)\n    at _callCircusTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:316:40)\n    at _runTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:252:3)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:126:9)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:121:9)\n    at run (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:71:3)\n    at runAndTransformResultsToJestFormat (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)\n    at jestAdapter (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)\n    at runTestInternal (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:367:16)\n    at runTest (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:444:34)",
+          "status": "Killed",
+          "testsCompleted": 3,
+          "static": false,
+          "killedBy": [
+            "17"
+          ],
+          "coveredBy": [
+            "17",
+            "18",
+            "20"
+          ],
+          "location": {
+            "end": {
+              "column": 18,
+              "line": 154
+            },
+            "start": {
+              "column": 7,
+              "line": 154
+            }
+          }
+        },
+        {
+          "id": "55",
+          "mutatorName": "StringLiteral",
+          "replacement": "\"\"",
+          "statusReason": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: \"a   b\"\nReceived: \"a\tb\"\n    at Object.<anonymous> (/home/user/vibecode-linter/.stryker-tmp/sandbox-DYVzzo/test/core/diff/column.test.ts:90:33)\n    at Promise.then.completed (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:231:10)\n    at _callCircusTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:316:40)\n    at _runTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:252:3)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:126:9)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:121:9)\n    at run (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:71:3)\n    at runAndTransformResultsToJestFormat (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)\n    at jestAdapter (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)\n    at runTestInternal (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:367:16)\n    at runTest (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:444:34)",
+          "status": "Killed",
+          "testsCompleted": 3,
+          "static": false,
+          "killedBy": [
+            "17"
+          ],
+          "coveredBy": [
+            "17",
+            "18",
+            "20"
+          ],
+          "location": {
+            "end": {
+              "column": 18,
+              "line": 154
+            },
+            "start": {
+              "column": 14,
+              "line": 154
+            }
+          }
+        },
+        {
+          "id": "56",
+          "mutatorName": "BlockStatement",
+          "replacement": "{}",
+          "statusReason": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: \"a   b\"\nReceived: \"ab\"\n    at Object.<anonymous> (/home/user/vibecode-linter/.stryker-tmp/sandbox-DYVzzo/test/core/diff/column.test.ts:90:33)\n    at Promise.then.completed (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:231:10)\n    at _callCircusTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:316:40)\n    at _runTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:252:3)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:126:9)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:121:9)\n    at run (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:71:3)\n    at runAndTransformResultsToJestFormat (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)\n    at jestAdapter (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)\n    at runTestInternal (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:367:16)\n    at runTest (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:444:34)",
+          "status": "Killed",
+          "testsCompleted": 3,
+          "static": false,
+          "killedBy": [
+            "17"
+          ],
+          "coveredBy": [
+            "17",
+            "18",
+            "20"
+          ],
+          "location": {
+            "end": {
+              "column": 4,
+              "line": 158
+            },
+            "start": {
+              "column": 20,
+              "line": 154
+            }
+          }
+        },
+        {
+          "id": "57",
+          "mutatorName": "ArithmeticOperator",
+          "replacement": "tabWidth + column % tabWidth",
+          "statusReason": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: \"a   b\"\nReceived: \"a     b\"\n    at Object.<anonymous> (/home/user/vibecode-linter/.stryker-tmp/sandbox-DYVzzo/test/core/diff/column.test.ts:90:33)\n    at Promise.then.completed (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:231:10)\n    at _callCircusTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:316:40)\n    at _runTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:252:3)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:126:9)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:121:9)\n    at run (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:71:3)\n    at runAndTransformResultsToJestFormat (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)\n    at jestAdapter (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)\n    at runTestInternal (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:367:16)\n    at runTest (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:444:34)",
+          "status": "Killed",
+          "testsCompleted": 3,
+          "static": false,
+          "killedBy": [
+            "17"
+          ],
+          "coveredBy": [
+            "17",
+            "18",
+            "20"
+          ],
+          "location": {
+            "end": {
+              "column": 49,
+              "line": 155
+            },
+            "start": {
+              "column": 19,
+              "line": 155
+            }
+          }
+        },
+        {
+          "id": "58",
+          "mutatorName": "ArithmeticOperator",
+          "replacement": "column * tabWidth",
+          "statusReason": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: \"a   b\"\nReceived: \"ab\"\n    at Object.<anonymous> (/home/user/vibecode-linter/.stryker-tmp/sandbox-DYVzzo/test/core/diff/column.test.ts:90:33)\n    at Promise.then.completed (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:231:10)\n    at _callCircusTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:316:40)\n    at _runTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:252:3)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:126:9)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:121:9)\n    at run (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:71:3)\n    at runAndTransformResultsToJestFormat (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)\n    at jestAdapter (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)\n    at runTestInternal (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:367:16)\n    at runTest (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:444:34)",
+          "status": "Killed",
+          "testsCompleted": 3,
+          "static": false,
+          "killedBy": [
+            "17"
+          ],
+          "coveredBy": [
+            "17",
+            "18",
+            "20"
+          ],
+          "location": {
+            "end": {
+              "column": 48,
+              "line": 155
+            },
+            "start": {
+              "column": 31,
+              "line": 155
+            }
+          }
+        },
+        {
+          "id": "59",
+          "mutatorName": "AssignmentOperator",
+          "replacement": "result -= \" \".repeat(spaces)",
+          "statusReason": "src/core/diff/column.ts(156,4): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.\nsrc/core/diff/column.ts(156,14): error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.\n",
+          "status": "CompileError",
+          "static": false,
+          "killedBy": [],
+          "coveredBy": [
+            "17",
+            "18",
+            "20"
+          ],
+          "location": {
+            "end": {
+              "column": 32,
+              "line": 156
+            },
+            "start": {
+              "column": 4,
+              "line": 156
+            }
+          }
+        },
+        {
+          "id": "60",
+          "mutatorName": "StringLiteral",
+          "replacement": "\"\"",
+          "statusReason": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: \"a   b\"\nReceived: \"ab\"\n    at Object.<anonymous> (/home/user/vibecode-linter/.stryker-tmp/sandbox-DYVzzo/test/core/diff/column.test.ts:90:33)\n    at Promise.then.completed (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:231:10)\n    at _callCircusTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:316:40)\n    at _runTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:252:3)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:126:9)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:121:9)\n    at run (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:71:3)\n    at runAndTransformResultsToJestFormat (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)\n    at jestAdapter (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)\n    at runTestInternal (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:367:16)\n    at runTest (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:444:34)",
+          "status": "Killed",
+          "testsCompleted": 3,
+          "static": false,
+          "killedBy": [
+            "17"
+          ],
+          "coveredBy": [
+            "17",
+            "18",
+            "20"
+          ],
+          "location": {
+            "end": {
+              "column": 17,
+              "line": 156
+            },
+            "start": {
+              "column": 14,
+              "line": 156
+            }
+          }
+        },
+        {
+          "id": "61",
+          "mutatorName": "AssignmentOperator",
+          "replacement": "column -= spaces",
+          "statusReason": "Error: Property failed after 5 tests\n{ seed: -1189592988, path: \"4:1:8:5\", endOnFailure: true }\nCounterexample: [\"\\tz\\t\",2]\nShrunk 3 time(s)\n\nHint: Enable verbose mode in order to have the list of all failing values encountered during the run\n    at buildError (/home/user/vibecode-linter/node_modules/fast-check/lib/check/runner/utils/RunDetailsFormatter.js:156:19)\n    at throwIfFailed (/home/user/vibecode-linter/node_modules/fast-check/lib/check/runner/utils/RunDetailsFormatter.js:165:11)\n    at reportRunDetails (/home/user/vibecode-linter/node_modules/fast-check/lib/check/runner/utils/RunDetailsFormatter.js:178:16)\n    at Module.assert (/home/user/vibecode-linter/node_modules/fast-check/lib/check/runner/Runner.js:61:9)\n    at Object.<anonymous> (/home/user/vibecode-linter/.stryker-tmp/sandbox-DYVzzo/test/core/diff/column.test.ts:122:6)\n    at Promise.then.completed (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:231:10)\n    at _callCircusTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:316:40)\n    at _runTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:252:3)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:126:9)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:121:9)\n    at run (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:71:3)\n    at runAndTransformResultsToJestFormat (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)\n    at jestAdapter (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)\n    at runTestInternal (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:367:16)\n    at runTest (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:444:34)",
+          "status": "Killed",
+          "testsCompleted": 3,
+          "static": false,
+          "killedBy": [
+            "20"
+          ],
+          "coveredBy": [
+            "17",
+            "18",
+            "20"
+          ],
+          "location": {
+            "end": {
+              "column": 20,
+              "line": 157
+            },
+            "start": {
+              "column": 4,
+              "line": 157
+            }
+          }
+        },
+        {
+          "id": "62",
+          "mutatorName": "BlockStatement",
+          "replacement": "{}",
+          "statusReason": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: \"a   b\"\nReceived: \"    \"\n    at Object.<anonymous> (/home/user/vibecode-linter/.stryker-tmp/sandbox-DYVzzo/test/core/diff/column.test.ts:90:33)\n    at Promise.then.completed (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:231:10)\n    at _callCircusTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:316:40)\n    at _runTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:252:3)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:126:9)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:121:9)\n    at run (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:71:3)\n    at runAndTransformResultsToJestFormat (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)\n    at jestAdapter (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)\n    at runTestInternal (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:367:16)\n    at runTest (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:444:34)",
+          "status": "Killed",
+          "testsCompleted": 3,
+          "static": false,
+          "killedBy": [
+            "17"
+          ],
+          "coveredBy": [
+            "17",
+            "18",
+            "20"
+          ],
+          "location": {
+            "end": {
+              "column": 4,
+              "line": 161
+            },
+            "start": {
+              "column": 10,
+              "line": 158
+            }
+          }
+        },
+        {
+          "id": "63",
+          "mutatorName": "AssignmentOperator",
+          "replacement": "result -= ch",
+          "statusReason": "src/core/diff/column.ts(159,4): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.\nsrc/core/diff/column.ts(159,14): error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.\n",
+          "status": "CompileError",
+          "static": false,
+          "killedBy": [],
+          "coveredBy": [
+            "17",
+            "18",
+            "20"
+          ],
+          "location": {
+            "end": {
+              "column": 16,
+              "line": 159
+            },
+            "start": {
+              "column": 4,
+              "line": 159
+            }
+          }
+        },
+        {
+          "id": "64",
+          "mutatorName": "AssignmentOperator",
+          "replacement": "column -= 1",
+          "statusReason": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: \"a   b\"\nReceived: \"a     b\"\n    at Object.<anonymous> (/home/user/vibecode-linter/.stryker-tmp/sandbox-DYVzzo/test/core/diff/column.test.ts:90:33)\n    at Promise.then.completed (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:231:10)\n    at _callCircusTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:316:40)\n    at _runTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:252:3)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:126:9)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:121:9)\n    at run (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:71:3)\n    at runAndTransformResultsToJestFormat (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)\n    at jestAdapter (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)\n    at runTestInternal (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:367:16)\n    at runTest (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:444:34)",
+          "status": "Killed",
+          "testsCompleted": 3,
+          "static": false,
+          "killedBy": [
+            "17"
+          ],
+          "coveredBy": [
+            "17",
+            "18",
+            "20"
+          ],
+          "location": {
+            "end": {
+              "column": 15,
+              "line": 160
+            },
+            "start": {
+              "column": 4,
+              "line": 160
+            }
+          }
+        },
+        {
+          "id": "0",
+          "mutatorName": "BlockStatement",
+          "replacement": "{}",
+          "statusReason": "src/core/diff/column.ts(49,4): error TS2355: A function whose declared type is neither 'undefined', 'void', nor 'any' must return a value.\n",
+          "status": "CompileError",
+          "static": false,
+          "coveredBy": [
+            "0",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
+            "19"
+          ],
+          "location": {
+            "end": {
+              "column": 2,
+              "line": 93
+            },
+            "start": {
+              "column": 11,
+              "line": 49
+            }
+          }
+        },
+        {
+          "id": "19",
+          "mutatorName": "EqualityOperator",
+          "replacement": "index !== lineContent.length",
+          "statusReason": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 2\nReceived: 4\n    at Object.<anonymous> (/home/user/vibecode-linter/.stryker-tmp/sandbox-j6cN9s/test/core/diff/column.test.ts:29:50)\n    at Promise.then.completed (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:231:10)\n    at _callCircusTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:316:40)\n    at _runTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:252:3)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:126:9)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:121:9)\n    at run (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:71:3)\n    at runAndTransformResultsToJestFormat (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)\n    at jestAdapter (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)\n    at runTestInternal (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:367:16)\n    at runTest (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:444:34)",
+          "status": "Killed",
+          "static": false,
+          "testsCompleted": 12,
+          "killedBy": [
+            "1"
+          ],
+          "coveredBy": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
+            "19"
+          ],
+          "location": {
+            "end": {
+              "column": 35,
+              "line": 77
+            },
+            "start": {
+              "column": 7,
+              "line": 77
+            }
+          }
+        },
+        {
+          "id": "20",
+          "mutatorName": "BlockStatement",
+          "replacement": "{}",
+          "status": "Survived",
+          "static": false,
+          "testsCompleted": 1,
+          "coveredBy": [
+            "5"
+          ],
+          "location": {
+            "end": {
+              "column": 4,
+              "line": 79
+            },
+            "start": {
+              "column": 37,
+              "line": 77
+            }
+          }
+        },
+        {
+          "id": "11",
+          "mutatorName": "BlockStatement",
+          "replacement": "{}",
+          "statusReason": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 0\nReceived: 3\n    at Object.<anonymous> (/home/user/vibecode-linter/.stryker-tmp/sandbox-j6cN9s/test/core/diff/column.test.ts:25:50)\n    at Promise.then.completed (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:231:10)\n    at _callCircusTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:316:40)\n    at _runTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:252:3)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:126:9)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:121:9)\n    at run (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:71:3)\n    at runAndTransformResultsToJestFormat (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)\n    at jestAdapter (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)\n    at runTestInternal (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:367:16)\n    at runTest (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:444:34)",
+          "status": "Killed",
+          "static": false,
+          "testsCompleted": 13,
+          "killedBy": [
+            "0"
+          ],
+          "coveredBy": [
+            "0",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
+            "19"
+          ],
+          "location": {
+            "end": {
+              "column": 3,
+              "line": 88
+            },
+            "start": {
+              "column": 63,
+              "line": 66
+            }
+          }
+        },
+        {
+          "id": "17",
+          "mutatorName": "ConditionalExpression",
+          "replacement": "true",
+          "statusReason": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 2\nReceived: 4\n    at Object.<anonymous> (/home/user/vibecode-linter/.stryker-tmp/sandbox-j6cN9s/test/core/diff/column.test.ts:29:50)\n    at Promise.then.completed (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (/home/user/vibecode-linter/node_modules/jest-circus/build/utils.js:231:10)\n    at _callCircusTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:316:40)\n    at _runTest (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:252:3)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:126:9)\n    at _runTestsForDescribeBlock (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:121:9)\n    at run (/home/user/vibecode-linter/node_modules/jest-circus/build/run.js:71:3)\n    at runAndTransformResultsToJestFormat (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)\n    at jestAdapter (/home/user/vibecode-linter/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)\n    at runTestInternal (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:367:16)\n    at runTest (/home/user/vibecode-linter/node_modules/jest-runner/build/runTest.js:444:34)",
+          "status": "Killed",
+          "static": false,
+          "testsCompleted": 12,
+          "killedBy": [
+            "1"
+          ],
+          "coveredBy": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
+            "19"
+          ],
+          "location": {
+            "end": {
+              "column": 35,
+              "line": 77
+            },
+            "start": {
+              "column": 7,
+              "line": 77
+            }
+          }
+        },
+        {
+          "id": "18",
+          "mutatorName": "ConditionalExpression",
+          "replacement": "false",
+          "status": "Survived",
+          "static": false,
+          "testsCompleted": 12,
+          "coveredBy": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
+            "19"
+          ],
+          "location": {
+            "end": {
+              "column": 35,
+              "line": 77
+            },
+            "start": {
+              "column": 7,
+              "line": 77
+            }
+          }
+        }
+      ],
+      "source": "// CHANGE: Extracted column calculation functions from lint.ts\n// WHY: Column conversion logic should be in a separate module for better testability\n// QUOTE(ТЗ): \"Разбить lint.ts на подфайлы, каждый файл желательно должен быть не больше 300 строчек кода\"\n// REF: REQ-20250210-MODULAR-ARCH\n// SOURCE: n/a\n\n/**\n * Размер табуляции по умолчанию (как в git diff и ESLint).\n */\nexport const TAB_WIDTH = 8;\n\n/**\n * Конвертирует визуальную колонку (как в ESLint) в реальный индекс символа.\n *\n * CHANGE: Reworked iteration to compute target column purely through monotone visual offsets\n * WHY: Stryker report highlighted equivalent mutants due to unused flags; tight loop makes every branch observable\n * QUOTE(UserMsg#6): \"Можешь так же тесты исправить о которых было описано в отчёте?\"\n * REF: output:849-897 ([Survived] BooleanLiteral / ConditionalExpression for column.ts)\n * SOURCE: \"Stryker Mutant Survivors Log\" (output file)\n * FORMAT THEOREM: ∀i ∈ ℤ≥0, visualOffset_i ≤ visualOffset_{i+1} ∧ target ∈ [visualOffset_i, visualOffset_{i+1}) ⇒ return index(i) + δ\n * QUOTE(LINT): \"Function has too many lines/complexity\"\n * REF: ESLint max-lines-per-function, complexity\n * SOURCE: n/a\n *\n * ESLint и git diff считают табуляцию как 8 пробелов, но в строке это один символ.\n * Эта функция преобразует визуальную позицию в реальный индекс в строке.\n *\n * @param lineContent Строка исходного кода без diff-префикса\n * @param visualColumn Визуальная колонка (0-based)\n * @param tabSize Размер табуляции; по умолчанию 8, как в git diff и ESLint\n * @returns Реальный индекс символа (0-based)\n *\n * @pure true\n * @invariant visualColumn >= 0\n * @complexity O(n) где n = длина строки\n *\n * @example\n * ```ts\n * // Строка: \"x\\ty\" (x, tab, y)\n * // Визуально: \"x       y\" (x, 7 spaces, y)\n * const realIndex = computeRealColumnFromVisual(\"x\\ty\", 8, 8);\n * // Returns 2 (индекс символа 'y')\n * ```\n */\nexport function computeRealColumnFromVisual(\n\tlineContent: string,\n\tvisualColumn: number,\n\ttabSize = TAB_WIDTH,\n): number {\n\t// CHANGE: Precondition check for visualColumn\n\t// WHY: Ensures we only work with valid column positions\n\t// QUOTE(SPEC): \"visualColumn must be non-negative\"\n\t// REF: REQ-20250210-MODULAR-ARCH\n\t// SOURCE: n/a\n\tif (visualColumn < 0) {\n\t\tthrow new Error(\n\t\t\t`visualColumn must be non-negative, received ${visualColumn}`,\n\t\t);\n\t}\n\n\tlet currentVisual = 0;\n\n\t// CHANGE: Loop through string plus one iteration to handle end-of-string case\n\t// WHY: index <= length allows checking if visualColumn matches final position\n\t// INVARIANT: Loop handles positions [0..length] where length is past last char\n\tfor (let index = 0; index <= lineContent.length; index += 1) {\n\t\t// CHANGE: Early exit when we've reached or passed target\n\t\t// WHY: Returns immediately when accumulated visual width reaches goal\n\t\t// INVARIANT: visualColumn <= currentVisual ⇒ return index\n\t\tif (visualColumn <= currentVisual) {\n\t\t\treturn index;\n\t\t}\n\n\t\t// CHANGE: Exact equality check kills >= vs > mutant\n\t\t// WHY: index === length is boundary; > length never happens due to loop condition\n\t\t// INVARIANT: index === length ⇒ no more chars to process\n\t\tif (index === lineContent.length) {\n\t\t\tbreak;\n\t\t}\n\n\t\tconst char = lineContent[index];\n\t\tif (char === \"\\t\") {\n\t\t\tconst nextTabStop = Math.floor(currentVisual / tabSize + 1) * tabSize;\n\t\t\tcurrentVisual = nextTabStop;\n\t\t} else {\n\t\t\tcurrentVisual += 1;\n\t\t}\n\t}\n\n\t// CHANGE: Target lies beyond last glyph — clamp to content length\n\t// WHY: Aligns with invariant visualColumnAt(content, |content|, tab) ≥ visualColumn\n\treturn lineContent.length;\n}\n\n/**\n * Вычисляет визуальную позицию колонки с учетом табуляции.\n *\n * @param content Строка исходного кода\n * @param index Индекс символа в строке (0-based)\n * @param tabWidth Размер табуляции\n * @returns Визуальная колонка (0-based)\n *\n * @pure true\n * @invariant result >= 0\n * @complexity O(n) где n = index\n *\n * @example\n * ```ts\n * // Строка: \"x\\ty\" (x, tab, y)\n * const visual = visualColumnAt(\"x\\ty\", 2, 8);\n * // Returns 8 (визуальная позиция 'y')\n * ```\n */\nexport function visualColumnAt(\n\tcontent: string,\n\tindex: number,\n\ttabWidth = TAB_WIDTH,\n): number {\n\tlet column = 0;\n\tconst limit = Math.max(0, Math.min(index, content.length));\n\tfor (let i = 0; i < limit; i += 1) {\n\t\tconst ch = content[i];\n\t\tif (ch === \"\\t\") {\n\t\t\tconst offset = tabWidth - (column % tabWidth);\n\t\t\tcolumn += offset;\n\t\t} else {\n\t\t\tcolumn += 1;\n\t\t}\n\t}\n\treturn column;\n}\n\n/**\n * Раскрывает табуляцию в строке в пробелы.\n *\n * @param content Строка исходного кода с табуляцией\n * @param tabWidth Размер табуляции\n * @returns Строка с раскрытыми табуляциями\n *\n * @pure true\n * @invariant result.length >= content.length\n * @complexity O(n) где n = длина строки\n *\n * @example\n * ```ts\n * const expanded = expandTabs(\"x\\ty\", 8);\n * // Returns \"x       y\" (x, 7 spaces, y)\n * ```\n */\nexport function expandTabs(content: string, tabWidth = TAB_WIDTH): string {\n\tlet column = 0;\n\tlet result = \"\";\n\tfor (const ch of content) {\n\t\tif (ch === \"\\t\") {\n\t\t\tconst spaces = tabWidth - (column % tabWidth);\n\t\t\tresult += \" \".repeat(spaces);\n\t\t\tcolumn += spaces;\n\t\t} else {\n\t\t\tresult += ch;\n\t\t\tcolumn += 1;\n\t\t}\n\t}\n\treturn result;\n}\n"
+    }
+  },
+  "schemaVersion": "1.0",
+  "thresholds": {
+    "high": 90,
+    "low": 70,
+    "break": 60
+  },
+  "testFiles": {
+    "test/core/diff/column.test.ts": {
+      "tests": [
+        {
+          "id": "0",
+          "name": "computeRealColumnFromVisual returns 0 when cursor is at start",
+          "location": {
+            "start": {
+              "column": 3,
+              "line": 23
+            }
+          }
+        },
+        {
+          "id": "1",
+          "name": "computeRealColumnFromVisual returns identical index for ASCII segments without tabs",
+          "location": {
+            "start": {
+              "column": 3,
+              "line": 27
+            }
+          }
+        },
+        {
+          "id": "2",
+          "name": "computeRealColumnFromVisual stops inside a tab",
+          "location": {
+            "start": {
+              "column": 3,
+              "line": 31
+            }
+          }
+        },
+        {
+          "id": "3",
+          "name": "computeRealColumnFromVisual returns glyph after tab at exact tab stop",
+          "location": {
+            "start": {
+              "column": 3,
+              "line": 35
+            }
+          }
+        },
+        {
+          "id": "4",
+          "name": "computeRealColumnFromVisual continues past tab stop",
+          "location": {
+            "start": {
+              "column": 3,
+              "line": 39
+            }
+          }
+        },
+        {
+          "id": "5",
+          "name": "computeRealColumnFromVisual clamps beyond content width",
+          "location": {
+            "start": {
+              "column": 3,
+              "line": 43
+            }
+          }
+        },
+        {
+          "id": "6",
+          "name": "computeRealColumnFromVisual throws for negative columns",
+          "location": {
+            "start": {
+              "column": 3,
+              "line": 47
+            }
+          }
+        },
+        {
+          "id": "7",
+          "name": "computeRealColumnFromVisual boundary tests returns exact length when visualColumn matches end boundary",
+          "location": {
+            "start": {
+              "column": 3,
+              "line": 53
+            }
+          }
+        },
+        {
+          "id": "8",
+          "name": "computeRealColumnFromVisual boundary tests returns index after char when visualColumn equals nextVisual",
+          "location": {
+            "start": {
+              "column": 3,
+              "line": 60
+            }
+          }
+        },
+        {
+          "id": "9",
+          "name": "computeRealColumnFromVisual boundary tests handles fractional targets",
+          "location": {
+            "start": {
+              "column": 3,
+              "line": 64
+            }
+          }
+        },
+        {
+          "id": "10",
+          "name": "computeRealColumnFromVisual boundary tests distinguishes consecutive tabs at exact tab stop boundary",
+          "location": {
+            "start": {
+              "column": 3,
+              "line": 68
+            }
+          }
+        },
+        {
+          "id": "11",
+          "name": "computeRealColumnFromVisual boundary tests returns exact index when visualColumn matches char boundary",
+          "location": {
+            "start": {
+              "column": 3,
+              "line": 75
+            }
+          }
+        },
+        {
+          "id": "12",
+          "name": "computeRealColumnFromVisual boundary tests returns length not past length when at final boundary",
+          "location": {
+            "start": {
+              "column": 3,
+              "line": 81
+            }
+          }
+        },
+        {
+          "id": "13",
+          "name": "visualColumnAt tracks visual width for ASCII-only prefixes",
+          "location": {
+            "start": {
+              "column": 3,
+              "line": 90
+            }
+          }
+        },
+        {
+          "id": "14",
+          "name": "visualColumnAt honors custom tab width offsets",
+          "location": {
+            "start": {
+              "column": 3,
+              "line": 94
+            }
+          }
+        },
+        {
+          "id": "15",
+          "name": "visualColumnAt clamps negative indices to zero",
+          "location": {
+            "start": {
+              "column": 3,
+              "line": 98
+            }
+          }
+        },
+        {
+          "id": "16",
+          "name": "visualColumnAt clamps over-long indices to the last character boundary",
+          "location": {
+            "start": {
+              "column": 3,
+              "line": 102
+            }
+          }
+        },
+        {
+          "id": "17",
+          "name": "expandTabs replaces each tab with spaces up to the next stop without altering other characters",
+          "location": {
+            "start": {
+              "column": 3,
+              "line": 108
+            }
+          }
+        },
+        {
+          "id": "18",
+          "name": "expandTabs falls back to TAB_WIDTH when the caller omits tabWidth",
+          "location": {
+            "start": {
+              "column": 3,
+              "line": 112
+            }
+          }
+        },
+        {
+          "id": "19",
+          "name": "column invariants computeRealColumnFromVisual is a left inverse of visualColumnAt for every prefix",
+          "location": {
+            "start": {
+              "column": 3,
+              "line": 124
+            }
+          }
+        },
+        {
+          "id": "20",
+          "name": "column invariants expandTabs removes every tab while preserving total visual width",
+          "location": {
+            "start": {
+              "column": 3,
+              "line": 140
+            }
+          }
+        }
+      ],
+      "source": "// CHANGE: Add deterministic and property-based specs for column conversion invariants\n// WHY: Mutation testing highlighted missing coverage for tab-handling branches in src/core/diff/column.ts\n// QUOTE(ТЗ): \"Можешь покрыть код тестами?\"\n// REF: USER-REQUEST-20250213\n// SOURCE: n/a\n// FORMAT THEOREM: ∀s ∈ String, ∀i ∈ ℤ, computeRealColumnFromVisual(s, visualColumnAt(s, i, t), t) = clamp(i, 0, |s|)\n// PURITY: CORE\n// INVARIANT: Expanded columns preserve visual width even after eliminating tabs\n// COMPLEXITY: O(n)/O(1) per assertion — linear scan over input length\n\nimport fc from \"fast-check\";\n\nimport {\n\tcomputeRealColumnFromVisual,\n\texpandTabs,\n\tvisualColumnAt,\n} from \"../../../src/core/diff/column.js\";\n\n// CHANGE: Split describe blocks to satisfy max-lines-per-function ESLint rule\n// WHY: Single describe with 11 tests exceeds 50-line limit\n// REF: ESLint max-lines-per-function rule\ndescribe(\"computeRealColumnFromVisual\", () => {\n\tit(\"returns 0 when cursor is at start\", () => {\n\t\texpect(computeRealColumnFromVisual(\"\\tab\", 0)).toBe(0);\n\t});\n\n\tit(\"returns identical index for ASCII segments without tabs\", () => {\n\t\texpect(computeRealColumnFromVisual(\"abcd\", 2)).toBe(2);\n\t});\n\n\tit(\"stops inside a tab\", () => {\n\t\texpect(computeRealColumnFromVisual(\"\\tab\", 6)).toBe(1);\n\t});\n\n\tit(\"returns glyph after tab at exact tab stop\", () => {\n\t\texpect(computeRealColumnFromVisual(\"\\tab\", 8)).toBe(1);\n\t});\n\n\tit(\"continues past tab stop\", () => {\n\t\texpect(computeRealColumnFromVisual(\"\\tab\", 9)).toBe(2);\n\t});\n\n\tit(\"clamps beyond content width\", () => {\n\t\texpect(computeRealColumnFromVisual(\"abc\", 99)).toBe(3);\n\t});\n\n\tit(\"throws for negative columns\", () => {\n\t\texpect(() => computeRealColumnFromVisual(\"abc\", -1)).toThrow();\n\t});\n});\n\ndescribe(\"computeRealColumnFromVisual boundary tests\", () => {\n\tit(\"returns exact length when visualColumn matches end boundary\", () => {\n\t\tconst line = \"xyz\";\n\t\texpect(\n\t\t\tcomputeRealColumnFromVisual(line, visualColumnAt(line, line.length)),\n\t\t).toBe(3);\n\t});\n\n\tit(\"returns index after char when visualColumn equals nextVisual\", () => {\n\t\texpect(computeRealColumnFromVisual(\"abcdefghij\", 5)).toBe(5);\n\t});\n\n\tit(\"handles fractional targets\", () => {\n\t\texpect(computeRealColumnFromVisual(\"abc\", 0.5)).toBe(1);\n\t});\n\n\tit(\"distinguishes consecutive tabs at exact tab stop boundary\", () => {\n\t\t// Kill mutant: currentVisual < visualColumn → currentVisual <= visualColumn\n\t\tconst twoTabs = \"\\t\\tab\";\n\t\texpect(computeRealColumnFromVisual(twoTabs, 8)).toBe(1);\n\t\texpect(computeRealColumnFromVisual(twoTabs, 16)).toBe(2);\n\t});\n\n\tit(\"returns exact index when visualColumn matches char boundary\", () => {\n\t\t// Kill mutant: currentVisual <= visualColumn in isWithinCharRange\n\t\texpect(computeRealColumnFromVisual(\"abcdefgh\", 1)).toBe(1);\n\t\texpect(computeRealColumnFromVisual(\"abcdefgh\", 4)).toBe(4);\n\t});\n\n\tit(\"returns length not past length when at final boundary\", () => {\n\t\t// Kill mutant: index <= lineContent.length\n\t\tconst line = \"test\";\n\t\texpect(computeRealColumnFromVisual(line, 4)).toBe(4);\n\t\texpect(computeRealColumnFromVisual(line, 4)).not.toBe(5);\n\t});\n});\n\ndescribe(\"visualColumnAt\", () => {\n\tit(\"tracks visual width for ASCII-only prefixes\", () => {\n\t\texpect(visualColumnAt(\"abcd\", 3)).toBe(3);\n\t});\n\n\tit(\"honors custom tab width offsets\", () => {\n\t\texpect(visualColumnAt(\"\\tab\", 1, 4)).toBe(4);\n\t});\n\n\tit(\"clamps negative indices to zero\", () => {\n\t\texpect(visualColumnAt(\"abc\", -5)).toBe(0);\n\t});\n\n\tit(\"clamps over-long indices to the last character boundary\", () => {\n\t\texpect(visualColumnAt(\"a\\tb\", 100, 8)).toBe(9);\n\t});\n});\n\ndescribe(\"expandTabs\", () => {\n\tit(\"replaces each tab with spaces up to the next stop without altering other characters\", () => {\n\t\texpect(expandTabs(\"a\\tb\", 4)).toBe(\"a   b\");\n\t});\n\n\tit(\"falls back to TAB_WIDTH when the caller omits tabWidth\", () => {\n\t\texpect(expandTabs(\"a\\t\")).toBe(\"a       \");\n\t});\n});\n\ndescribe(\"column invariants\", () => {\n\tconst contentArbitrary = fc\n\t\t.array(fc.constantFrom(\"\\t\", \"a\", \"b\", \"c\", \"x\", \"y\", \"z\", \" \"), {\n\t\t\tmaxLength: 12,\n\t\t})\n\t\t.map((chars) => chars.join(\"\"));\n\n\tit(\"computeRealColumnFromVisual is a left inverse of visualColumnAt for every prefix\", () => {\n\t\tfc.assert(\n\t\t\tfc.property(\n\t\t\t\tcontentArbitrary,\n\t\t\t\tfc.integer({ min: -5, max: 20 }),\n\t\t\t\tfc.integer({ min: 2, max: 8 }),\n\t\t\t\t(content, rawIndex, tabWidth) => {\n\t\t\t\t\tconst visual = visualColumnAt(content, rawIndex, tabWidth);\n\t\t\t\t\tconst real = computeRealColumnFromVisual(content, visual, tabWidth);\n\t\t\t\t\tconst clamped = Math.max(0, Math.min(rawIndex, content.length));\n\t\t\t\t\texpect(real).toBe(clamped);\n\t\t\t\t},\n\t\t\t),\n\t\t);\n\t});\n\n\tit(\"expandTabs removes every tab while preserving total visual width\", () => {\n\t\tfc.assert(\n\t\t\tfc.property(\n\t\t\t\tcontentArbitrary,\n\t\t\t\tfc.integer({ min: 2, max: 8 }),\n\t\t\t\t(content, tabWidth) => {\n\t\t\t\t\tconst expanded = expandTabs(content, tabWidth);\n\t\t\t\t\texpect(expanded.includes(\"\\t\")).toBe(false);\n\t\t\t\t\tconst visualWidth = visualColumnAt(content, content.length, tabWidth);\n\t\t\t\t\texpect(expanded.length).toBe(visualWidth);\n\t\t\t\t},\n\t\t\t),\n\t\t);\n\t});\n});\n"
+    }
+  },
+  "projectRoot": "/home/user/vibecode-linter",
+  "config": {
+    "packageManager": "npm",
+    "testRunner": "jest",
+    "testRunnerNodeArgs": [
+      "--experimental-vm-modules"
+    ],
+    "incremental": true,
+    "incrementalFile": "reports/stryker-incremental.json",
+    "mutate": [
+      "src/core/diff/column.ts"
+    ],
+    "coverageAnalysis": "perTest",
+    "reporters": [
+      "clear-text",
+      "html",
+      "json"
+    ],
+    "checkers": [
+      "typescript"
+    ],
+    "tsconfigFile": "tsconfig.test.json",
+    "concurrency": 11,
+    "disableTypeChecks": true,
+    "symlinkNodeModules": true,
+    "ignoreStatic": true,
+    "thresholds": {
+      "high": 90,
+      "low": 70,
+      "break": 60
+    },
+    "jest": {
+      "configFile": "jest.config.mjs",
+      "enableFindRelatedTests": true,
+      "projectType": "custom"
+    },
+    "tempDirName": ".stryker-tmp",
+    "timeoutFactor": 1.5,
+    "timeoutMS": 60000,
+    "allowConsoleColors": true,
+    "checkerNodeArgs": [],
+    "commandRunner": {
+      "command": "npm test"
+    },
+    "clearTextReporter": {
+      "allowColor": true,
+      "allowEmojis": false,
+      "logTests": true,
+      "maxTestsToLog": 3,
+      "reportTests": true,
+      "reportMutants": true,
+      "reportScoreTable": true,
+      "skipFull": false
+    },
+    "dashboard": {
+      "baseUrl": "https://dashboard.stryker-mutator.io/api/reports",
+      "reportType": "full"
+    },
+    "dryRunOnly": false,
+    "eventReporter": {
+      "baseDir": "reports/mutation/events"
+    },
+    "ignorePatterns": [],
+    "force": false,
+    "fileLogLevel": "off",
+    "inPlace": false,
+    "logLevel": "info",
+    "maxConcurrentTestRunners": 9007199254740991,
+    "maxTestRunnerReuse": 0,
+    "mutator": {
+      "plugins": null,
+      "excludedMutations": []
+    },
+    "plugins": [
+      "@stryker-mutator/*"
+    ],
+    "appendPlugins": [],
+    "htmlReporter": {
+      "fileName": "reports/mutation/mutation.html"
+    },
+    "jsonReporter": {
+      "fileName": "reports/mutation/mutation.json"
+    },
+    "cleanTempDir": true,
+    "dryRunTimeoutMinutes": 5,
+    "warnings": true,
+    "disableBail": false,
+    "allowEmpty": false,
+    "ignorers": [],
+    "typescriptChecker": {
+      "prioritizePerformanceOverAccuracy": true
+    }
+  },
+  "framework": {
+    "name": "StrykerJS",
+    "version": "8.7.1",
+    "branding": {
+      "homepageUrl": "https://stryker-mutator.io",
+      "imageUrl": "data:image/svg+xml;utf8,%3Csvg viewBox='0 0 1458 1458' xmlns='http://www.w3.org/2000/svg' fill-rule='evenodd' clip-rule='evenodd' stroke-linejoin='round' stroke-miterlimit='2'%3E%3Cpath fill='none' d='M0 0h1458v1458H0z'/%3E%3CclipPath id='a'%3E%3Cpath d='M0 0h1458v1458H0z'/%3E%3C/clipPath%3E%3Cg clip-path='url(%23a)'%3E%3Cpath d='M1458 729c0 402.655-326.345 729-729 729S0 1131.655 0 729C0 326.445 326.345 0 729 0s729 326.345 729 729' fill='%23e74c3c' fill-rule='nonzero'/%3E%3Cpath d='M778.349 1456.15L576.6 1254.401l233-105 85-78.668v-64.332l-257-257-44-187-50-208 251.806-82.793L1076.6 389.401l380.14 379.15c-19.681 367.728-311.914 663.049-678.391 687.599z' fill-opacity='.3'/%3E%3Cpath d='M753.4 329.503c41.79 0 74.579 7.83 97.925 25.444 23.571 18.015 41.69 43.956 55.167 77.097l11.662 28.679 165.733-58.183-14.137-32.13c-26.688-60.655-64.896-108.61-114.191-144.011-49.329-35.423-117.458-54.302-204.859-54.302-50.78 0-95.646 7.376-134.767 21.542-40.093 14.671-74.09 34.79-102.239 60.259-28.84 26.207-50.646 57.06-65.496 92.701-14.718 35.052-22.101 72.538-22.101 112.401 0 72.536 20.667 133.294 61.165 182.704 38.624 47.255 98.346 88.037 179.861 121.291 42.257 17.475 78.715 33.125 109.227 46.994 27.193 12.361 49.294 26.124 66.157 41.751 15.309 14.186 26.497 30.584 33.63 49.258 7.721 20.214 11.16 45.69 11.16 76.402 0 28.021-4.251 51.787-13.591 71.219-8.832 18.374-20.171 33.178-34.523 44.219-14.787 11.374-31.193 19.591-49.393 24.466-19.68 5.359-39.14 7.993-58.69 7.993-29.359 0-54.387-3.407-75.182-10.747-20.112-7.013-37.144-16.144-51.259-27.486-13.618-11.009-24.971-23.766-33.744-38.279-9.64-15.8-17.272-31.924-23.032-48.408l-10.965-31.376-161.669 60.585 10.734 30.124c10.191 28.601 24.197 56.228 42.059 82.748 18.208 27.144 41.322 51.369 69.525 72.745 27.695 21.075 60.904 38.218 99.481 51.041 37.777 12.664 82.004 19.159 132.552 19.159 49.998 0 95.818-8.321 137.611-24.622 42.228-16.471 78.436-38.992 108.835-67.291 30.719-28.597 54.631-62.103 71.834-100.642 17.263-38.56 25.923-79.392 25.923-122.248 0-54.339-8.368-100.37-24.208-138.32-16.29-38.759-38.252-71.661-65.948-98.797-26.965-26.418-58.269-48.835-93.858-67.175-33.655-17.241-69.196-33.11-106.593-47.533-35.934-13.429-65.822-26.601-89.948-39.525-22.153-11.868-40.009-24.21-53.547-37.309-11.429-11.13-19.83-23.678-24.718-37.664-5.413-15.49-7.98-33.423-7.98-53.577 0-40.883 11.293-71.522 37.086-90.539 28.443-20.825 64.985-30.658 109.311-30.658z' fill='%23f1c40f' fill-rule='nonzero'/%3E%3Cpath d='M720 0h18v113h-18zM1458 738v-18h-113v18h113zM720 1345h18v113h-18zM113 738v-18H0v18h113z'/%3E%3C/g%3E%3C/svg%3E"
+    },
+    "dependencies": {
+      "@stryker-mutator/jest-runner": "8.7.1",
+      "@stryker-mutator/typescript-checker": "8.7.1",
+      "jest": "29.7.0",
+      "typescript": "5.9.3",
+      "ts-jest": "29.4.5"
+    }
+  }
+}

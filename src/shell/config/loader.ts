@@ -70,12 +70,17 @@ function isArray(value: JSONValue): value is readonly JSONValue[] {
 
 /**
  * Type representing a priority level object from JSON.
+ *
+ * CHANGE: Added index signature to satisfy JSONValue compatibility
+ * WHY: TypeScript requires index signature for type predicate assignability
+ * INVARIANT: ∀ k ∈ keys: k ∈ {"level", "name", "rules"} → value[k] ∈ JSONValue
  */
-type PriorityLevelJSON = {
+interface PriorityLevelJSON {
 	readonly level: JSONValue;
 	readonly name: JSONValue;
 	readonly rules: JSONValue;
-};
+	readonly [key: string]: JSONValue;
+}
 
 /**
  * Type guard to check if value is a PriorityLevelJSON object.
@@ -134,10 +139,15 @@ function validatePriorityLevel(value: JSONValue): PriorityLevel | null {
  */
 /**
  * Type representing the config JSON structure.
+ *
+ * CHANGE: Added index signature to satisfy JSONValue compatibility
+ * WHY: TypeScript requires index signature for type predicate assignability
+ * INVARIANT: ∀ k ∈ keys: k = "priorityLevels" → value[k] ∈ JSONValue
  */
-type ConfigJSON = {
+interface ConfigJSON {
 	readonly priorityLevels: JSONValue;
-};
+	readonly [key: string]: JSONValue;
+}
 
 /**
  * Type guard to check if value is a ConfigJSON object.

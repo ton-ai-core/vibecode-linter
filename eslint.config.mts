@@ -292,6 +292,12 @@ export default tseslint.config(
 			"prefer-const": ["error", { destructuring: "all" }],
 			radix: "error",
 			"default-case": "error",
+			'@typescript-eslint/no-unsafe-argument': 'error',
+			'@typescript-eslint/restrict-template-expressions': 'error',
+			'@typescript-eslint/restrict-plus-operands': 'error',
+			'@typescript-eslint/no-confusing-non-null-assertion': 'error',
+			'@typescript-eslint/consistent-type-definitions': ['error', 'interface'],
+			'@typescript-eslint/parameter-properties': 'error',
 		},
 	},
 
