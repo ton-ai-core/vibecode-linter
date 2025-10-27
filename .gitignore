@@ -19,6 +19,17 @@ build/
 coverage/
 .nyc_output/
 
+# Mutation testing reports - ignore all except incremental cache
+# CHANGE: Track stryker-incremental.json for cross-commit performance optimization
+# WHY: Incremental mode reuses ~94% of mutation results between commits (3731/3965 typical)
+# QUOTE(User): "я думаю стоит везде сохранять, включая в кодовую базу, чтобы это можно и локально было видеть"
+# REF: https://stryker-mutator.io/docs/stryker-js/incremental/
+# INVARIANT: reports/stryker-incremental.json ∈ tracked_files → next_run reuses cached_mutants
+# COMPLEXITY: Storage O(M) where M = mutant_count, saves O(M·T) execution time
+reports/*
+!reports/stryker-incremental.json
+!reports/.gitkeep
+
 # IDE
 .vscode/
 .idea/

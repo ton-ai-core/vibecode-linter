@@ -1,0 +1,4 @@
+# CHANGE: Placeholder to ensure reports/ directory exists in git
+# WHY: Git doesn't track empty directories; .gitkeep forces directory creation
+# REF: .gitignore allows this file through !reports/.gitkeep pattern
+# EFFECT: Ensures reports/ exists for stryker-incremental.json creation
