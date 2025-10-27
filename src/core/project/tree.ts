@@ -84,15 +84,14 @@ function insertFileRecord(
 	record: ProjectFileRecord,
 ): void {
 	const segments = normalizeSegments(record.relativePath);
-	if (segments.length === 0) return;
-	const fileName = segments.at(-1) ?? record.relativePath;
+	const fileName = segments.at(-1);
+	if (fileName === undefined) return;
 
 	let current = root;
 	const traversed: string[] = [];
-	for (let i = 0; i < segments.length - 1; i++) {
-		const segment = segments[i] ?? "";
+	for (const segment of segments.slice(0, -1)) {
 		traversed.push(segment);
-		const relativePath = traversed.length === 0 ? segment : traversed.join("/");
+		const relativePath = traversed.join("/");
 		let next = current.directories.get(segment);
 		if (next === undefined) {
 			next = createMutableDirectory(segment, relativePath);
@@ -233,9 +232,8 @@ function formatSize(sizeBytes: number): string {
 		value /= 1024;
 		unitIndex += 1;
 	}
-	return `${value.toFixed(value >= 10 || unitIndex === 0 ? 0 : 1)}${
-		units[unitIndex] ?? "B"
-	}`;
+	const unitLabel = units[unitIndex];
+	return `${value.toFixed(value >= 10 || unitIndex === 0 ? 0 : 1)}${unitLabel}`;
 }
 
 /**
@@ -251,9 +249,9 @@ function formatSize(sizeBytes: number): string {
  */
 export function formatProjectTree(
 	root: ProjectTreeDirectory,
-	options: TreeFormatOptions = { includeSize: false },
+	options?: TreeFormatOptions,
 ): ReadonlyArray<string> {
-	const includeSize = options.includeSize ?? false;
+	const includeSize = options?.includeSize === true;
 	const lines: string[] = [];
 
 	const describeDirectory = (dir: ProjectTreeDirectory): string => {
@@ -298,3 +296,8 @@ export function formatProjectTree(
 	walk(root.entries, "");
 	return lines;
 }
+
+export const __projectTreeInternals = {
+	formatSize,
+	normalizeSegments,
+};

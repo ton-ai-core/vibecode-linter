@@ -99,7 +99,9 @@ export function deriveFileContentMetrics(
 	const lines = normalized.length === 0 ? 0 : normalized.split("\n").length;
 	const characters = normalized.length;
 
-	const shouldParseFunctions = FUNCTION_EXTENSIONS.has(extension.toLowerCase());
+	const normalizedExtension = extension.toLowerCase();
+	const scriptKind = resolveScriptKind(extension);
+	const shouldParseFunctions = FUNCTION_EXTENSIONS.has(normalizedExtension);
 	const functions = shouldParseFunctions
 		? countFunctions(
 				ts.createSourceFile(
@@ -107,7 +109,7 @@ export function deriveFileContentMetrics(
 					normalized,
 					ts.ScriptTarget.Latest,
 					/* setParentNodes */ false,
-					resolveScriptKind(extension),
+					scriptKind,
 				),
 			)
 		: 0;

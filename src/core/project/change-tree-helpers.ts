@@ -94,7 +94,6 @@ function ensureDirectoryForPath(
 ): DirectoryRenderNode {
 	let current = root;
 	for (const segment of segments) {
-		if (segment.length === 0) continue;
 		let child = current.directories.get(segment);
 		if (child === undefined) {
 			const relativePath =
