@@ -15,7 +15,11 @@ const UNIFIED_HEADER_PATTERN = /^@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@/;
 // SOURCE: n/a
 function parseDiffHeader(line: string): number {
 	const match = UNIFIED_HEADER_PATTERN.exec(line);
-	return match ? Number.parseInt(match[1] ?? "0", 10) : 0;
+	// CHANGE: Explicit null check to satisfy strict-boolean-expressions
+	// WHY: ESLint requires explicit handling of nullable/empty cases
+	// INVARIANT: match?.[1] extracts capture group or returns undefined
+	const captured = match?.[1];
+	return captured !== undefined ? Number.parseInt(captured, 10) : 0;
 }
 
 // CHANGE: Extracted helper to process diff line
@@ -185,7 +189,7 @@ export function extractDiffSnippet(
  * @complexity O(m*n) где m = количество кандидатов, n = количество строк в каждом diff
  */
 export function pickSnippetForLine(
-	candidates: ReadonlyArray<string>,
+	candidates: readonly string[],
 	targetLine: number,
 ): { readonly snippet: DiffSnippet; readonly index: number } | null {
 	// CHANGE: Precondition check for targetLine
@@ -198,10 +202,9 @@ export function pickSnippetForLine(
 	}
 
 	for (let i = 0; i < candidates.length; i += 1) {
-		// CHANGE: Avoid possibly-undefined indexed access under noUncheckedIndexedAccess
-		// WHY: candidates[i] has type string | undefined; normalize to string for safe use
-		// QUOTE(ТЗ): "Исправить все ошибки линтера"
-		// REF: REQ-LINT-FIX
+		// CHANGE: Use fallback for array access to satisfy Biome noNonNullAssertion
+		// WHY: Loop guard ensures i < length, but Biome requires explicit check
+		// INVARIANT: ∀i ∈ [0, length): candidates.at(i) ∈ String
 		const diff: string = candidates.at(i) ?? "";
 		// CHANGE: Avoid truthiness check on string `diff`
 		// WHY: strict-boolean-expressions — check length explicitly
