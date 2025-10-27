@@ -1,0 +1,48 @@
+# CHANGE: Add CI workflow to execute mutation tests on every commit with auto-cancellation for outdated runs.
+# WHY: Continuous mutation analysis enforces behavioural guarantees per commit while conserving CI resources via concurrency controls.
+# QUOTE(ТЗ): "Реализуй мне в CI/CD запуск mutation тестов на каждый комит ... ещё сделай что если у нас новый комит улетел то старый пайплайн останавливается"
+# REF: UserMsg#3
+# SOURCE: "GitHub Actions concurrency docs: https://docs.github.com/en/actions/using-jobs/using-concurrency"
+# FORMAT THEOREM: ∀(c1,c2) ∈ Commits, c2 newer ∧ same ref → running(c1) ⇒ cancelled(c1)
+# PURITY: SHELL
+# EFFECT: Effect<void, PipelineError, CIEnvironment>
+# INVARIANT: All pushes trigger mutation job; concurrency ensures single active run per ref.
+# COMPLEXITY: O(1) orchestrative overhead per commit
+
+name: Mutation Testing
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+
+concurrency:
+  group: mutation-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  mutation-test:
+    name: Run mutation suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run mutation tests
+        run: npm run mutation
