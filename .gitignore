@@ -1,6 +1,9 @@
 # Dependencies
 node_modules/
-package-lock.json
+# CHANGE: Removed package-lock.json from gitignore to enable npm cache in CI
+# WHY: GitHub Actions setup-node with cache:npm requires tracked lock file
+# REF: mutation-tests.yml:42 (cache: npm)
+# INVARIANT: ∀ workflow w: uses(w, 'cache:npm') → package-lock.json ∈ tracked_files
 yarn.lock
 pnpm-lock.yaml
 
