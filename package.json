@@ -1,6 +1,6 @@
 {
 	"name": "@ton-ai-core/vibecode-linter",
-	"version": "1.0.3",
+	"version": "1.0.4",
 	"type": "module",
 	"description": "Advanced TypeScript linter with Git integration, dependency analysis, and comprehensive error reporting",
 	"main": "dist/index.js",
