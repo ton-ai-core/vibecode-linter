@@ -52,6 +52,9 @@
 	"publishConfig": {
 		"access": "public"
 	},
+	"overrides": {
+		"picomatch": "^4.0.3"
+	},
 	"dependencies": {
 		"ajv": "^8.17.1",
 		"effect": "^3.18.4",
