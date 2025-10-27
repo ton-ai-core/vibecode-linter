@@ -13,6 +13,7 @@
  * @type {import("@stryker-mutator/api/core").StrykerOptions}
  */
 export default {
+	packageManager: "npm",
 	mutate: [
 		"src/**/*.ts",
 		"!src/**/*.test.ts",
@@ -35,6 +36,28 @@ export default {
 	jest: {
 		configFile: "jest.config.mjs",
 		enableFindRelatedTests: true,
+		// CHANGE: Add explicit ESM configuration for Jest in Stryker sandbox
+		// WHY: Stryker creates sandbox without package.json "type": "module"
+		// REF: Cannot use import statement outside a module error in CI
+		config: {
+			preset: "ts-jest/presets/default-esm",
+			extensionsToTreatAsEsm: [".ts"],
+			transform: {
+				"^.+\\.ts$": [
+					"ts-jest",
+					{
+						useESM: true,
+						tsconfig: {
+							module: "NodeNext",
+							moduleResolution: "NodeNext",
+						},
+					},
+				],
+			},
+			moduleNameMapper: {
+				"^(\\.{1,2}/.*)\\.js$": "$1",
+			},
+		},
 	},
 	tempDirName: ".stryker-tmp",
 	timeoutFactor: 1.5,
