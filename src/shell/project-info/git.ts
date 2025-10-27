@@ -14,13 +14,14 @@ import { execGitStdoutOrNull } from "../git/utils.js";
 
 interface GitStatusSummary {
 	readonly branch: string;
+	readonly upstreamBranch: string | null;
 	readonly aheadBehind: string | null;
 	readonly isRepository: boolean;
 	readonly statusLines: ReadonlyArray<string>;
 	readonly hasUncommitted: boolean;
 }
 
-interface GitCommitInfo {
+export interface GitCommitInfo {
 	readonly shortHash: string;
 	readonly date: string;
 	readonly subject: string;
@@ -29,16 +30,72 @@ interface GitCommitInfo {
 
 export interface GitInsight {
 	readonly status: GitStatusSummary;
-	readonly commits: ReadonlyArray<GitCommitInfo>;
+	readonly headCommits: ReadonlyArray<GitCommitInfo>;
+	readonly upstreamCommits: ReadonlyArray<GitCommitInfo>;
 }
 
 const DEFAULT_STATUS: GitStatusSummary = {
 	branch: "n/a",
+	upstreamBranch: null,
 	aheadBehind: null,
 	isRepository: false,
 	statusLines: [],
 	hasUncommitted: false,
 };
+
+/**
+ * CHANGE: Extract `[ahead/behind]` payload from git status header.
+ * WHY: Reduce branching in parseStatusHeader to satisfy complexity limit.
+ * QUOTE(ТЗ): "Каждая функция — это теорема."
+ * REF: user-request-project-info
+ * SOURCE: n/a
+ * FORMAT THEOREM: extractTracking("main [ahead 1]") = "ahead 1"
+ * PURITY: CORE helper
+ * INVARIANT: Returns null when brackets absent
+ * COMPLEXITY: O(k)
+ */
+function extractTrackingSegment(header: string): string | null {
+	const bracketMatch = header.match(/\[(.+)\]/u);
+	return bracketMatch === null ? null : (bracketMatch[1] ?? null);
+}
+
+/**
+ * CHANGE: Normalize branch name with fallback.
+ * WHY: Isolate conditional logic to keep parseStatusHeader simple.
+ * QUOTE(ТЗ): "Типовая безопасность" — избегаем `any`.
+ * REF: user-request-project-info
+ * SOURCE: n/a
+ * FORMAT THEOREM: normalizeBranch("") = "unknown"
+ * PURITY: CORE helper
+ * INVARIANT: Non-empty string result
+ * COMPLEXITY: O(1)
+ */
+function normalizeBranchName(candidate: string | undefined): string {
+	if (typeof candidate !== "string" || candidate.length === 0) {
+		return "unknown";
+	}
+	return candidate;
+}
+
+/**
+ * CHANGE: Normalize upstream branch token.
+ * WHY: Centralize null/empty checks for parseStatusHeader.
+ * QUOTE(ТЗ): "Типовая безопасность" — все значения строго типизированы.
+ * REF: user-request-project-info
+ * SOURCE: n/a
+ * FORMAT THEOREМ: normalizeUpstream(null) = null
+ * PURITY: CORE helper
+ * INVARIANT: Returns null for empty tokens
+ * COMPLEXITY: O(1)
+ */
+function normalizeUpstreamBranch(
+	candidate: string | undefined | null,
+): string | null {
+	if (typeof candidate !== "string") {
+		return null;
+	}
+	return candidate.length > 0 ? candidate : null;
+}
 
 /**
  * CHANGE: Parse `git status -sb` header into branch/ahead info.
@@ -52,18 +109,21 @@ const DEFAULT_STATUS: GitStatusSummary = {
  */
 function parseStatusHeader(line: string | undefined): {
 	readonly branch: string;
+	readonly upstreamBranch: string | null;
 	readonly aheadBehind: string | null;
 } {
 	if (line === undefined) {
-		return { branch: "unknown", aheadBehind: null };
+		return { branch: "unknown", upstreamBranch: null, aheadBehind: null };
 	}
 	const trimmed = line.replace(/^##\s*/, "");
-	const bracketMatch = trimmed.match(/\[(.+)\]/u);
-	const aheadBehind = bracketMatch === null ? null : (bracketMatch[1] ?? null);
+	const aheadBehind = extractTrackingSegment(trimmed);
 	const branchPart = trimmed.split(" ")[0] ?? trimmed;
-	const branch = branchPart.split("...")[0] ?? branchPart;
+	const branchSegments = branchPart.split("...");
+	const branch = normalizeBranchName(branchSegments[0]);
+	const upstreamBranch = normalizeUpstreamBranch(branchSegments[1] ?? null);
 	return {
-		branch: branch.length === 0 ? "unknown" : branch,
+		branch,
+		upstreamBranch,
 		aheadBehind,
 	};
 }
@@ -128,6 +188,7 @@ function fetchGitStatusEffect(): Effect.Effect<GitStatusSummary, never> {
 		const parsed = parseStatusHeader(header);
 		return {
 			branch: parsed.branch,
+			upstreamBranch: parsed.upstreamBranch,
 			aheadBehind: parsed.aheadBehind,
 			isRepository: true,
 			statusLines: rest,
@@ -137,24 +198,49 @@ function fetchGitStatusEffect(): Effect.Effect<GitStatusSummary, never> {
 }
 
 /**
- * CHANGE: Fetch latest git commits.
- * WHY: Project report requires last 5 commits.
+ * CHANGE: Fetch recent commits for targeted refs (HEAD, upstream).
+ * WHY: Report must differentiate local-only commits from upstream history.
  * QUOTE(ТЗ): "Типовая безопасность" — список с четкой структурой.
  * REF: user-request-project-info
- * FORMAT THEOREM: commitsEffect() returns ≤ 5 commits
+ * SOURCE: n/a
+ * FORMAT THEOREM: commitsEffect(ref) returns ≤ 5 commits, empty when ref invalid
  * PURITY: SHELL
  * EFFECT: Effect<ReadonlyArray<GitCommitInfo>, never>
  * INVARIANT: Non-null subjects only
  * COMPLEXITY: O(1)
  */
-function fetchRecentCommitsEffect(): Effect.Effect<
-	ReadonlyArray<GitCommitInfo>,
-	never
-> {
+// CHANGE: Sanitize git ref for recent commit queries.
+// WHY: Prevent shell injection by restricting allowed characters from git status header.
+// QUOTE(ТЗ): "Типовая безопасность" — безобидные эффекты требуют чистой обработки данных.
+// REF: user-request-project-info
+// SOURCE: n/a
+// FORMAT THEOREM: sanitizeGitRef(ref) = trimmed ref | null when invalid
+// PURITY: CORE helper
+// INVARIANT: Returns null for empty or disallowed refs
+// COMPLEXITY: O(k)
+function sanitizeGitRef(ref: string | null): string | null {
+	if (ref === null) {
+		return null;
+	}
+	const trimmed = ref.trim();
+	if (trimmed.length === 0) {
+		return null;
+	}
+	const isAllowed = /^[\w./@:{}-]+$/u.test(trimmed);
+	return isAllowed ? trimmed : null;
+}
+
+function fetchRecentCommitsEffect(
+	targetRef: string | null,
+): Effect.Effect<ReadonlyArray<GitCommitInfo>, never> {
+	const ref = sanitizeGitRef(targetRef);
+	if (ref === null) {
+		return Effect.succeed<ReadonlyArray<GitCommitInfo>>([]);
+	}
 	return Effect.tryPromise(async () => {
 		const raw =
 			(await execGitStdoutOrNull(
-				'git log -5 --date=short --pretty=format:"%h%x1F%cd%x1F%s%x1F%an"',
+				`git log -5 --date=short --pretty=format:"%h%x1F%cd%x1F%s%x1F%an" ${ref}`,
 			)) ?? "";
 		if (raw.length === 0 || raw.startsWith("fatal:")) {
 			return [];
@@ -185,12 +271,23 @@ function fetchRecentCommitsEffect(): Effect.Effect<
  * COMPLEXITY: O(1)
  */
 export function fetchGitInsightEffect(): Effect.Effect<GitInsight, never> {
-	return Effect.all([fetchGitStatusEffect(), fetchRecentCommitsEffect()], {
-		concurrency: "unbounded",
-	}).pipe(
-		Effect.map(([status, commits]) => ({
+	return Effect.gen(function* (_) {
+		const status = yield* _(fetchGitStatusEffect());
+		if (!status.isRepository) {
+			return {
+				status,
+				headCommits: [],
+				upstreamCommits: [],
+			};
+		}
+		const headCommits = yield* _(fetchRecentCommitsEffect("HEAD"));
+		const upstreamCommits = yield* _(
+			fetchRecentCommitsEffect(status.upstreamBranch),
+		);
+		return {
 			status,
-			commits,
-		})),
-	);
+			headCommits,
+			upstreamCommits,
+		};
+	});
 }

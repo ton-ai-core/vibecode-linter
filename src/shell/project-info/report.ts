@@ -16,10 +16,57 @@ import { createProjectSnapshot } from "../../core/project/tree.js";
 import type { ProjectAggregateMetrics } from "../../core/types/index.js";
 import { path } from "../utils/node-mods.js";
 import { collectProjectFilesEffect } from "./collector.js";
-import { fetchGitInsightEffect, type GitInsight } from "./git.js";
+import {
+	fetchGitInsightEffect,
+	type GitCommitInfo,
+	type GitInsight,
+} from "./git.js";
 import { collectGitChangeInfoEffect } from "./git-changes.js";
 
 const numberFormatter = new Intl.NumberFormat("en-US");
+
+/**
+ * CHANGE: Deterministic formatting for commit log entries.
+ * WHY: Avoid duplicating string templates between local/upstream sections.
+ * QUOTE(ТЗ): "Математические инварианты"
+ * REF: user-request-project-info
+ * SOURCE: n/a
+ * FORMAT THEOREM: formatCommitEntry(c) = `git show ${hash} | cat :: ${date} :: ${author} — ${subject}`
+ * PURITY: CORE helper
+ * INVARIANT: Subject preserved verbatim
+ * COMPLEXITY: O(1)
+ */
+function formatCommitEntry(commit: GitCommitInfo): string {
+	return `git show ${commit.shortHash} | cat :: ${commit.date} :: ${commit.author} — ${commit.subject}`;
+}
+
+/**
+ * CHANGE: Compare commit sequences by hash to detect divergence.
+ * WHY: Reporter chooses whether to show one or two timelines.
+ * QUOTE(ТЗ): "Математические инварианты"
+ * REF: user-request-project-info
+ * SOURCE: n/a
+ * FORMAT THEOREM: equalCommits(a,b) ⇔ ∀i: hash_a(i) = hash_b(i)
+ * PURITY: CORE helper
+ * INVARIANT: Symmetric, reflexive
+ * COMPLEXITY: O(n)
+ */
+function commitSequencesEqual(
+	left: ReadonlyArray<GitCommitInfo>,
+	right: ReadonlyArray<GitCommitInfo>,
+): boolean {
+	if (left.length !== right.length) {
+		return false;
+	}
+	for (let index = 0; index < left.length; index += 1) {
+		const leftHash = left[index]?.shortHash;
+		const rightHash = right[index]?.shortHash;
+		if (leftHash !== rightHash) {
+			return false;
+		}
+	}
+	return true;
+}
 
 /**
  * CHANGE: Format bytes into human-readable units for summary line.
@@ -98,6 +145,87 @@ function logProjectSummary(
 }
 
 /**
+ * CHANGE: Predicate for presence of commit data.
+ * WHY: Keep logRecentCommits cyclomatic complexity under lint threshold.
+ * QUOTE(ТЗ): "Математические инварианты"
+ * REF: user-request-project-info
+ * SOURCE: n/a
+ * FORMAT THEOREМ: hasAnyCommits(head, upstream) ⇔ |head| > 0 ∨ |upstream| > 0
+ * PURITY: CORE helper
+ * INVARIANT: Symmetric with respect to arguments
+ * COMPLEXITY: O(1)
+ */
+function hasAnyCommits(
+	headCommits: ReadonlyArray<GitCommitInfo>,
+	upstreamCommits: ReadonlyArray<GitCommitInfo>,
+): boolean {
+	return headCommits.length > 0 || upstreamCommits.length > 0;
+}
+
+/**
+ * CHANGE: Predicate for divergent timelines.
+ * WHY: Keeps branching out of logRecentCommits body.
+ * QUOTE(ТЗ): "Математические инварианты"
+ * REF: user-request-project-info
+ * SOURCE: n/a
+ * FORMAT THEOREМ: hasDistinctHistories(head, upstream) ⇔ |head|>0 ∧ |upstream|>0 ∧ ¬equalCommits
+ * PURITY: CORE helper
+ * INVARIANT: Returns false if either array empty
+ * COMPLEXITY: O(n)
+ */
+function hasDistinctHistories(
+	headCommits: ReadonlyArray<GitCommitInfo>,
+	upstreamCommits: ReadonlyArray<GitCommitInfo>,
+): boolean {
+	if (headCommits.length === 0 || upstreamCommits.length === 0) {
+		return false;
+	}
+	return !commitSequencesEqual(headCommits, upstreamCommits);
+}
+
+/**
+ * CHANGE: Print recent commits with upstream awareness.
+ * WHY: Separate shell concern to keep logGitSection concise and lint-compliant.
+ * QUOTE(ТЗ): "CORE никогда не вызывает SHELL"
+ * REF: user-request-project-info
+ * SOURCE: n/a
+ * FORMAT THEOREМ: logRecentCommits(status, head, upstream) outputs ≤ 2 timelines
+ * PURITY: SHELL
+ * EFFECT: Effect<void, never>
+ * INVARIANT: Avoids duplicate timelines when histories match
+ * COMPLEXITY: O(n) where n = commits inspected
+ */
+function logRecentCommits(
+	status: GitInsight["status"],
+	headCommits: ReadonlyArray<GitCommitInfo>,
+	upstreamCommits: ReadonlyArray<GitCommitInfo>,
+): void {
+	console.log("\n🧾 Recent commits (last 5)");
+	const headPresent = headCommits.length > 0;
+	if (!hasAnyCommits(headCommits, upstreamCommits)) {
+		console.log("   • No commit information available");
+		return;
+	}
+	if (!hasDistinctHistories(headCommits, upstreamCommits)) {
+		const canonicalCommits = headPresent ? headCommits : upstreamCommits;
+		canonicalCommits.forEach((commit) => {
+			console.log(`   • ${formatCommitEntry(commit)}`);
+		});
+		return;
+	}
+	const aheadLabel = status.aheadBehind ?? "ahead of upstream";
+	console.log(`   • Local HEAD commits (${aheadLabel}):`);
+	headCommits.forEach((commit) => {
+		console.log(`     • ${formatCommitEntry(commit)}`);
+	});
+	const upstreamLabel = status.upstreamBranch ?? "upstream";
+	console.log(`   • ${upstreamLabel} commits:`);
+	upstreamCommits.forEach((commit) => {
+		console.log(`     • ${formatCommitEntry(commit)}`);
+	});
+}
+
+/**
  * CHANGE: Print git section (status + cleanliness).
  * WHY: User explicitly requested git status + info on uncommitted items.
  * QUOTE(USER): "Отображать git status. Есть ли не закомиченные элементы"
@@ -131,16 +259,7 @@ function logGitSection(insight: GitInsight): void {
 			console.log(`     ${line}`);
 		});
 	}
-	console.log("\n🧾 Recent commits (last 5)");
-	if (insight.commits.length === 0) {
-		console.log("   • No commit information available");
-		return;
-	}
-	insight.commits.forEach((commit) => {
-		console.log(
-			`   • git show ${commit.shortHash} | cat :: ${commit.date} :: ${commit.author} — ${commit.subject}`,
-		);
-	});
+	logRecentCommits(status, insight.headCommits, insight.upstreamCommits);
 }
 
 /**

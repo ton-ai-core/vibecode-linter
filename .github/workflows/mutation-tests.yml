@@ -54,12 +54,28 @@ jobs:
       # REF: https://stryker-mutator.io/docs/stryker-js/incremental/
       # INVARIANT: ∀ commit ∈ main: stryker-incremental.json updated → next_run O(changed_only)
       # EFFECT: Next mutation run skips ~3731/3965 mutants (cached)
-      - name: Commit incremental cache
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      - name: Commit mutation cache
+        # CHANGE: Run regardless of mutation step outcome to persist cache even on failures
+        # WHY: Workers require latest mutation cache to skip redundant work even if thresholds break the build
+        # QUOTE(UserMsg#5): "Он при любой ситуации должен кешировать свои изменения. Даже если это ошибка"
+        # REF: output:216-13635 (GitHub Actions log showing failure before push)
+        # FORMAT THEOREM: ∀run ∈ Pipelines: ¬cached(run) → ∃worker: repeats(run)
+        # PURITY: SHELL
+        # EFFECT: Effect<void, GitError, CIEnvironment>
+        # INVARIANT: If reports/* artifacts exist they are staged and pushed to main
+        if: always() && github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add reports/stryker-incremental.json
+          if [ -f reports/stryker-incremental.json ]; then
+            git add reports/stryker-incremental.json
+          fi
+          if [ -f reports/mutation/mutation.json ]; then
+            git add reports/mutation/mutation.json
+          fi
+          if [ -f reports/mutation/mutation.html ]; then
+            git add reports/mutation/mutation.html
+          fi
           git diff --staged --quiet || git commit -m "chore(ci): update mutation test cache [skip ci]
 
           - Updated incremental mutation test results
