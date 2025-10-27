@@ -78,7 +78,6 @@
 		"eslint": "^9.36.0",
 		"eslint-import-resolver-node": "^0.3.9",
 		"eslint-import-resolver-typescript": "^4.4.4",
-		"eslint-plugin-deprecation": "^3.0.0",
 		"eslint-plugin-fp-ts-strict": "^0.1.1",
 		"eslint-plugin-functional": "^9.0.2",
 		"eslint-plugin-import-x": "^4.16.1",
