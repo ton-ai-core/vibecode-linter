@@ -14,6 +14,12 @@
  */
 export default {
 	packageManager: "npm",
+	testRunner: "jest",
+	// CHANGE: Pass --experimental-vm-modules to node for ESM support in Jest
+	// WHY: Jest needs this flag to parse import statements in sandbox
+	// REF: package.json:36 uses same flag for regular test runs
+	// SOURCE: https://stryker-mutator.io/docs/stryker-js/jest-runner/
+	testRunnerNodeArgs: ["--experimental-vm-modules"],
 	mutate: [
 		"src/**/*.ts",
 		"!src/**/*.test.ts",
@@ -21,7 +27,6 @@ export default {
 		"!src/**/__tests__/**/*.ts",
 		"!src/**/index.ts",
 	],
-	testRunner: "jest",
 	coverageAnalysis: "perTest",
 	reporters: ["clear-text", "html", "json"],
 	checkers: ["typescript"],
@@ -36,28 +41,6 @@ export default {
 	jest: {
 		configFile: "jest.config.mjs",
 		enableFindRelatedTests: true,
-		// CHANGE: Add explicit ESM configuration for Jest in Stryker sandbox
-		// WHY: Stryker creates sandbox without package.json "type": "module"
-		// REF: Cannot use import statement outside a module error in CI
-		config: {
-			preset: "ts-jest/presets/default-esm",
-			extensionsToTreatAsEsm: [".ts"],
-			transform: {
-				"^.+\\.ts$": [
-					"ts-jest",
-					{
-						useESM: true,
-						tsconfig: {
-							module: "NodeNext",
-							moduleResolution: "NodeNext",
-						},
-					},
-				],
-			},
-			moduleNameMapper: {
-				"^(\\.{1,2}/.*)\\.js$": "$1",
-			},
-		},
 	},
 	tempDirName: ".stryker-tmp",
 	timeoutFactor: 1.5,
