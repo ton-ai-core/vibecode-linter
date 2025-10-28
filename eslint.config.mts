@@ -167,6 +167,15 @@ export default tseslint.config(
 							message:
 								"Не используем 'unknown'. Уточни тип или наведи порядок в источнике данных.",
 						},
+						Promise: {
+							message: "Запрещён Promise — используй Effect.Effect<A, E, R>.",
+							suggest: ["Effect.Effect"],
+						},
+						"Promise<*>": {
+							message:
+								"Запрещён Promise<T> — используй Effect.Effect<T, E, R>.",
+							suggest: ["Effect.Effect<T, E, R>"],
+						},
 					},
 				},
 			],
@@ -174,7 +183,10 @@ export default tseslint.config(
 			// Сводный запрет синтаксиса (мутабельный тюпл)
 			"no-restricted-syntax": [
 				"error",
-				{ selector: "TSUnknownKeyword", message: "Запрещено 'unknown'." },
+				{
+					selector: "TSUnknownKeyword",
+					message: "Запрещено 'unknown'.",
+				},
 				{
 					selector: "SwitchStatement",
 					message: [
@@ -197,6 +209,22 @@ export default tseslint.config(
 					selector: "ThrowStatement > Literal:not([value=/^\\w+Error:/])",
 					message:
 						'Do not throw string literals or non-Error objects. Throw new Error("...") instead.',
+				},
+				{
+					selector:
+						"FunctionDeclaration[async=true], FunctionExpression[async=true], ArrowFunctionExpression[async=true]",
+					message:
+						"Запрещён async/await — используй Effect.gen / Effect.tryPromise.",
+				},
+				{
+					selector: "NewExpression[callee.name='Promise']",
+					message:
+						"Запрещён new Promise — используй Effect.async / Effect.tryPromise.",
+				},
+				{
+					selector: "CallExpression[callee.object.name='Promise']",
+					message:
+						"Запрещены Promise.* — используй комбинаторы Effect (all, forEach, etc.).",
 				},
 			],
 
@@ -222,7 +250,10 @@ export default tseslint.config(
 			"@ton-ai-core/suggest-members/suggest-module-paths": "error",
 
 			// TypeORM
-			"typeorm-typescript/enforce-column-types": ["error", { driver: "sqlite" }],
+			"typeorm-typescript/enforce-column-types": [
+				"error",
+				{ driver: "sqlite" },
+			],
 			"typeorm-typescript/enforce-relation-types": [
 				"error",
 				{ specifyUndefined: "always" },
@@ -276,10 +307,7 @@ export default tseslint.config(
 				"error",
 				{ disallowTypeAnnotations: false },
 			],
-			"@typescript-eslint/no-namespace": [
-				"error",
-				{ allowDeclarations: true },
-			],
+			"@typescript-eslint/no-namespace": ["error", { allowDeclarations: true }],
 			"import-x/no-relative-packages": "error",
 			"no-cond-assign": "error",
 			"no-debugger": "error",
@@ -292,12 +320,12 @@ export default tseslint.config(
 			"prefer-const": ["error", { destructuring: "all" }],
 			radix: "error",
 			"default-case": "error",
-			'@typescript-eslint/no-unsafe-argument': 'error',
-			'@typescript-eslint/restrict-template-expressions': 'error',
-			'@typescript-eslint/restrict-plus-operands': 'error',
-			'@typescript-eslint/no-confusing-non-null-assertion': 'error',
-			'@typescript-eslint/consistent-type-definitions': ['error', 'interface'],
-			'@typescript-eslint/parameter-properties': 'error',
+			"@typescript-eslint/no-unsafe-argument": "error",
+			"@typescript-eslint/restrict-template-expressions": "error",
+			"@typescript-eslint/restrict-plus-operands": "error",
+			"@typescript-eslint/no-confusing-non-null-assertion": "error",
+			"@typescript-eslint/consistent-type-definitions": ["error", "interface"],
+			"@typescript-eslint/parameter-properties": "error",
 		},
 	},
 

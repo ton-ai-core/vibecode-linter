@@ -4,6 +4,7 @@
 // REF: REQ-20250210-MODULAR-ARCH
 // SOURCE: lint.ts lines 1196-1284, 1815-1893
 
+import { Effect } from "effect";
 import type {
 	DuplicateInfo,
 	SarifLocation,
@@ -87,19 +88,21 @@ function discoverSarifArtifact(reportsDir: string): string {
 // WHY: jscpd не генерировал SARIF в ожидаемое место; необходимо явно указать репортер и каталог
 // QUOTE(ТЗ): "Любое решение строится на инвариантах и проверяемых источниках"
 // REF: REQ-DUP-SARIF-OUT
-export async function generateSarifReport(targetPath: string): Promise<string> {
+export function generateSarifReport(
+	targetPath: string,
+): Effect.Effect<string, Error> {
 	const reportsDir = ensureReportsDir();
 
-	try {
-		// Use SARIF reporter and explicit output directory
-		await execAsync(
-			`npx jscpd --reporters sarif --output ${reportsDir} ${targetPath}`,
-		);
-	} catch {
-		// jscpd exits with non-zero when duplicates are found; ignore to proceed parsing
-	}
-
-	return discoverSarifArtifact(reportsDir);
+	return Effect.tryPromise({
+		try: () =>
+			execAsync(
+				`npx jscpd --reporters sarif --output ${reportsDir} ${targetPath}`,
+			),
+		catch: () => null, // jscpd exits with non-zero when duplicates are found; ignore to proceed parsing
+	}).pipe(
+		Effect.flatMap(() => Effect.sync(() => discoverSarifArtifact(reportsDir))),
+		Effect.catchAll(() => Effect.sync(() => discoverSarifArtifact(reportsDir))),
+	);
 }
 
 // CHANGE: Extracted helper to parse duplicate location from message

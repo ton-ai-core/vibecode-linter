@@ -9,11 +9,16 @@
 // INVARIANT: Single point of termination; no process.exit in APP or CORE
 // COMPLEXITY: O(1) time/space (delegates to APP)
 
-import { runLinter } from "../app/runLinter.js";
-import { parseCLIArgs } from "../shell/config/index.js";
+import { Effect } from "effect";
+import { main } from "../app/runLinter.js";
 
 /**
  * CLI entry point for vibecode-linter.
+ *
+ * CHANGE: Use Effect.runPromise to execute Effect-based main function
+ * WHY: Consistent functional approach throughout the application
+ * QUOTE(ТЗ): "Effect-TS для всех эффектов"
+ * REF: user-request-effect-migration
  *
  * @remarks
  * - @pure false (contains side effects: process termination and console I/O)
@@ -21,16 +26,15 @@ import { parseCLIArgs } from "../shell/config/index.js";
  * - @postcondition process terminates exactly once with ExitCode ∈ {0,1}
  * - @complexity O(1) — orchestration only
  */
-void (async (): Promise<void> => {
-	try {
-		const cliOptions = parseCLIArgs();
-		const code = await runLinter(cliOptions);
+Effect.runPromise(main()).then(
+	(code) => {
 		// Shell boundary: single process exit
 		process.exit(code);
-	} catch (error) {
+	},
+	(error) => {
 		// Shell boundary: report fatal and exit with failure
 		// NOTE: logging remains in shell; APP returns typed results
 		console.error("Fatal error:", error);
 		process.exit(1);
-	}
-})();
+	},
+);

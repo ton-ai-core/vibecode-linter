@@ -10,6 +10,7 @@
 // WHY: Biome lint rule requires explicit node: prefix for clarity
 // REF: lint/style/useNodejsImportProtocol
 // SOURCE: https://biomejs.dev/linter/rules/lint/style/useNodejsImportProtocol
+
 import { exec } from "node:child_process";
 import { promisify } from "node:util";
 import { Effect } from "effect";
@@ -17,6 +18,7 @@ import { Effect } from "effect";
 import { ExternalToolError, ParseError } from "../../core/errors.js";
 import type { LintResult } from "../../core/types/index.js";
 import { extractStdoutFromError } from "../../core/types/index.js";
+import { execCommand } from "../utils/exec.js";
 import { extractStdoutOrThrow } from "./linter-helpers.js";
 
 const execAsync = promisify(exec);
@@ -61,7 +63,7 @@ export function runESLintFix(
 		// CHANGE: Use Effect.tryPromise with error recovery
 		// WHY: ESLint returns non-zero exit code even on successful fix with warnings
 		yield* Effect.tryPromise({
-			try: async () => execAsync(eslintCommand),
+			try: () => execAsync(eslintCommand),
 			catch: (error) => {
 				// CHANGE: Check if error has stdout (indicates warnings, not failure)
 				// WHY: ESLint --fix succeeds but returns non-zero with warnings
@@ -124,21 +126,18 @@ export function getESLintResults(
 		console.log(`🧪 Running ESLint diagnostics on: ${targetPath}`);
 		console.log(`   ↳ Command: ${eslintCommand}`);
 
-		// CHANGE: Use Effect.promise to always get stdout (even on non-zero exit)
-		// WHY: ESLint returns non-zero on lint errors but with valid JSON
-		const stdout = yield* Effect.promise(async () => {
-			try {
-				const result = await execAsync(eslintCommand, {
-					maxBuffer: 10 * 1024 * 1024,
-				});
-				return result.stdout;
-			} catch (error) {
+		// CHANGE: Use execCommand to remove code duplication
+		// WHY: Common pattern extracted to utils/exec.ts
+		const stdout = yield* execCommand(eslintCommand, {
+			maxBuffer: 10 * 1024 * 1024,
+		}).pipe(
+			Effect.catchAll((error) => {
 				// CHANGE: Use extractStdoutOrThrow to remove code duplication
 				// WHY: Identical pattern in biome.ts (jscpd DUPLICATE #1)
 				// REF: linter-helpers.ts, REQ-LINT-FIX
-				return extractStdoutOrThrow(error as Error);
-			}
-		}).pipe(
+				const stdout = extractStdoutOrThrow(error);
+				return Effect.succeed(stdout);
+			}),
 			Effect.catchAll((error) =>
 				Effect.fail(
 					new ExternalToolError({

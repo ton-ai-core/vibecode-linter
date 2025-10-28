@@ -1,12 +1,30 @@
 {
-	// CHANGE: Convert root tsconfig to solution-style with project references (src + test)
-	// WHY: Senior practice — a single canonical tsconfig for tools (ESLint), with isolated build profile
+	// CHANGE: Root solution-style config with project references + base config for ESLint
+	// WHY: ESLint projectService needs both: access to all files AND compiler options (paths, modules)
 	// QUOTE(ТЗ): "Давать проверяемые решения через формализацию и строгую типизацию"
 	// REF: REQ-TS-SOLUTION-STYLE
+	// EFFECT: Enables ESLint to parse test files via TypeScript project service with proper compiler options
+	// INVARIANT: ∀ file ∈ (src ∪ test): accessible_via_project_service(file) ∧ has_compiler_options(file)
 	"extends": "./tsconfig.base.json",
-	"files": [],
+	"compilerOptions": {
+		// CHANGE: Override include/exclude from base to cover both src and test
+		// WHY: Root config must see all files for ESLint, but delegate builds to references
+		"noEmit": true
+	},
+	"include": [
+		"src/**/*.ts",
+		"test/**/*.ts"
+	],
+	"exclude": [
+		"node_modules",
+		"dist"
+	],
 	"references": [
-		{ "path": "./tsconfig.src.json" },
-		{ "path": "./tsconfig.test.json" }
+		{
+			"path": "./tsconfig.src.json"
+		},
+		{
+			"path": "./tsconfig.test.json"
+		}
 	]
 }

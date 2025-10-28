@@ -4,6 +4,7 @@
 // REF: REQ-20250210-MODULAR-ARCH
 // SOURCE: lint.ts lines 1558-1813
 
+import { Effect } from "effect";
 import type {
 	CLIOptions,
 	LinterConfig,
@@ -19,18 +20,20 @@ import {
 	sortMessages,
 } from "./printer-helpers.js";
 
-async function printSections(
+function printSections(
 	sections: Map<string, LintMessageWithFile[]>,
 	diffRange: { diffArg: string; label: string },
 	diffContext: number,
-): Promise<void> {
-	for (const [name, arr] of sections) {
-		console.log(`\n=== ${name} (${arr.length} issues) ===`);
-		const cache = new Map<string, readonly string[]>();
-		for (const m of arr) {
-			await printMessage(m, cache, diffRange, diffContext);
+): Effect.Effect<void, never> {
+	return Effect.gen(function* (_) {
+		for (const [name, arr] of sections) {
+			console.log(`\n=== ${name} (${arr.length} issues) ===`);
+			const cache = new Map<string, readonly string[]>();
+			for (const m of arr) {
+				yield* _(printMessage(m, cache, diffRange, diffContext));
+			}
 		}
-	}
+	});
 }
 
 /**
@@ -41,33 +44,36 @@ async function printSections(
  * @param cliOptions Опции CLI
  * @returns True если есть ошибки
  */
-export async function processResults(
+export function processResults(
 	messages: readonly LintMessageWithFile[],
 	config: LinterConfig | null,
 	cliOptions: CLIOptions,
-): Promise<boolean> {
+): Effect.Effect<boolean, never> {
 	const sortedMessages = sortMessages(messages);
 	const ruleLevelMap = config ? makeRuleLevelMap(config) : null;
-	const diffRange =
-		sortedMessages.length > 0
-			? await detectDiffRange()
-			: { diffArg: "HEAD", label: "HEAD" };
 	const diffContext = cliOptions.context ?? 3;
 
-	if (sortedMessages.length > 0) {
-		const byLevel = groupByLevel(sortedMessages, ruleLevelMap);
-		const sortedLevels = Array.from(byLevel.keys()).sort((a, b) => a - b);
+	return Effect.gen(function* (_) {
+		const diffRange =
+			sortedMessages.length > 0
+				? yield* _(detectDiffRange())
+				: { diffArg: "HEAD", label: "HEAD" };
 
-		for (const level of sortedLevels) {
-			const levelMessages = byLevel.get(level);
-			if (levelMessages && levelMessages.length > 0) {
-				const sections = groupBySections(levelMessages, ruleLevelMap);
-				await printSections(sections, diffRange, diffContext);
-				break;
+		if (sortedMessages.length > 0) {
+			const byLevel = groupByLevel(sortedMessages, ruleLevelMap);
+			const sortedLevels = Array.from(byLevel.keys()).sort((a, b) => a - b);
+
+			for (const level of sortedLevels) {
+				const levelMessages = byLevel.get(level);
+				if (levelMessages && levelMessages.length > 0) {
+					const sections = groupBySections(levelMessages, ruleLevelMap);
+					yield* _(printSections(sections, diffRange, diffContext));
+					break;
+				}
 			}
 		}
-	}
 
-	printStatistics(sortedMessages);
-	return sortedMessages.filter((m) => m.severity === 2).length > 0;
+		printStatistics(sortedMessages);
+		return sortedMessages.filter((m) => m.severity === 2).length > 0;
+	});
 }

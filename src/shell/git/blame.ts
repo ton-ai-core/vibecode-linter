@@ -9,6 +9,7 @@
 // REF: lint/style/useNodejsImportProtocol
 // SOURCE: https://biomejs.dev/linter/rules/lint/style/useNodejsImportProtocol
 import * as path from "node:path";
+import { Effect } from "effect";
 
 import type {
 	ExecError,
@@ -22,25 +23,25 @@ import { execGitCommand } from "./utils.js";
 // QUOTE(LINT): "Function has a complexity of 14. Maximum allowed is 8"
 // REF: ESLint complexity
 // SOURCE: n/a
-async function executeBlameCommand(
+function executeBlameCommand(
 	filePath: string,
 	startLine: number,
 	endLine: number,
-): Promise<string | null> {
+): Effect.Effect<string | null, never> {
 	const blameCommand = `git blame --line-porcelain -L ${startLine},${endLine} -- "${filePath}"`;
 
-	try {
-		const { stdout } = await execGitCommand(blameCommand, 2 * 1024 * 1024);
-		return stdout;
-	} catch (error) {
-		const execError = error as ExecError;
-		// CHANGE: Avoid truthiness on stdout; handle nullish/empty explicitly
-		// WHY: strict-boolean-expressions — nullable string
-		// QUOTE(ТЗ): "Исправить все ошибки линтера"
-		// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
-		const out = typeof execError.stdout === "string" ? execError.stdout : "";
-		return out.length > 0 ? out : null;
-	}
+	return execGitCommand(blameCommand, 2 * 1024 * 1024).pipe(
+		Effect.map(({ stdout }) => stdout),
+		Effect.catchAll((error) => {
+			const execError = error as ExecError;
+			// CHANGE: Avoid truthiness on stdout; handle nullish/empty explicitly
+			// WHY: strict-boolean-expressions — nullable string
+			// QUOTE(ТЗ): "Исправить все ошибки линтера"
+			// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
+			const out = typeof execError.stdout === "string" ? execError.stdout : "";
+			return Effect.succeed(out.length > 0 ? out : null);
+		}),
+	);
 }
 
 // CHANGE: Extracted helper to parse blame output
@@ -183,28 +184,32 @@ function formatBlameResult(
  * @param options Опции для отображения дополнительной информации
  * @returns Результат git blame или null при ошибке
  */
-export async function getGitBlameBlock(
+export function getGitBlameBlock(
 	filePath: string,
 	line: number,
 	options?: GitBlameOptions,
-): Promise<GitBlameResult | null> {
+): Effect.Effect<GitBlameResult | null, never> {
 	const contextSize = 2;
 	const startLine = Math.max(1, line - contextSize);
 	const endLine = line + contextSize;
 
-	const blameOutput = await executeBlameCommand(filePath, startLine, endLine);
-	// CHANGE: Avoid truthiness on nullable string
-	// WHY: strict-boolean-expressions — handle nullish/empty explicitly
-	// QUOTE(ТЗ): "Исправить все ошибки линтера"
-	// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
-	if (blameOutput === null || blameOutput.length === 0) {
-		return null;
-	}
+	return Effect.gen(function* (_) {
+		const blameOutput = yield* _(
+			executeBlameCommand(filePath, startLine, endLine),
+		);
+		// CHANGE: Avoid truthiness on nullable string
+		// WHY: strict-boolean-expressions — handle nullish/empty explicitly
+		// QUOTE(ТЗ): "Исправить все ошибки линтера"
+		// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
+		if (blameOutput === null || blameOutput.length === 0) {
+			return null;
+		}
 
-	const info = parseBlameOutput(blameOutput);
-	if (!info) {
-		return null;
-	}
+		const info = parseBlameOutput(blameOutput);
+		if (!info) {
+			return null;
+		}
 
-	return formatBlameResult(info, line, filePath, contextSize, options);
+		return formatBlameResult(info, line, filePath, contextSize, options);
+	});
 }

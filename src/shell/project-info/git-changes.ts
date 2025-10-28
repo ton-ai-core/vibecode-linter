@@ -52,23 +52,30 @@ function trimQuotes(value: string): string {
 	return value.replace(/^"+|"+$/gu, "");
 }
 
-async function resolveTargetInfo(
+function resolveTargetInfo(
 	targetPath: string,
-): Promise<TargetResolution> {
-	try {
+): Effect.Effect<TargetResolution, never> {
+	return Effect.gen(function* (_) {
 		const absolute = path.resolve(process.cwd(), targetPath);
-		const stats = await fsPromises.stat(absolute);
+		const stats = yield* _(
+			Effect.tryPromise({
+				try: () => fsPromises.stat(absolute),
+				catch: (error) => error as Error,
+			}),
+		);
 		const relative = path.relative(process.cwd(), absolute);
 		return {
 			normalizedTarget: normalizePath(relative),
 			isDirectory: stats.isDirectory(),
 		};
-	} catch {
-		return {
-			normalizedTarget: normalizePath(targetPath),
-			isDirectory: true,
-		};
-	}
+	}).pipe(
+		Effect.catchAll(() =>
+			Effect.succeed({
+				normalizedTarget: normalizePath(targetPath),
+				isDirectory: true,
+			}),
+		),
+	);
 }
 
 function createRelativeResolver(
@@ -241,34 +248,43 @@ function parseNumstat(
 	return map;
 }
 
-async function collectNumstatForModes(
+function collectNumstatForModes(
 	resolveRelative: (gitPath: string) => string | null,
-): Promise<Map<string, NumstatEntry>> {
-	const combined = new Map<string, NumstatEntry>();
-	const commands = ["git diff --numstat", "git diff --cached --numstat"];
-	for (const command of commands) {
-		const raw = (await execGitStdoutOrNull(command)) ?? "";
-		const parsed = parseNumstat(raw, resolveRelative);
-		for (const [relative, entry] of parsed) {
-			const existing = combined.get(relative);
-			if (existing === undefined) {
-				combined.set(relative, entry);
-			} else {
-				combined.set(relative, {
-					additions: existing.additions + entry.additions,
-					deletions: existing.deletions + entry.deletions,
-				});
+): Effect.Effect<Map<string, NumstatEntry>, never> {
+	return Effect.gen(function* (_) {
+		const combined = new Map<string, NumstatEntry>();
+		const commands = ["git diff --numstat", "git diff --cached --numstat"];
+
+		for (const command of commands) {
+			const rawResult = yield* _(execGitStdoutOrNull(command));
+			const raw = rawResult ?? "";
+			const parsed = parseNumstat(raw, resolveRelative);
+
+			for (const [relative, entry] of parsed) {
+				const existing = combined.get(relative);
+				if (existing === undefined) {
+					combined.set(relative, entry);
+				} else {
+					combined.set(relative, {
+						additions: existing.additions + entry.additions,
+						deletions: existing.deletions + entry.deletions,
+					});
+				}
 			}
 		}
-	}
-	return combined;
+
+		return combined;
+	});
 }
 
-async function collectStatusMap(
+function collectStatusMap(
 	resolveRelative: (gitPath: string) => string | null,
-): Promise<Map<string, FileChangeInfo>> {
-	const raw = (await execGitStdoutOrNull("git status -sb")) ?? "";
-	return parseStatusLines(raw, resolveRelative);
+): Effect.Effect<Map<string, FileChangeInfo>, never> {
+	return Effect.gen(function* (_) {
+		const rawResult = yield* _(execGitStdoutOrNull("git status -sb"));
+		const raw = rawResult ?? "";
+		return parseStatusLines(raw, resolveRelative);
+	});
 }
 
 function mergeNumstatIntoStatus(
@@ -298,14 +314,16 @@ function mergeNumstatIntoStatus(
 export function collectGitChangeInfoEffect(
 	targetPath: string,
 ): Effect.Effect<ReadonlyMap<string, FileChangeInfo>, never> {
-	return Effect.tryPromise(async () => {
-		const targetInfo = await resolveTargetInfo(targetPath);
+	return Effect.gen(function* (_) {
+		const targetInfo = yield* _(resolveTargetInfo(targetPath));
 		const resolveRelative = createRelativeResolver(targetInfo);
-		const statusMap = await collectStatusMap(resolveRelative);
+		const statusMap = yield* _(collectStatusMap(resolveRelative));
+
 		if (statusMap.size === 0) {
 			return new Map<string, FileChangeInfo>();
 		}
-		const numstatMap = await collectNumstatForModes(resolveRelative);
+
+		const numstatMap = yield* _(collectNumstatForModes(resolveRelative));
 		mergeNumstatIntoStatus(statusMap, numstatMap);
 		return statusMap;
 	}).pipe(

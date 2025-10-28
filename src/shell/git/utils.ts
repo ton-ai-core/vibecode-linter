@@ -4,8 +4,9 @@
 // REF: REQ-20250210-MODULAR-ARCH
 // SOURCE: n/a
 
-import type { DiffRangeConfig, ExecError } from "../../core/types/index.js";
-import { extractStdoutFromError } from "../../core/types/index.js";
+import { Effect } from "effect";
+import type { DiffRangeConfig } from "../../core/types/index.js";
+import { execCommand } from "../utils/exec.js";
 // CHANGE: Use node: protocol for Node.js built-in modules
 // WHY: Biome lint rule requires explicit node: prefix for clarity
 // REF: lint/style/useNodejsImportProtocol
@@ -53,33 +54,35 @@ export function getWorkspaceSnippet(
  * @param context Количество строк контекста с каждой стороны
  * @returns Массив отформатированных строк или null при ошибке
  */
-export async function getCommitSnippetForLine(
+export function getCommitSnippetForLine(
 	commitHash: string,
 	filePath: string,
 	lineNumber: number,
 	context = 3,
-): Promise<readonly string[] | null> {
+): Effect.Effect<readonly string[] | null, never> {
 	const relativePath = path
 		.relative(process.cwd(), filePath)
 		.replace(/\\/g, "/");
-	try {
-		const { stdout } = await execAsync(
-			`git show ${commitHash}:${relativePath}`,
-		);
-		const lines = stdout.split(/\r?\n/u);
-		if (lineNumber <= 0 || lineNumber > lines.length) {
-			return null;
-		}
-		const start = Math.max(0, lineNumber - context - 1);
-		const end = Math.min(lines.length, lineNumber + context);
-		const snippet: string[] = [];
-		for (let i = start; i < end; i += 1) {
-			snippet.push(`${String(i + 1).padStart(4)} | ${lines[i] ?? ""}`);
-		}
-		return snippet;
-	} catch {
-		return null;
-	}
+
+	return Effect.tryPromise({
+		try: () => execAsync(`git show ${commitHash}:${relativePath}`),
+		catch: () => null,
+	}).pipe(
+		Effect.map(({ stdout }) => {
+			const lines = stdout.split(/\r?\n/u);
+			if (lineNumber <= 0 || lineNumber > lines.length) {
+				return null;
+			}
+			const start = Math.max(0, lineNumber - context - 1);
+			const end = Math.min(lines.length, lineNumber + context);
+			const snippet: string[] = [];
+			for (let i = start; i < end; i += 1) {
+				snippet.push(`${String(i + 1).padStart(4)} | ${lines[i] ?? ""}`);
+			}
+			return snippet as readonly string[];
+		}),
+		Effect.catchAll(() => Effect.succeed(null)),
+	);
 }
 
 /**
@@ -89,32 +92,34 @@ export async function getCommitSnippetForLine(
  *
  * @returns Конфигурация диапазона для git diff
  */
-export async function detectDiffRange(): Promise<DiffRangeConfig> {
-	try {
-		const { stdout } = await execAsync(
-			"git rev-parse --abbrev-ref --symbolic-full-name HEAD@{upstream}",
-		);
-		const upstream = stdout.trim();
-		if (upstream.length > 0) {
+export function detectDiffRange(): Effect.Effect<DiffRangeConfig, never> {
+	return Effect.tryPromise({
+		try: () =>
+			execAsync(
+				"git rev-parse --abbrev-ref --symbolic-full-name HEAD@{upstream}",
+			),
+		catch: () => null,
+	}).pipe(
+		Effect.map(({ stdout }) => {
+			const upstream = stdout.trim();
+			if (upstream.length > 0) {
+				return {
+					diffArg: `${upstream}...HEAD`,
+					label: `${upstream}...HEAD`,
+				};
+			}
 			return {
-				diffArg: `${upstream}...HEAD`,
-				label: `${upstream}...HEAD`,
+				diffArg: "HEAD",
+				label: "HEAD",
 			};
-		}
-	} catch (error) {
-		const execError = error as ExecError;
-		// CHANGE: Avoid truthiness check on nullable string stderr
-		// WHY: strict-boolean-expressions — handle nullish/empty explicitly
-		// QUOTE(ТЗ): "Исправить все ошибки линтера"
-		// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
-		if (typeof execError.stderr === "string" && execError.stderr.length > 0) {
-			// Upstream is missing — fall back to local comparison
-		}
-	}
-	return {
-		diffArg: "HEAD",
-		label: "HEAD",
-	};
+		}),
+		Effect.catchAll(() =>
+			Effect.succeed({
+				diffArg: "HEAD",
+				label: "HEAD",
+			}),
+		),
+	);
 }
 
 /**
@@ -131,17 +136,14 @@ export async function detectDiffRange(): Promise<DiffRangeConfig> {
 // CHANGE: Унифицированная обертка для устранения дублирования try/catch-паттерна
 // WHY: jscpd указывал на повторяющиеся блоки с разбором stdout в нескольких модулях
 // REF: REQ-LINT-FIX
-export async function execGitStdoutOrNull(
+export function execGitStdoutOrNull(
 	command: string,
 	maxBuffer = 10 * 1024 * 1024,
-): Promise<string | null> {
-	try {
-		const { stdout } = await execGitCommand(command, maxBuffer);
-		return stdout;
-	} catch (error) {
-		const out = extractStdoutFromError(error as Error);
-		return typeof out === "string" && out.length > 0 ? out : null;
-	}
+): Effect.Effect<string | null, never> {
+	return execCommand(command, { maxBuffer }).pipe(
+		Effect.map((stdout) => (stdout.length > 0 ? stdout : null)),
+		Effect.catchAll(() => Effect.succeed(null)),
+	);
 }
 
 /**
@@ -159,14 +161,17 @@ export async function execGitStdoutOrNull(
 // WHY: jscpd фиксировал повторяющийся паттерн проверки длины/trim()
 // QUOTE(ТЗ): "Убрать дубли кода"
 // REF: REQ-LINT-FIX
-export async function execGitNonEmptyOrNull(
+export function execGitNonEmptyOrNull(
 	command: string,
 	maxBuffer = 10 * 1024 * 1024,
-): Promise<string | null> {
-	const out = await execGitStdoutOrNull(command, maxBuffer);
-	if (typeof out !== "string") return null;
-	const trimmed = out.trim();
-	return trimmed.length > 0 ? out : null;
+): Effect.Effect<string | null, never> {
+	return execGitStdoutOrNull(command, maxBuffer).pipe(
+		Effect.map((out) => {
+			if (typeof out !== "string") return null;
+			const trimmed = out.trim();
+			return trimmed.length > 0 ? out : null;
+		}),
+	);
 }
 
 /**
@@ -176,9 +181,12 @@ export async function execGitNonEmptyOrNull(
  * @param maxBuffer Максимальный размер буфера для stdout
  * @returns Результат выполнения команды
  */
-export async function execGitCommand(
+export function execGitCommand(
 	command: string,
 	maxBuffer = 10 * 1024 * 1024,
-): Promise<{ stdout: string; stderr: string }> {
-	return await execAsync(command, { maxBuffer });
+): Effect.Effect<{ stdout: string; stderr: string }, Error> {
+	return Effect.tryPromise({
+		try: () => execAsync(command, { maxBuffer }),
+		catch: (error) => error as Error,
+	});
 }

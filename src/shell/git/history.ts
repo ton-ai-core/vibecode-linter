@@ -1,5 +1,7 @@
 import * as path from "node:path";
 
+import { Effect } from "effect";
+
 import type { GitHistoryBlock } from "../../core/types/index.js";
 import {
 	buildDiffBlocks,
@@ -21,68 +23,73 @@ function pickFirst<T>(a: T | undefined, b: T | undefined): T | undefined {
 	return a === undefined ? b : a;
 }
 
-async function buildHistoryResult(
+function buildHistoryResult(
 	segments: string[],
 	filePath: string,
 	line: number,
 	relativePath: string,
 	limit: number,
-): Promise<GitHistoryBlock | null> {
-	const header = "--- history (recent line updates) -------------------------";
-	const result: string[] = [header];
-	let latestSnippet: readonly string[] | undefined;
+): Effect.Effect<GitHistoryBlock | null, never> {
+	return Effect.gen(function* (_) {
+		const header =
+			"--- history (recent line updates) -------------------------";
+		const result: string[] = [header];
+		let latestSnippet: readonly string[] | undefined;
 
-	// CHANGE: Bound iteration upfront to avoid loop guard inside (reduces complexity)
-	// WHY: ESLint complexity threshold
-	const limited = segments.slice(0, limit);
+		// CHANGE: Bound iteration upfront to avoid loop guard inside (reduces complexity)
+		// WHY: ESLint complexity threshold
+		const limited = segments.slice(0, limit);
 
-	for (const segment of limited) {
-		const processed = await processCommitSegment(
-			segment,
-			filePath,
-			line,
-			relativePath,
-		);
-		if (processed === null) continue;
+		for (const segment of limited) {
+			const processed = yield* _(
+				processCommitSegment(segment, filePath, line, relativePath),
+			);
+			if (processed === null) continue;
 
-		for (const l of processed.lines) {
-			result.push(l);
+			for (const l of processed.lines) {
+				result.push(l);
+			}
+			// CHANGE: Use helper to avoid conditional update
+			latestSnippet = pickFirst(latestSnippet, processed.snippet);
 		}
-		// CHANGE: Use helper to avoid conditional update
-		latestSnippet = pickFirst(latestSnippet, processed.snippet);
-	}
 
-	const totalCommits = segments.length;
-	if (result.length > 1) {
-		result.push(`Total commits for line: ${totalCommits}`);
-		result.push(`Full list: git log --follow -- ${relativePath} | cat`);
-		return latestSnippet === undefined
-			? { lines: result, totalCommits }
-			: { lines: result, totalCommits, latestSnippet };
-	}
-	return null;
+		const totalCommits = segments.length;
+		if (result.length > 1) {
+			result.push(`Total commits for line: ${totalCommits}`);
+			result.push(`Full list: git log --follow -- ${relativePath} | cat`);
+			return latestSnippet === undefined
+				? { lines: result, totalCommits }
+				: { lines: result, totalCommits, latestSnippet };
+		}
+		return null;
+	});
 }
 
-export async function getGitHistoryBlock(
+export function getGitHistoryBlock(
 	filePath: string,
 	line: number,
 	limit: number,
-): Promise<GitHistoryBlock | null> {
-	const historyCommand = `git log -L ${line},${line}:${filePath} --date=short`;
-	let historyOutput = "";
+): Effect.Effect<GitHistoryBlock | null, never> {
+	return Effect.gen(function* (_) {
+		const historyCommand = `git log -L ${line},${line}:${filePath} --date=short`;
 
-	const out = await execGitNonEmptyOrNull(historyCommand, 5 * 1024 * 1024);
-	if (out === null) {
-		return null;
-	}
-	historyOutput = out;
+		const out = yield* _(
+			execGitNonEmptyOrNull(historyCommand, 5 * 1024 * 1024),
+		);
+		if (out === null) {
+			return null;
+		}
+		const historyOutput = out;
 
-	const segments = parseGitLogSegments(historyOutput);
-	const relativePath = path
-		.relative(process.cwd(), filePath)
-		.replace(/\\/g, "/");
+		const segments = parseGitLogSegments(historyOutput);
+		const relativePath = path
+			.relative(process.cwd(), filePath)
+			.replace(/\\/g, "/");
 
-	return buildHistoryResult(segments, filePath, line, relativePath, limit);
+		return yield* _(
+			buildHistoryResult(segments, filePath, line, relativePath, limit),
+		);
+	});
 }
 
 /**
@@ -100,48 +107,54 @@ export async function getGitHistoryBlock(
  * @param contextLines Количество строк контекста в unified diff
  * @returns Массив блоков diff или null при ошибке
  */
-export async function getCommitDiffBlocks(
+export function getCommitDiffBlocks(
 	filePath: string,
 	line: number,
 	limit: number,
 	contextLines = 3,
-): Promise<readonly CommitDiffBlock[] | null> {
-	const commits = await fetchCommitHistoryForLine(filePath, line, limit);
-	// CHANGE: Avoid truthiness on nullable array
-	// WHY: strict-boolean-expressions — explicit null check
-	// QUOTE(ТЗ): "Исправить все ошибки линтера"
-	// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
-	if (commits === null) return null;
+): Effect.Effect<readonly CommitDiffBlock[] | null, never> {
+	return Effect.gen(function* (_) {
+		const commits = yield* _(fetchCommitHistoryForLine(filePath, line, limit));
+		// CHANGE: Avoid truthiness on nullable array
+		// WHY: strict-boolean-expressions — explicit null check
+		// QUOTE(ТЗ): "Исправить все ошибки линтера"
+		// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
+		if (commits === null) return null;
 
-	const relativePath = path
-		.relative(process.cwd(), filePath)
-		.replace(/\\/g, "/");
+		const relativePath = path
+			.relative(process.cwd(), filePath)
+			.replace(/\\/g, "/");
 
-	if (commits.length < 2) {
-		if (commits.length === 1) {
-			const creation = commits[0];
-			// CHANGE: Avoid truthiness on possibly undefined element
-			// WHY: strict-boolean-expressions — explicit undefined check
-			// QUOTE(ТЗ): "Исправить все ошибки линтера"
-			// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
-			if (creation === undefined) return null;
-			return handleSingleCommit(
-				creation,
-				filePath,
-				line,
-				relativePath,
-				contextLines,
-			);
+		if (commits.length < 2) {
+			if (commits.length === 1) {
+				const creation = commits[0];
+				// CHANGE: Avoid truthiness on possibly undefined element
+				// WHY: strict-boolean-expressions — explicit undefined check
+				// QUOTE(ТЗ): "Исправить все ошибки линтера"
+				// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
+				if (creation === undefined) return null;
+				return yield* _(
+					handleSingleCommit(
+						creation,
+						filePath,
+						line,
+						relativePath,
+						contextLines,
+					),
+				);
+			}
+			return null;
 		}
-		return null;
-	}
 
-	const diffBlocks = await buildDiffBlocks(
-		commits,
-		{ path: filePath, relativePath, line },
-		limit,
-		contextLines,
-	);
+		const diffBlocks = yield* _(
+			buildDiffBlocks(
+				commits,
+				{ path: filePath, relativePath, line },
+				limit,
+				contextLines,
+			),
+		);
 
-	return diffBlocks.length > 0 ? diffBlocks : null;
+		return diffBlocks.length > 0 ? diffBlocks : null;
+	});
 }

@@ -35,33 +35,51 @@ describe("TypeScript diagnostics scope (solution-style tsconfig, NodeNext)", () 
 		}
 	});
 
-	test("returns TS errors strictly from the provided test subtree", async () => {
+	test("returns TS errors strictly from the provided test subtree", () => {
+		// CHANGE: Remove async/await, use pure Effect.runPromise return
+		// WHY: Functional paradigm forbids async/await - use Effect composition
+		// PURITY: SHELL - contains file system effects
+		// EFFECT: Effect<void, never, never>
+
 		// Arrange: create a deliberate type error under test/ (strict typing applies from tsconfig.base.json)
 		fs.writeFileSync(badFile, 'const n: number = "x";\n', {
 			encoding: "utf-8",
 		});
 
-		// Act: Use Effect.runPromise to execute Effect-based linter
-		const msgs = await Effect.runPromise(getTypeScriptDiagnostics(badFile));
+		// Act & Assert: Use Effect.runPromise to execute Effect-based linter
+		return Effect.runPromise(
+			Effect.gen(function* (_) {
+				const msgs = yield* _(getTypeScriptDiagnostics(badFile));
 
-		// Assert: at least one TS2322 reported for bad.ts in the requested subtree
-		expect(msgs.length).toBeGreaterThan(0);
-		const hasTS2322 = msgs.some(
-			(m) =>
-				m.code === "TS2322" &&
-				(m.filePath.endsWith("bad.ts") || m.filePath.endsWith("bad.tsx")),
+				// Assert: at least one TS2322 reported for bad.ts in the requested subtree
+				expect(msgs.length).toBeGreaterThan(0);
+				const hasTS2322 = msgs.some(
+					(m) =>
+						m.code === "TS2322" &&
+						(m.filePath.endsWith("bad.ts") || m.filePath.endsWith("bad.tsx")),
+				);
+				expect(hasTS2322).toBe(true);
+			}),
 		);
-		expect(hasTS2322).toBe(true);
 	});
 
-	test("does not leak test/ diagnostics into src/ scope", async () => {
-		// Act: Use Effect.runPromise to execute Effect-based linter
-		const msgs = await Effect.runPromise(getTypeScriptDiagnostics("src/"));
+	test("does not leak test/ diagnostics into src/ scope", () =>
+		// CHANGE: Remove async/await, use pure Effect.runPromise return
+		// WHY: Functional paradigm forbids async/await - use Effect composition
+		// PURITY: SHELL - contains file system effects
+		// EFFECT: Effect<void, never, never>
 
-		// Assert: diagnostics from bad.ts must not appear when scoping to src/
-		const leaked = msgs.some(
-			(m) => m.filePath.endsWith("bad.ts") || m.filePath.endsWith("bad.tsx"),
-		);
-		expect(leaked).toBe(false);
-	});
+		// Act & Assert: Use Effect.runPromise to execute Effect-based linter
+		Effect.runPromise(
+			Effect.gen(function* (_) {
+				const msgs = yield* _(getTypeScriptDiagnostics("src/"));
+
+				// Assert: diagnostics from bad.ts must not appear when scoping to src/
+				const leaked = msgs.some(
+					(m) =>
+						m.filePath.endsWith("bad.ts") || m.filePath.endsWith("bad.tsx"),
+				);
+				expect(leaked).toBe(false);
+			}),
+		));
 });

@@ -2,6 +2,7 @@
 // WHY: Reduces line count of history.ts to under 300
 // REF: ESLint max-lines
 
+import { Effect } from "effect";
 import { extractDiffSnippet } from "../../core/diff/index.js";
 import type { DiffSnippet } from "../../core/types/index.js";
 import { execGitNonEmptyOrNull, getCommitSnippetForLine } from "./utils.js";
@@ -72,47 +73,54 @@ function extractCommitBasicInfo(lines: readonly string[]): {
 	return { hash, shortHash, date, summary };
 }
 
-export async function processCommitSegment(
+export function processCommitSegment(
 	segment: string,
 	filePath: string,
 	line: number,
 	relativePath: string,
-): Promise<{
-	readonly lines: string[];
-	readonly snippet: readonly string[] | undefined;
-} | null> {
-	const lines = segment.split(/\r?\n/u);
-	const info = extractCommitBasicInfo(lines);
-	// CHANGE: Avoid truthiness on nullable object
-	// WHY: strict-boolean-expressions — explicit null check
-	// QUOTE(ТЗ): "Исправить все ошибки линтера"
-	// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
-	if (info === null) return null;
+): Effect.Effect<
+	{
+		readonly lines: string[];
+		readonly snippet: readonly string[] | undefined;
+	} | null,
+	never
+> {
+	return Effect.gen(function* (_) {
+		const lines = segment.split(/\r?\n/u);
+		const info = extractCommitBasicInfo(lines);
+		// CHANGE: Avoid truthiness on nullable object
+		// WHY: strict-boolean-expressions — explicit null check
+		// QUOTE(ТЗ): "Исправить все ошибки линтера"
+		// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
+		if (info === null) return null;
 
-	const snippet = await getCommitSnippetForLine(info.hash, filePath, line, 2);
-	// CHANGE: Avoid truthiness on nullable array
-	// WHY: strict-boolean-expressions — check null and length explicitly
-	// QUOTE(ТЗ): "Исправить все ошибки линтера"
-	// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
-	const snippetLines =
-		snippet !== null && snippet.length > 0 ? snippet : undefined;
+		const snippet = yield* _(
+			getCommitSnippetForLine(info.hash, filePath, line, 2),
+		);
+		// CHANGE: Avoid truthiness on nullable array
+		// WHY: strict-boolean-expressions — check null and length explicitly
+		// QUOTE(ТЗ): "Исправить все ошибки линтера"
+		// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
+		const snippetLines =
+			snippet !== null && snippet.length > 0 ? snippet : undefined;
 
-	const resultLines: string[] = [];
-	resultLines.push(
-		`--- commit ${info.shortHash} (${info.date}) -------------------------`,
-	);
-	resultLines.push(`summary: ${info.summary}`);
-	resultLines.push(`git show ${info.shortHash} -- ${relativePath} | cat`);
+		const resultLines: string[] = [];
+		resultLines.push(
+			`--- commit ${info.shortHash} (${info.date}) -------------------------`,
+		);
+		resultLines.push(`summary: ${info.summary}`);
+		resultLines.push(`git show ${info.shortHash} -- ${relativePath} | cat`);
 
-	if (snippetLines !== undefined) {
-		for (const snippetLine of snippetLines) {
-			resultLines.push(snippetLine);
+		if (snippetLines !== undefined) {
+			for (const snippetLine of snippetLines) {
+				resultLines.push(snippetLine);
+			}
+		} else {
+			resultLines.push(`(code for commit ${info.shortHash} is not available)`);
 		}
-	} else {
-		resultLines.push(`(code for commit ${info.shortHash} is not available)`);
-	}
 
-	return { lines: resultLines, snippet: snippetLines };
+		return { lines: resultLines, snippet: snippetLines };
+	});
 }
 
 function extractAuthor(lines: readonly string[]): string {
@@ -148,117 +156,130 @@ export function parseCommitInfo(segment: string): CommitInfo | null {
 	};
 }
 
-export async function fetchCommitHistoryForLine(
+export function fetchCommitHistoryForLine(
 	filePath: string,
 	line: number,
 	limit: number,
-): Promise<CommitInfo[] | null> {
+): Effect.Effect<CommitInfo[] | null, never> {
 	const historyCommand = `git log -L ${line},${line}:${filePath} --date=short --pretty=format:"commit %H%nAuthor: %an <%ae>%nDate: %ad%n%n    %s%n"`;
 
 	// CHANGE: Use execGitNonEmptyOrNull to centralize stdout extraction + non-empty invariant
 	// WHY: remove duplicated pattern with trim/length checks (jscpd)
 	// REF: REQ-LINT-FIX
-	const out = await execGitNonEmptyOrNull(historyCommand, 5 * 1024 * 1024);
-	if (out === null) {
-		return null;
-	}
+	return execGitNonEmptyOrNull(historyCommand, 5 * 1024 * 1024).pipe(
+		Effect.map((out) => {
+			if (out === null) {
+				return null;
+			}
 
-	const segments = parseGitLogSegments(out);
-	const commits: CommitInfo[] = [];
-	for (const segment of segments.slice(0, limit + 1)) {
-		const commitInfo = parseCommitInfo(segment);
-		// CHANGE: Avoid truthiness on nullable object
-		// WHY: strict-boolean-expressions — explicit null check
-		// QUOTE(ТЗ): "Исправить все ошибки линтера"
-		// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
-		if (commitInfo !== null) commits.push(commitInfo);
-	}
+			const segments = parseGitLogSegments(out);
+			const commits: CommitInfo[] = [];
+			for (const segment of segments.slice(0, limit + 1)) {
+				const commitInfo = parseCommitInfo(segment);
+				// CHANGE: Avoid truthiness on nullable object
+				// WHY: strict-boolean-expressions — explicit null check
+				// QUOTE(ТЗ): "Исправить все ошибки линтера"
+				// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
+				if (commitInfo !== null) commits.push(commitInfo);
+			}
 
-	return commits;
+			return commits;
+		}),
+	);
 }
 
-export async function handleSingleCommit(
+export function handleSingleCommit(
 	creation: CommitInfo,
 	filePath: string,
 	line: number,
 	relativePath: string,
 	contextLines: number,
-): Promise<CommitDiffBlock[]> {
-	const emptyTree = "4b825dc642cb6eb9a060e54bf8d69288fbee4904";
-	const diffCommand = `git diff --unified=${contextLines} ${emptyTree}..${creation.hash} -- "${filePath}"`;
-	let diffOutput = "";
-
-	// CHANGE: Use execGitStdoutOrNull to centralize stdout extraction
-	// WHY: remove duplicated try/catch across modules (jscpd)
-	// REF: REQ-LINT-FIX
-	const outDiff = await execGitNonEmptyOrNull(diffCommand, 10 * 1024 * 1024);
-	if (outDiff !== null) {
-		diffOutput = outDiff;
-	}
-
-	const diffSnippet =
-		diffOutput.trim().length > 0 ? extractDiffSnippet(diffOutput, line) : null;
-
-	const heading = `--- git diff ${emptyTree.slice(0, 12)}..${creation.shortHash} -- ${relativePath} | cat`;
-
-	return [
-		{
-			heading,
-			newerCommit: creation,
-			olderCommit: {
-				hash: emptyTree,
-				shortHash: "(initial)",
-				date: creation.date,
-				author: creation.author,
-				summary: "File did not exist",
-			},
-			diffSnippet,
-		},
-	];
-}
-
-export async function buildDiffBlocks(
-	commits: CommitInfo[],
-	fileInfo: { path: string; relativePath: string; line: number },
-	limit: number,
-	contextLines: number,
-): Promise<CommitDiffBlock[]> {
-	const diffBlocks: CommitDiffBlock[] = [];
-
-	for (let i = 0; i < Math.min(commits.length - 1, limit); i += 1) {
-		const newer = commits[i];
-		const older = commits[i + 1];
-		// CHANGE: Avoid truthiness on possibly undefined entries
-		// WHY: strict-boolean-expressions — handle undefined explicitly
-		// QUOTE(ТЗ): "Исправить все ошибки линтера"
-		// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
-		if (newer === undefined || older === undefined) continue;
-
-		const diffCommand = `git diff --unified=${contextLines} ${older.hash}..${newer.hash} -- "${fileInfo.path}"`;
+): Effect.Effect<CommitDiffBlock[], never> {
+	return Effect.gen(function* (_) {
+		const emptyTree = "4b825dc642cb6eb9a060e54bf8d69288fbee4904";
+		const diffCommand = `git diff --unified=${contextLines} ${emptyTree}..${creation.hash} -- "${filePath}"`;
 		let diffOutput = "";
 
 		// CHANGE: Use execGitStdoutOrNull to centralize stdout extraction
 		// WHY: remove duplicated try/catch across modules (jscpd)
 		// REF: REQ-LINT-FIX
-		const out2 = await execGitNonEmptyOrNull(diffCommand, 10 * 1024 * 1024);
-		if (out2 !== null) {
-			diffOutput = out2;
+		const outDiff = yield* _(
+			execGitNonEmptyOrNull(diffCommand, 10 * 1024 * 1024),
+		);
+		if (outDiff !== null) {
+			diffOutput = outDiff;
 		}
 
 		const diffSnippet =
 			diffOutput.trim().length > 0
-				? extractDiffSnippet(diffOutput, fileInfo.line)
+				? extractDiffSnippet(diffOutput, line)
 				: null;
 
-		const heading = `--- git diff ${older.shortHash}..${newer.shortHash} -- ${fileInfo.relativePath} | cat`;
+		const heading = `--- git diff ${emptyTree.slice(0, 12)}..${creation.shortHash} -- ${relativePath} | cat`;
 
-		diffBlocks.push({
-			heading,
-			newerCommit: newer,
-			olderCommit: older,
-			diffSnippet,
-		});
-	}
+		return [
+			{
+				heading,
+				newerCommit: creation,
+				olderCommit: {
+					hash: emptyTree,
+					shortHash: "(initial)",
+					date: creation.date,
+					author: creation.author,
+					summary: "File did not exist",
+				},
+				diffSnippet,
+			},
+		];
+	});
+}
 
-	return diffBlocks;
+export function buildDiffBlocks(
+	commits: CommitInfo[],
+	fileInfo: { path: string; relativePath: string; line: number },
+	limit: number,
+	contextLines: number,
+): Effect.Effect<CommitDiffBlock[], never> {
+	return Effect.gen(function* (_) {
+		const diffBlocks: CommitDiffBlock[] = [];
+
+		for (let i = 0; i < Math.min(commits.length - 1, limit); i += 1) {
+			const newer = commits[i];
+			const older = commits[i + 1];
+			// CHANGE: Avoid truthiness on possibly undefined entries
+			// WHY: strict-boolean-expressions — handle undefined explicitly
+			// QUOTE(ТЗ): "Исправить все ошибки линтера"
+			// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
+			if (newer === undefined || older === undefined) continue;
+
+			const diffCommand = `git diff --unified=${contextLines} ${older.hash}..${newer.hash} -- "${fileInfo.path}"`;
+			let diffOutput = "";
+
+			// CHANGE: Use execGitStdoutOrNull to centralize stdout extraction
+			// WHY: remove duplicated try/catch across modules (jscpd)
+			// REF: REQ-LINT-FIX
+			const out2 = yield* _(
+				execGitNonEmptyOrNull(diffCommand, 10 * 1024 * 1024),
+			);
+			if (out2 !== null) {
+				diffOutput = out2;
+			}
+
+			const diffSnippet =
+				diffOutput.trim().length > 0
+					? extractDiffSnippet(diffOutput, fileInfo.line)
+					: null;
+
+			const heading = `--- git diff ${older.shortHash}..${newer.shortHash} -- ${fileInfo.relativePath} | cat`;
+
+			diffBlocks.push({
+				heading,
+				newerCommit: newer,
+				olderCommit: older,
+				diffSnippet,
+			});
+		}
+
+		return diffBlocks;
+	});
 }

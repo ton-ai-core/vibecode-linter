@@ -2,6 +2,7 @@
 // WHY: Reduces line count and complexity of printer.ts
 // REF: ESLint max-lines-per-function, max-lines
 import * as fs from "node:fs";
+import { Effect } from "effect";
 import {
 	getPriorityLevel as coreGetPriorityLevel,
 	getPriorityName as coreGetPriorityName,
@@ -152,18 +153,21 @@ export function printMessageHeader(m: LintMessageWithFile): void {
 	);
 }
 
-export async function printDiffBlock(
+export function printDiffBlock(
 	m: LintMessageWithFile,
 	diffRange: DiffRangeConfig,
 	diffContext: number,
-): Promise<GitDiffBlock | null> {
-	const diffBlock = await getGitDiffBlock(m, diffRange, diffContext);
-	if (diffBlock) {
-		console.log(diffBlock.heading);
-		for (const diffLine of diffBlock.lines) console.log(diffLine);
-		console.log(diffBlock.footer);
-	}
-	return diffBlock;
+): Effect.Effect<GitDiffBlock | null, never> {
+	return getGitDiffBlock(m, diffRange, diffContext).pipe(
+		Effect.map((diffBlock) => {
+			if (diffBlock) {
+				console.log(diffBlock.heading);
+				for (const diffLine of diffBlock.lines) console.log(diffLine);
+				console.log(diffBlock.footer);
+			}
+			return diffBlock;
+		}),
+	);
 }
 
 export function loadFileLines(
@@ -181,59 +185,61 @@ export function loadFileLines(
 	return cache.get(filePath) ?? null;
 }
 
-export async function printMessage(
+export function printMessage(
 	m: LintMessageWithFile,
 	cache: Map<string, readonly string[]>,
 	diffRange: DiffRangeConfig,
 	diffContext: number,
-): Promise<void> {
+): Effect.Effect<void, never> {
 	printMessageHeader(m);
-	const diffBlock = await printDiffBlock(m, diffRange, diffContext);
 
-	const lines = loadFileLines(m.filePath, cache);
-	if (lines) {
-		printFileContext(m, lines, diffBlock);
-	}
+	return printDiffBlock(m, diffRange, diffContext).pipe(
+		Effect.flatMap((diffBlock) => {
+			const lines = loadFileLines(m.filePath, cache);
+			if (lines) {
+				printFileContext(m, lines, diffBlock);
+			}
 
-	const { filePath, line, source } = m;
-	const commitDiffBlocks = await getCommitDiffBlocks(
-		filePath,
-		line,
-		3,
-		diffContext,
+			const { filePath, line, source } = m;
+			return getCommitDiffBlocks(filePath, line, 3, diffContext).pipe(
+				Effect.tap((commitDiffBlocks) => {
+					if (commitDiffBlocks) {
+						for (const block of commitDiffBlocks) {
+							console.log(`\n    ${block.heading}`);
+							console.log(
+								`    Newer: ${block.newerCommit.shortHash} (${block.newerCommit.date}) by ${block.newerCommit.author}: ${block.newerCommit.summary}`,
+							);
+							console.log(
+								`    Older: ${block.olderCommit.shortHash} (${block.olderCommit.date}) by ${block.olderCommit.author}: ${block.olderCommit.summary}`,
+							);
+
+							printCommitDiffSnippet(block);
+						}
+
+						const relativePath = filePath.replace(/\\/g, "/");
+						console.log(
+							`\n    Full list: git log -L ${line},${line}:${relativePath} | cat`,
+						);
+					} else {
+						console.log("\n    (no commits changing this line found)");
+					}
+				}),
+				Effect.map(() => {
+					if (source === "biome") {
+						const biomeRuleId = "ruleId" in m ? m.ruleId : null;
+						// CHANGE: Avoid truthiness check on possibly nullable string
+						// WHY: strict-boolean-expressions — require explicit nullish/empty handling
+						// QUOTE(ТЗ): "Исправить все ошибки линтера"
+						// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
+						if (typeof biomeRuleId === "string" && biomeRuleId.length > 0) {
+							console.log(
+								`   📖 docs: https://biomejs.dev/linter/rules/${biomeRuleId}`,
+							);
+						}
+					}
+					return m; // Return the message for the map callback
+				}),
+			);
+		}),
 	);
-
-	if (commitDiffBlocks) {
-		for (const block of commitDiffBlocks) {
-			console.log(`\n    ${block.heading}`);
-			console.log(
-				`    Newer: ${block.newerCommit.shortHash} (${block.newerCommit.date}) by ${block.newerCommit.author}: ${block.newerCommit.summary}`,
-			);
-			console.log(
-				`    Older: ${block.olderCommit.shortHash} (${block.olderCommit.date}) by ${block.olderCommit.author}: ${block.olderCommit.summary}`,
-			);
-
-			printCommitDiffSnippet(block);
-		}
-
-		const relativePath = filePath.replace(/\\/g, "/");
-		console.log(
-			`\n    Full list: git log -L ${line},${line}:${relativePath} | cat`,
-		);
-	} else {
-		console.log("\n    (no commits changing this line found)");
-	}
-
-	if (source === "biome") {
-		const biomeRuleId = "ruleId" in m ? m.ruleId : null;
-		// CHANGE: Avoid truthiness check on possibly nullable string
-		// WHY: strict-boolean-expressions — require explicit nullish/empty handling
-		// QUOTE(ТЗ): "Исправить все ошибки линтера"
-		// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
-		if (typeof biomeRuleId === "string" && biomeRuleId.length > 0) {
-			console.log(
-				`   📖 docs: https://biomejs.dev/linter/rules/${biomeRuleId}`,
-			);
-		}
-	}
 }

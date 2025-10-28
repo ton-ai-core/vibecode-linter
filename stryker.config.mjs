@@ -19,7 +19,7 @@ import os from "node:os";
 const CPU_COUNT = os.cpus().length;
 const IS_CI = process.env.CI === "true";
 const CONCURRENCY = IS_CI
-	? CPU_COUNT                    // CI: use all cores (4/4 on GitHub Actions)
+	? CPU_COUNT // CI: use all cores (4/4 on GitHub Actions)
 	: Math.floor(CPU_COUNT * 0.7); // Local: use 70% (11/16 on Ryzen 9, 2/4 on quad-core)
 
 /**

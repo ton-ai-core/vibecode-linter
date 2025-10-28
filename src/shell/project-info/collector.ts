@@ -13,7 +13,50 @@ import { Effect } from "effect";
 
 import { deriveFileContentMetrics } from "../../core/project/metrics.js";
 import type { ProjectFileRecord } from "../../core/types/index.js";
+
 import { fs, path } from "../utils/node-mods.js";
+
+/**
+ * Extract error message from error value.
+ *
+ * CHANGE: Simple error message extraction with proper typing
+ * WHY: Replace complex errorMessage function with simple implementation
+ * QUOTE(ТЗ): "Математически доказуемые решения"
+ * REF: Duplicate elimination
+ *
+ * @param error - Error value (Error or string)
+ * @returns String representation of error
+ * @pure true
+ * @complexity O(1)
+ */
+function getErrorMessage(error: Error | string): string {
+	if (error instanceof Error) {
+		return error.message;
+	}
+	return error;
+}
+
+/**
+ * Common error handler for file system operations.
+ *
+ * CHANGE: Extract common error handling pattern
+ * WHY: DRY principle - identical pattern used in walkDirectory and collectProjectFiles
+ * QUOTE(ТЗ): "Любое решение строится на математических инвариантах"
+ * REF: Duplicate elimination - DUPLICATE #1, #2
+ *
+ * @param error - Error from file system operation
+ * @param context - Context description for error message
+ * @returns Effect that succeeds with empty array
+ * @pure false (console.warn side effect)
+ * @complexity O(1)
+ */
+function handleFileSystemError(
+	error: Error | string,
+	context: string,
+): Effect.Effect<readonly ProjectFileRecord[], never> {
+	console.warn(`⚠️  Unable to read ${context}: ${getErrorMessage(error)}`);
+	return Effect.succeed<readonly ProjectFileRecord[]>([]);
+}
 
 const fsPromises = fs.promises;
 
@@ -27,96 +70,6 @@ const IGNORED_DIRECTORIES = new Set([
 	"build",
 	"out",
 ]);
-
-type ErrorLike =
-	| Error
-	| string
-	| number
-	| boolean
-	| bigint
-	| symbol
-	| null
-	| undefined
-	| readonly ErrorLike[]
-	| { readonly [key: string]: ErrorLike };
-
-function stringifyStructured(value: ErrorLike): string {
-	try {
-		const json = JSON.stringify(value);
-		if (typeof json === "string" && json.length > 0) {
-			return json;
-		}
-	} catch {
-		return Object.prototype.toString.call(value);
-	}
-	return Object.prototype.toString.call(value);
-}
-
-function isErrorWithMessage(value: ErrorLike): value is Error {
-	return value instanceof Error && value.message.length > 0;
-}
-
-function isNonEmptyString(value: ErrorLike): value is string {
-	return typeof value === "string" && value.length > 0;
-}
-
-function isBooleanOrNumber(value: ErrorLike): value is number | boolean {
-	return typeof value === "number" || typeof value === "boolean";
-}
-
-function isBigintOrSymbol(value: ErrorLike): value is bigint | symbol {
-	return typeof value === "bigint" || typeof value === "symbol";
-}
-
-function isNullish(value: ErrorLike): value is null | undefined {
-	return value == null;
-}
-
-function isPlainRecord(
-	value: ErrorLike,
-): value is { readonly [key: string]: ErrorLike } {
-	return (
-		typeof value === "object" &&
-		value !== null &&
-		!Array.isArray(value) &&
-		!(value instanceof Error)
-	);
-}
-
-/**
- * CHANGE: Normalize error-like values to human-readable strings.
- * WHY: Cannot rely on `unknown`; enforce explicit structural type.
- * QUOTE(ТЗ): "Строгая типизация"
- * REF: user-request-project-info
- * FORMAT THEOREM: errorMessage(e) ∈ string
- * PURITY: CORE helper
- * INVARIANT: Non-throwing for any input
- * COMPLEXITY: O(1)
- */
-function errorMessage(value: ErrorLike): string {
-	if (isErrorWithMessage(value)) {
-		return value.message;
-	}
-	if (isNonEmptyString(value)) {
-		return value;
-	}
-	if (isBooleanOrNumber(value)) {
-		return `${value}`;
-	}
-	if (isBigintOrSymbol(value)) {
-		return value.toString();
-	}
-	if (isNullish(value)) {
-		return String(value);
-	}
-	if (Array.isArray(value)) {
-		return stringifyStructured(value);
-	}
-	if (isPlainRecord(value)) {
-		return stringifyStructured(value);
-	}
-	return "unknown error";
-}
 
 /**
  * CHANGE: Normalize relative path inside target root.
@@ -144,28 +97,39 @@ function joinRelative(base: string, name: string): string {
  * INVARIANT: Returns null when file reading fails
  * COMPLEXITY: O(n) for reading file
  */
-async function createFileRecord(
+function createFileRecord(
 	absolutePath: string,
 	relativePath: string,
-): Promise<ProjectFileRecord | null> {
-	try {
-		const stats = await fsPromises.stat(absolutePath);
-		if (!stats.isFile()) {
-			return null;
-		}
-		const buffer = await fsPromises.readFile(absolutePath, "utf8");
-		const extension = path.extname(absolutePath).toLowerCase();
-		return {
-			relativePath,
-			sizeBytes: stats.size,
-			extension,
-			metrics: deriveFileContentMetrics(buffer, extension),
-		};
-	} catch (error) {
-		const formatted = error instanceof Error ? error : String(error);
-		console.warn(`⚠️  Skipped ${relativePath} (${errorMessage(formatted)})`);
-		return null;
-	}
+): Effect.Effect<ProjectFileRecord | null, never> {
+	return Effect.tryPromise({
+		try: () => fsPromises.stat(absolutePath),
+		catch: (error) => error as Error,
+	}).pipe(
+		Effect.flatMap((stats) => {
+			if (!stats.isFile()) {
+				return Effect.succeed(null);
+			}
+			return Effect.tryPromise({
+				try: () => fsPromises.readFile(absolutePath, "utf8"),
+				catch: (error) => error as Error,
+			}).pipe(
+				Effect.map((buffer) => {
+					const extension = path.extname(absolutePath).toLowerCase();
+					return {
+						relativePath,
+						sizeBytes: stats.size,
+						extension,
+						metrics: deriveFileContentMetrics(buffer, extension),
+					};
+				}),
+			);
+		}),
+		Effect.catchAll((error) => {
+			const errorMsg = error instanceof Error ? error.message : String(error);
+			console.warn(`⚠️  Skipped ${relativePath} (${errorMsg})`);
+			return Effect.succeed(null);
+		}),
+	);
 }
 
 /**
@@ -179,37 +143,50 @@ async function createFileRecord(
  * INVARIANT: Dir entries sorted lexicographically
  * COMPLEXITY: O(n)
  */
-async function walkDirectory(
+function walkDirectory(
 	absoluteDir: string,
 	relativeBase: string,
-): Promise<readonly ProjectFileRecord[]> {
-	const dirents = await fsPromises.readdir(absoluteDir, {
-		withFileTypes: true,
-	});
-	const records: ProjectFileRecord[] = [];
-	const sorted = [...dirents].sort((a, b) => a.name.localeCompare(b.name));
+): Effect.Effect<readonly ProjectFileRecord[], never> {
+	return Effect.gen(function* (_) {
+		const dirents = yield* _(
+			Effect.tryPromise({
+				try: () => fsPromises.readdir(absoluteDir, { withFileTypes: true }),
+				catch: (error) => error as Error,
+			}),
+		);
 
-	for (const dirent of sorted) {
-		const name = dirent.name;
-		const relativePath = joinRelative(relativeBase, name);
-		const absolutePath = path.join(absoluteDir, name);
-		if (dirent.isDirectory()) {
-			if (IGNORED_DIRECTORIES.has(name)) {
+		const records: ProjectFileRecord[] = [];
+		const sorted = [...dirents].sort((a, b) => a.name.localeCompare(b.name));
+
+		for (const dirent of sorted) {
+			const name = dirent.name;
+			const relativePath = joinRelative(relativeBase, name);
+			const absolutePath = path.join(absoluteDir, name);
+
+			if (dirent.isDirectory()) {
+				if (IGNORED_DIRECTORIES.has(name)) {
+					continue;
+				}
+				const nested = yield* _(walkDirectory(absolutePath, relativePath));
+				records.push(...nested);
 				continue;
 			}
-			const nested = await walkDirectory(absolutePath, relativePath);
-			records.push(...nested);
-			continue;
-		}
-		if (dirent.isFile()) {
-			const record = await createFileRecord(absolutePath, relativePath);
-			if (record !== null) {
-				records.push(record);
+
+			if (dirent.isFile()) {
+				const record = yield* _(createFileRecord(absolutePath, relativePath));
+				if (record !== null) {
+					records.push(record);
+				}
 			}
 		}
-	}
 
-	return records;
+		return records;
+	}).pipe(
+		Effect.catchAll((error) => {
+			const errorMsg = error instanceof Error ? error : String(error);
+			return handleFileSystemError(errorMsg, `directory ${absoluteDir}`);
+		}),
+	);
 }
 
 /**
@@ -227,30 +204,33 @@ async function walkDirectory(
 export function collectProjectFilesEffect(
 	targetPath: string,
 ): Effect.Effect<readonly ProjectFileRecord[], never> {
-	return Effect.tryPromise(async () => {
+	return Effect.gen(function* (_) {
 		const absoluteTarget = path.resolve(process.cwd(), targetPath);
-		try {
-			const stats = await fsPromises.stat(absoluteTarget);
-			if (stats.isFile()) {
-				const single = await createFileRecord(
-					absoluteTarget,
-					path.basename(absoluteTarget),
-				);
-				return single === null ? [] : [single];
-			}
-			if (stats.isDirectory()) {
-				return await walkDirectory(absoluteTarget, "");
-			}
-			console.warn(`⚠️  Target ${targetPath} is neither file nor directory.`);
-			return [];
-		} catch (error) {
-			const formatted = error instanceof Error ? error : String(error);
-			console.warn(
-				`⚠️  Unable to read ${targetPath}: ${errorMessage(formatted)}`,
+
+		const stats = yield* _(
+			Effect.tryPromise({
+				try: () => fsPromises.stat(absoluteTarget),
+				catch: (error) => error as Error,
+			}),
+		);
+
+		if (stats.isFile()) {
+			const single = yield* _(
+				createFileRecord(absoluteTarget, path.basename(absoluteTarget)),
 			);
-			return [];
+			return single === null ? [] : [single];
 		}
+
+		if (stats.isDirectory()) {
+			return yield* _(walkDirectory(absoluteTarget, ""));
+		}
+
+		console.warn(`⚠️  Target ${targetPath} is neither file nor directory.`);
+		return [];
 	}).pipe(
-		Effect.catchAll(() => Effect.succeed<readonly ProjectFileRecord[]>([])),
+		Effect.catchAll((error) => {
+			const errorMsg = error instanceof Error ? error : String(error);
+			return handleFileSystemError(errorMsg, targetPath);
+		}),
 	);
 }

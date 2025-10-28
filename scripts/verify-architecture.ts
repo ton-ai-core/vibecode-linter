@@ -187,7 +187,10 @@ function checkAppLayerDependencies(
 		const moduleSpecifier = importDecl.getModuleSpecifierValue();
 
 		// Check if it's an external dependency (not relative path)
-		if (!moduleSpecifier.startsWith(".") && !moduleSpecifier.startsWith("../")) {
+		if (
+			!moduleSpecifier.startsWith(".") &&
+			!moduleSpecifier.startsWith("../")
+		) {
 			const isAllowed = allowedFrameworks.some((fw) =>
 				moduleSpecifier.startsWith(fw),
 			);

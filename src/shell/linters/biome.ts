@@ -10,12 +10,14 @@
 // WHY: Biome lint rule requires explicit node: prefix for clarity
 // REF: lint/style/useNodejsImportProtocol
 // SOURCE: https://biomejs.dev/linter/rules/lint/style/useNodejsImportProtocol
+
 import { exec } from "node:child_process";
 import { promisify } from "node:util";
 import { Effect, pipe } from "effect";
 
 import { ExternalToolError, type ParseError } from "../../core/errors.js";
 import { extractStdoutFromError } from "../../core/types/index.js";
+import { execCommand } from "../utils/exec.js";
 import { type BiomeResult, parseBiomeOutput } from "./biome-parser.js";
 import { extractStdoutOrThrow } from "./linter-helpers.js";
 
@@ -62,7 +64,7 @@ export function runBiomeFix(
 		// INVARIANT: Executes exactly maxAttempts passes
 		for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
 			yield* Effect.tryPromise({
-				try: async () => execAsync(biomeFixCommand),
+				try: () => execAsync(biomeFixCommand),
 				catch: (error) => {
 					// Biome returns non-zero on fixed issues - this is expected
 					const out = extractStdoutFromError(error as Error);
@@ -123,17 +125,14 @@ export function getBiomeDiagnostics(
 		// COMPLEXITY: O(1)
 		console.log(`🧪 Running Biome diagnostics on: ${targetPath}`);
 		console.log(`   ↳ Command: ${biomeDiagnosticsCommand}`);
-		const stdout = yield* Effect.promise(async () => {
-			try {
-				const result = await execAsync(biomeDiagnosticsCommand);
-				return result.stdout;
-			} catch (error) {
+		const stdout = yield* execCommand(biomeDiagnosticsCommand).pipe(
+			Effect.catchAll((error) => {
 				// CHANGE: Use extractStdoutOrThrow to remove code duplication
 				// WHY: Identical pattern in eslint.ts (jscpd DUPLICATE #1)
 				// REF: linter-helpers.ts, REQ-LINT-FIX
-				return extractStdoutOrThrow(error as Error);
-			}
-		}).pipe(
+				const stdout = extractStdoutOrThrow(error);
+				return Effect.succeed(stdout);
+			}),
 			Effect.catchAll((error) => {
 				console.error("❌ Biome diagnostics failed:", error);
 				return Effect.fail(
@@ -203,15 +202,15 @@ function getBiomeDiagnosticsPerFileEffect(
 const listBiomeTargetFiles = (
 	targetPath: string,
 ): Effect.Effect<readonly string[], ExternalToolError> =>
-	Effect.promise(async () => {
-		try {
-			return await execAsync(
+	Effect.tryPromise({
+		try: () =>
+			execAsync(
 				`find "${targetPath}" -name "*.ts" -o -name "*.tsx" | head -20`,
-			);
-		} catch (error) {
+			),
+		catch: (error) => {
 			console.error("Failed to list files:", error);
-			throw error;
-		}
+			return error as Error;
+		},
 	}).pipe(
 		Effect.catchAll((error) =>
 			Effect.fail(
@@ -263,17 +262,7 @@ const collectPerFileDiagnostics = (
 const runBiomeCheckForFile = (
 	file: string,
 ): Effect.Effect<readonly BiomeResult[], never> =>
-	Effect.promise(async () => {
-		try {
-			const result = await execAsync(
-				`npx biome check "${file}" --reporter=json`,
-			);
-			return result.stdout;
-		} catch (error) {
-			const stdout = extractStdoutFromError(error as Error);
-			return stdout ?? "";
-		}
-	})
+	execCommand(`npx biome check "${file}" --reporter=json`)
 		.pipe(Effect.catchAll(() => Effect.succeed("")))
 		.pipe(
 			Effect.flatMap((stdout) =>

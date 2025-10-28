@@ -13,6 +13,7 @@ import { computeExitCode } from "../core/decision.js";
 import type { ExitCode } from "../core/models.js";
 import type { CLIOptions, LintMessageWithFile } from "../core/types/index.js";
 import { checkAndReportPreflight } from "../shell/analysis/preflight.js";
+import { parseCLIArgs } from "../shell/config/cli.js";
 import { loadLinterConfig } from "../shell/config/index.js";
 import {
 	getBiomeDiagnostics,
@@ -164,13 +165,15 @@ function preflightOk(cliOptions: CLIOptions): boolean {
  *
  * @pure false (executes checks, console output)
  */
-async function haveCliDependencies(): Promise<boolean> {
-	const depCheck = await checkDependencies();
-	if (!depCheck.allAvailable) {
-		reportMissingDependencies(depCheck.missing);
-		return false;
-	}
-	return true;
+function haveCliDependencies(): Effect.Effect<boolean, never> {
+	return Effect.gen(function* (_) {
+		const depCheck = yield* _(checkDependencies());
+		if (!depCheck.allAvailable) {
+			reportMissingDependencies(depCheck.missing);
+			return false;
+		}
+		return true;
+	});
 }
 
 /**
@@ -214,7 +217,7 @@ function maybeRunAutoFixEffect(
  * REF: Architecture plan - Effect-based APP composition
  *
  * @param cliOptions - Parsed CLI options
- * @returns Promise wrapping Effect execution
+ * @returns Effect<ExitCode, never>
  *
  * @pure false (coordinates effects), but does not terminate the process
  * @effect Effect<ExitCode, never> - errors are handled internally
@@ -222,44 +225,74 @@ function maybeRunAutoFixEffect(
  * @postcondition (hasLintErrors ∨ hasDuplicates) → 1 else 0
  * @complexity O(n + m) where n=files, m=diagnostics
  */
-export async function runLinter(cliOptions: CLIOptions): Promise<ExitCode> {
-	// CHANGE: Preflight checks remain sync for now (will be Effect-ified in future iteration)
-	// WHY: Incremental refactoring - focus on linter execution first
-	if (!preflightOk(cliOptions)) return 1;
-	if (!(await haveCliDependencies())) return 1;
+export function runLinter(
+	cliOptions: CLIOptions,
+): Effect.Effect<ExitCode, never> {
+	return Effect.gen(function* (_) {
+		// CHANGE: Preflight checks remain sync for now (will be Effect-ified in future iteration)
+		// WHY: Incremental refactoring - focus on linter execution first
+		if (!preflightOk(cliOptions)) return 1;
 
-	console.log(`🔍 Linting directory: ${cliOptions.targetPath}`);
+		const depsOk = yield* _(haveCliDependencies());
+		if (!depsOk) return 1;
 
-	// CHANGE: Use Effect.runPromise to execute Effect-based auto-fix
-	// WHY: Bridges Effect world with Promise-based orchestration
-	// INVARIANT: Errors are handled internally, never propagated
-	await Effect.runPromise(
-		maybeRunAutoFixEffect(cliOptions.targetPath, cliOptions.noFix),
-	);
+		console.log(`🔍 Linting directory: ${cliOptions.targetPath}`);
 
-	// CHANGE: Use Effect.runPromise to execute Effect-based linter collection
-	// WHY: Bridges Effect world with Promise-based orchestration
-	const allMessages = await Effect.runPromise(
-		collectLintMessagesEffect(cliOptions.targetPath),
-	);
+		// CHANGE: Use Effect composition for auto-fix
+		// WHY: Consistent functional approach throughout pipeline
+		yield* _(maybeRunAutoFixEffect(cliOptions.targetPath, cliOptions.noFix));
 
-	// CHANGE: Remaining functions stay Promise-based for now
-	// WHY: Incremental refactoring - will convert in future iterations
-	const sarifPath = await generateSarifReport(cliOptions.targetPath);
+		// CHANGE: Use Effect composition for linter collection
+		// WHY: Consistent functional approach throughout pipeline
+		const allMessages = yield* _(
+			collectLintMessagesEffect(cliOptions.targetPath),
+		);
 
-	const config = loadLinterConfig();
-	const hasLintErrors = await processResults(allMessages, config, cliOptions);
+		// CHANGE: Use Effect composition for SARIF report generation with error handling
+		// WHY: Function migrated to Effect.Effect pattern, handle potential errors
+		const sarifPath = yield* _(
+			generateSarifReport(cliOptions.targetPath).pipe(
+				Effect.catchAll(() => Effect.succeed("")),
+			),
+		);
 
-	const hasDuplicates = handleDuplicates(hasLintErrors, sarifPath, cliOptions);
+		const config = loadLinterConfig();
+		const hasLintErrors = yield* _(
+			processResults(allMessages, config, cliOptions),
+		);
 
-	const shouldReportInsights = !hasLintErrors && !hasDuplicates;
-	if (shouldReportInsights) {
-		// CHANGE: Only print project snapshot/insights when lint + duplicate checks pass
-		// WHY: Avoid noisy output when errors remain; surface insights after fixes
-		// QUOTE(USER): "Я думаю не стоит отображать Project snapshot если в коде есть ошибки"
-		// REF: user-request-project-info
-		await Effect.runPromise(reportProjectInsightsEffect(cliOptions.targetPath));
-	}
+		const hasDuplicates = handleDuplicates(
+			hasLintErrors,
+			sarifPath,
+			cliOptions,
+		);
 
-	return computeExitCode({ hasLintErrors, hasDuplicates });
+		const shouldReportInsights = !hasLintErrors && !hasDuplicates;
+		if (shouldReportInsights) {
+			// CHANGE: Only print project snapshot/insights when lint + duplicate checks pass
+			// WHY: Avoid noisy output when errors remain; surface insights after fixes
+			// QUOTE(USER): "Я думаю не стоит отображать Project snapshot если в коде есть ошибки"
+			// REF: user-request-project-info
+			yield* _(reportProjectInsightsEffect(cliOptions.targetPath));
+		}
+
+		return computeExitCode({ hasLintErrors, hasDuplicates });
+	});
+}
+
+/**
+ * Main entry point for the application.
+ *
+ * CHANGE: Parse CLI args and delegate to runLinter
+ * WHY: Separation of concerns - CLI parsing vs linter orchestration
+ * QUOTE(ТЗ): "Effect-TS для всех эффектов"
+ * REF: Architecture plan - Effect-based APP composition
+ *
+ * @returns Effect<ExitCode, never>
+ * @pure false (coordinates effects)
+ * @complexity O(1) - orchestration only
+ */
+export function main(): Effect.Effect<ExitCode, never> {
+	const cliOptions = parseCLIArgs();
+	return runLinter(cliOptions);
 }

@@ -4,6 +4,7 @@
 // REF: REQ-20250210-MODULAR-ARCH
 // SOURCE: n/a
 
+import { Effect } from "effect";
 import {
 	computeRealColumnFromVisual,
 	expandTabs,
@@ -82,44 +83,49 @@ function createDiffAttempts(
 // QUOTE(LINT): "Function has too many lines (190). Maximum allowed is 50"
 // REF: ESLint max-lines-per-function
 // SOURCE: n/a
-async function executeDiffAttempts(
+function executeDiffAttempts(
 	attempts: ReadonlyArray<{
 		readonly descriptor: string;
 		readonly command: string;
 	}>,
 	targetLine: number,
-): Promise<{
-	readonly snippet: DiffSnippet;
-	readonly descriptor: string;
-} | null> {
-	const diffOutputs: string[] = [];
-	const descriptors: string[] = [];
+): Effect.Effect<
+	{
+		readonly snippet: DiffSnippet;
+		readonly descriptor: string;
+	} | null,
+	never
+> {
+	return Effect.gen(function* (_) {
+		const diffOutputs: string[] = [];
+		const descriptors: string[] = [];
 
-	for (const attempt of attempts) {
-		// CHANGE: Centralize stdout extraction to avoid duplicated try/catch
-		// WHY: jscpd flagged repeated patterns; use unified helper
-		// REF: REQ-LINT-FIX, execGitStdoutOrNull
-		const out = await execGitStdoutOrNull(attempt.command);
-		if (typeof out !== "string" || out.trim().length === 0) {
-			continue;
+		for (const attempt of attempts) {
+			// CHANGE: Centralize stdout extraction to avoid duplicated try/catch
+			// WHY: jscpd flagged repeated patterns; use unified helper
+			// REF: REQ-LINT-FIX, execGitStdoutOrNull
+			const out = yield* _(execGitStdoutOrNull(attempt.command));
+			if (typeof out !== "string" || out.trim().length === 0) {
+				continue;
+			}
+			const diffOutput = out;
+
+			diffOutputs.push(diffOutput);
+			descriptors.push(attempt.descriptor);
+
+			const pickResult = pickSnippetForLine(diffOutputs, targetLine);
+			if (pickResult !== null) {
+				const descriptorIndex = pickResult.index;
+				const descriptor = descriptors[descriptorIndex] ?? attempt.descriptor;
+				return {
+					snippet: pickResult.snippet,
+					descriptor,
+				};
+			}
 		}
-		const diffOutput = out;
 
-		diffOutputs.push(diffOutput);
-		descriptors.push(attempt.descriptor);
-
-		const pickResult = pickSnippetForLine(diffOutputs, targetLine);
-		if (pickResult !== null) {
-			const descriptorIndex = pickResult.index;
-			const descriptor = descriptors[descriptorIndex] ?? attempt.descriptor;
-			return {
-				snippet: pickResult.snippet,
-				descriptor,
-			};
-		}
-	}
-
-	return null;
+		return null;
+	});
 }
 
 // CHANGE: Extracted helper to compute column positions
@@ -333,37 +339,39 @@ function buildFinalDiffBlock(context: DiffBlockContext): GitDiffBlock {
  * @param contextLines Количество строк контекста вокруг изменения
  * @returns Блок git diff с форматированием или null, если diff недоступен
  */
-export async function getGitDiffBlock(
+export function getGitDiffBlock(
 	message: LintMessage & { filePath: string },
 	rangeConfig: DiffRangeConfig,
 	contextLines: number,
-): Promise<GitDiffBlock | null> {
+): Effect.Effect<GitDiffBlock | null, never> {
 	const normalizedContext = contextLines > 0 ? contextLines : 3;
 
 	const attempts = createDiffAttempts(message, rangeConfig, normalizedContext);
-	const selection = await executeDiffAttempts(attempts, message.line);
+	return executeDiffAttempts(attempts, message.line).pipe(
+		Effect.map((selection) => {
+			if (selection === null) {
+				return null;
+			}
 
-	if (selection === null) {
-		return null;
-	}
+			const { snippet, descriptor } = selection;
+			const pointerIndex = snippet.pointerIndex;
+			if (pointerIndex === null) {
+				return null;
+			}
 
-	const { snippet, descriptor } = selection;
-	const pointerIndex = snippet.pointerIndex;
-	if (pointerIndex === null) {
-		return null;
-	}
+			const pointerLine = snippet.lines[pointerIndex];
+			if (pointerLine === undefined) {
+				return null;
+			}
 
-	const pointerLine = snippet.lines[pointerIndex];
-	if (pointerLine === undefined) {
-		return null;
-	}
-
-	return buildFinalDiffBlock({
-		snippet,
-		descriptor,
-		pointerIndex,
-		pointerLine,
-		message,
-		normalizedContext,
-	});
+			return buildFinalDiffBlock({
+				snippet,
+				descriptor,
+				pointerIndex,
+				pointerLine,
+				message,
+				normalizedContext,
+			});
+		}),
+	);
 }

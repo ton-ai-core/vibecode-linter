@@ -6,6 +6,7 @@
 
 import { exec } from "node:child_process";
 import { promisify } from "node:util";
+import { Effect } from "effect";
 
 const execAsync = promisify(exec);
 
@@ -74,13 +75,16 @@ const DEPENDENCIES: readonly Dependency[] = [
  * @param checkCommand Команда для проверки
  * @returns True если команда доступна
  */
-async function isCommandAvailable(checkCommand: string): Promise<boolean> {
-	try {
-		await execAsync(checkCommand, { timeout: 5000 });
-		return true;
-	} catch {
-		return false;
-	}
+function isCommandAvailable(
+	checkCommand: string,
+): Effect.Effect<boolean, never> {
+	return Effect.tryPromise({
+		try: () => execAsync(checkCommand, { timeout: 5000 }),
+		catch: () => false,
+	}).pipe(
+		Effect.map(() => true),
+		Effect.catchAll(() => Effect.succeed(false)),
+	);
 }
 
 /**
@@ -96,20 +100,25 @@ interface DependencyCheckResult {
  *
  * @returns Результат проверки
  */
-export async function checkDependencies(): Promise<DependencyCheckResult> {
-	const missing: Dependency[] = [];
+export function checkDependencies(): Effect.Effect<
+	DependencyCheckResult,
+	never
+> {
+	return Effect.gen(function* (_) {
+		const missing: Dependency[] = [];
 
-	for (const dep of DEPENDENCIES) {
-		const available = await isCommandAvailable(dep.checkCommand);
-		if (!available && dep.required) {
-			missing.push(dep);
+		for (const dep of DEPENDENCIES) {
+			const available = yield* _(isCommandAvailable(dep.checkCommand));
+			if (!available && dep.required) {
+				missing.push(dep);
+			}
 		}
-	}
 
-	return {
-		allAvailable: missing.length === 0,
-		missing,
-	};
+		return {
+			allAvailable: missing.length === 0,
+			missing,
+		};
+	});
 }
 
 /**

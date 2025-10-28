@@ -177,12 +177,13 @@ function parseCommitLine(line: string): GitCommitInfo | null {
  * COMPLEXITY: O(1)
  */
 function fetchGitStatusEffect(): Effect.Effect<GitStatusSummary, never> {
-	return Effect.tryPromise(async () => {
-		const raw = (await execGitStdoutOrNull("git status -sb")) ?? "";
+	return Effect.gen(function* (_) {
+		const rawResult = yield* _(execGitStdoutOrNull("git status -sb"));
+		const raw = rawResult ?? "";
 		if (raw.length === 0 || raw.startsWith("fatal:")) {
 			return DEFAULT_STATUS;
 		}
-		const lines = raw.split(/\r?\n/u).filter((line) => line.length > 0);
+		const lines = raw.split(/\r?\n/u).filter((line: string) => line.length > 0);
 		const header = lines.at(0);
 		const rest = lines.slice(1);
 		const parsed = parseStatusHeader(header);
@@ -237,11 +238,13 @@ function fetchRecentCommitsEffect(
 	if (ref === null) {
 		return Effect.succeed<readonly GitCommitInfo[]>([]);
 	}
-	return Effect.tryPromise(async () => {
-		const raw =
-			(await execGitStdoutOrNull(
+	return Effect.gen(function* (_) {
+		const rawResult = yield* _(
+			execGitStdoutOrNull(
 				`git log -5 --date=short --pretty=format:"%h%x1F%cd%x1F%s%x1F%an" ${ref}`,
-			)) ?? "";
+			),
+		);
+		const raw = rawResult ?? "";
 		if (raw.length === 0 || raw.startsWith("fatal:")) {
 			return [];
 		}
