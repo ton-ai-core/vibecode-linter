@@ -11,14 +11,8 @@
 		// WHY: Root config must see all files for ESLint, but delegate builds to references
 		"noEmit": true
 	},
-	"include": [
-		"src/**/*.ts",
-		"test/**/*.ts"
-	],
-	"exclude": [
-		"node_modules",
-		"dist"
-	],
+	"include": ["src/**/*.ts", "test/**/*.ts"],
+	"exclude": ["node_modules", "dist"],
 	"references": [
 		{
 			"path": "./tsconfig.src.json"

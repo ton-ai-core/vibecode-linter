@@ -1,0 +1,43 @@
+{
+	"compilerOptions": {
+		// Современная конфигурация для максимальной строгости
+		"target": "ES2022",
+		"module": "NodeNext",
+		"moduleResolution": "NodeNext",
+		"lib": ["ES2022"],
+
+		// Максимальная строгость типизации
+		"strict": true,
+		"exactOptionalPropertyTypes": true,
+		"noUncheckedIndexedAccess": true,
+		"noImplicitReturns": true,
+		"noFallthroughCasesInSwitch": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"noImplicitOverride": true,
+		"noPropertyAccessFromIndexSignature": true,
+		"allowUnusedLabels": false,
+		"allowUnreachableCode": false,
+
+		// Модульная система
+		"esModuleInterop": true,
+		"allowSyntheticDefaultImports": true,
+		"forceConsistentCasingInFileNames": true,
+		"resolveJsonModule": true,
+		"isolatedModules": true,
+
+		// Вывод
+		"noEmit": true,
+		"skipLibCheck": false,
+
+		// Пути
+		"baseUrl": ".",
+		"paths": {
+			"@/*": ["src/*"],
+			"@utils/*": ["src/utils/*"],
+			"@types/*": ["src/types/*"]
+		}
+	},
+	"include": ["src/**/*.ts", "src/**/*.tsx"],
+	"exclude": ["node_modules", "dist", "build"]
+}

@@ -380,6 +380,31 @@ export default tseslint.config(
 		},
 	},
 
+	// E2E тесты - более мягкие ограничения
+	{
+		files: ["test/e2e/**/*.test.{ts,tsx}"],
+		rules: {
+			"max-lines-per-function": [
+				"error",
+				{ max: 300, skipBlankLines: true, skipComments: true },
+			],
+			"max-lines": [
+				"error",
+				{ max: 500, skipBlankLines: true, skipComments: true },
+			],
+			complexity: ["error", 15],
+		},
+	},
+
+	// E2E тесты - исключения для интеграционных тестов
+	{
+		files: ["**/e2e/**/*.test.{ts,tsx}"],
+		rules: {
+			"max-lines-per-function": "off", // E2E тесты могут быть длинными
+			"max-lines": "off", // E2E файлы могут быть большими
+		},
+	},
+
 	// JSON/JSONC
 	{
 		files: ["**/*.json", "**/*.jsonc"],

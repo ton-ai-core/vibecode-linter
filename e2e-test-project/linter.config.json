@@ -1,0 +1,31 @@
+{
+	"priorityLevels": [
+		{
+			"level": 1,
+			"name": "Critical Compiler Errors",
+			"rules": [
+				"ts(2835)",
+				"ts(2307)",
+				"@ton-ai-core/suggest-members/suggest-members",
+				"@ton-ai-core/suggest-members/suggest-imports",
+				"@ton-ai-core/suggest-members/suggest-module-paths",
+				"@typescript-eslint/no-explicit-any"
+			]
+		},
+		{
+			"level": 2,
+			"name": "Critical Compiler Errors",
+			"rules": ["all"]
+		},
+		{
+			"level": 3,
+			"name": "Critical Compiler Errors (Code must follow Clean Code and best practices)",
+			"rules": ["max-lines-per-function", "max-lines"]
+		},
+		{
+			"level": 4,
+			"name": "Critical Compiler Errors (Code must follow Clean Code and best practices)",
+			"rules": ["complexity", "max-params", "max-depth"]
+		}
+	]
+}

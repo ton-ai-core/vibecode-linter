@@ -1,0 +1,28 @@
+{
+	"name": "vibecode-linter-e2e-demo",
+	"version": "1.0.0",
+	"description": "Демонстрационный проект для тестирования vibecode-linter с реальными ошибками",
+	"type": "module",
+	"scripts": {
+		"lint": "vibecode-linter src/",
+		"lint:fix": "vibecode-linter src/ --fix",
+		"lint:duplicates": "vibecode-linter src/ --duplicates",
+		"lint:all": "vibecode-linter src/ --duplicates --fix"
+	},
+	"keywords": [
+		"linter",
+		"typescript",
+		"eslint",
+		"biome",
+		"demo"
+	],
+	"author": "vibecode-linter team",
+	"license": "MIT",
+	"devDependencies": {
+		"typescript": "^5.3.0",
+		"@biomejs/biome": "^1.9.0",
+		"eslint": "^9.0.0",
+		"@typescript-eslint/eslint-plugin": "^7.0.0",
+		"@typescript-eslint/parser": "^7.0.0"
+	}
+}
