@@ -5,7 +5,7 @@
 // SOURCE: n/a
 
 import * as path from "node:path";
-import { jest } from "@jest/globals"; // CHANGE: ESM Jest requires explicit import of 'jest' in ESM modules
+import { afterEach, describe, expect, type Mock, test, vi } from "vitest"; // CHANGE: Migrate from Jest to Vitest
 import {
 	hasPackageJson,
 	isNpxIsolatedProcess,
@@ -109,21 +109,25 @@ describe("preflight: runPreflight scenarios (positive)", () => {
 });
 
 describe("preflight: printPreflightReport messages (English, actionable)", () => {
+	// CHANGE: Setup spies helper with explicit types for Vitest
+	// WHY: @typescript-eslint/explicit-function-return-type requires explicit types
+	// PURITY: SHELL - mocking console for test isolation
+	// INVARIANT: Mocks capture all console calls for assertion
 	const setupSpies = (): {
-		err: jest.SpiedFunction<typeof console.error>;
-		warn: jest.SpiedFunction<typeof console.warn>;
+		err: Mock;
+		warn: Mock;
 	} => {
-		const err = jest.spyOn(console, "error").mockImplementation(() => {
+		const err = vi.spyOn(console, "error").mockImplementation(() => {
 			// sink
 		});
-		const warn = jest.spyOn(console, "warn").mockImplementation(() => {
+		const warn = vi.spyOn(console, "warn").mockImplementation(() => {
 			// sink
 		});
 		return { err, warn };
 	};
 
 	afterEach((): void => {
-		jest.restoreAllMocks();
+		vi.restoreAllMocks();
 	});
 
 	test("printPreflightReport prints guidance for missing TypeScript and Biome", (): void => {

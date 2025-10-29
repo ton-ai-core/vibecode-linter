@@ -1,6 +1,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { Effect } from "effect";
+import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import { getTypeScriptDiagnostics } from "../../src/shell/linters/index.js";
 
 // CHANGE: Deterministic test that our TS diagnostics respect targetPath scope

@@ -1,3 +1,4 @@
+import { describe, expect, it } from "vitest";
 import { deriveFileContentMetrics } from "../../../src/core/project/metrics.js";
 
 describe("deriveFileContentMetrics", () => {

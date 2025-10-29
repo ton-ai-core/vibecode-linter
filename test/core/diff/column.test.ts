@@ -9,6 +9,7 @@
 // COMPLEXITY: O(n)/O(1) per assertion — linear scan over input length
 
 import fc from "fast-check";
+import { describe, expect, it } from "vitest";
 
 import {
 	computeRealColumnFromVisual,

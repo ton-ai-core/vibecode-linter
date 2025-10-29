@@ -8,6 +8,7 @@
 // INVARIANT: Parsed snippets preserve head line numbering monotonicity
 // COMPLEXITY: O(n) per fixture — linear in number of diff lines
 
+import { describe, expect, it } from "vitest";
 import {
 	extractDiffSnippet,
 	pickSnippetForLine,

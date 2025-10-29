@@ -57,6 +57,18 @@ yarn-error.log*
 *.temp
 .cache/
 
+# E2E test isolation directory
+# CHANGE: Ignore .e2e/ directory containing isolated test copies
+# WHY: E2E tests create isolated git repos that shouldn't be tracked
+# REF: user-request-e2e-isolation
+.e2e/
+
+# Stryker mutation testing temporary directory
+# CHANGE: Ignore .stryker-tmp/ directory containing temporary mutation files
+# WHY: Stryker creates temporary mutated copies that shouldn't be tracked
+# REF: mutation-testing-implementation
+.stryker-tmp/
+
 # TypeScript incremental build metadata
 # CHANGE: Ignore .tsbuildinfo files to avoid dirty working tree on release
 # WHY: tsc with composite/incremental writes .tsbuildinfo; we now route it to dist/.tsbuildinfo

@@ -1,9 +1,12 @@
 // eslint.config.mjs
+// CHANGE: Migrate from eslint-plugin-jest to eslint-plugin-vitest
+// WHY: Project migrated from Jest to Vitest for testing
+// REF: Migration from Jest to Vitest
 import js from "@eslint/js";
 import eslintComments from "@eslint-community/eslint-plugin-eslint-comments";
 import suggestMembers from "@ton-ai-core/eslint-plugin-suggest-members";
 import importX from "eslint-plugin-import-x";
-import jestPlugin from "eslint-plugin-jest";
+import vitestPlugin from "eslint-plugin-vitest";
 import jsonc from "eslint-plugin-jsonc";
 import promisePlugin from "eslint-plugin-promise";
 import simpleImportSort from "eslint-plugin-simple-import-sort";
@@ -41,7 +44,7 @@ export default tseslint.config(
 		],
 		plugins: {
 			"@eslint-community/eslint-comments": eslintComments,
-			jest: jestPlugin,
+			vitest: vitestPlugin,
 			"@ton-ai-core/suggest-members": suggestMembers,
 			"typeorm-typescript": typeormTS,
 			sql,
@@ -363,20 +366,21 @@ export default tseslint.config(
 	},
 
 	// Тесты
+	// CHANGE: Use vitest plugin instead of jest
+	// WHY: Project migrated to Vitest
 	{
 		files: ["**/*.spec.{ts,tsx}", "**/*.test.{ts,tsx}"],
-		plugins: { jest: jestPlugin },
+		plugins: { vitest: vitestPlugin },
 		languageOptions: {
-			globals: { ...globals.jest },
+			globals: { ...globals.node },
 			parserOptions: {
 				tsconfigRootDir: import.meta.dirname,
 				projectService: true,
 			},
 		},
 		rules: {
-			...(jestPlugin.configs.recommended?.rules ?? {}),
-			"jest/expect-expect": "off",
-			"jest/no-standalone-expect": "off",
+			...(vitestPlugin.configs.recommended?.rules ?? {}),
+			"vitest/expect-expect": "off",
 		},
 	},
 

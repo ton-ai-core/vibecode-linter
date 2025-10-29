@@ -2,6 +2,7 @@
 // WHY: Enforce 100% coverage for src/core by importing and exercising pure functions
 // NOTE: Split top-level describes to satisfy max-lines-per-function rule
 
+import { describe, expect, it } from "vitest";
 import {
 	getPriorityLevel,
 	getPriorityName,

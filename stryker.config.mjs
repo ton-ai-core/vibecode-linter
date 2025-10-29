@@ -27,12 +27,11 @@ const CONCURRENCY = IS_CI
  */
 export default {
 	packageManager: "npm",
-	testRunner: "jest",
-	// CHANGE: Pass --experimental-vm-modules to node for ESM support in Jest
-	// WHY: Jest needs this flag to parse import statements in sandbox
-	// REF: package.json:36 uses same flag for regular test runs
-	// SOURCE: https://stryker-mutator.io/docs/stryker-js/jest-runner/
-	testRunnerNodeArgs: ["--experimental-vm-modules"],
+	testRunner: "vitest",
+	// CHANGE: Remove --experimental-vm-modules flag - Vitest handles ESM natively
+	// WHY: Vitest designed for ESM, no experimental flags needed
+	// REF: Migration from Jest to Vitest
+	// SOURCE: https://stryker-mutator.io/docs/stryker-js/vitest-runner/
 	// CHANGE: Enable incremental mode for mutation test caching
 	// WHY: Reuses ~94% of mutation results between runs (3731/3965 typical)
 	// REF: https://stryker-mutator.io/docs/stryker-js/incremental/
@@ -73,9 +72,8 @@ export default {
 		low: 70,
 		break: 60,
 	},
-	jest: {
-		configFile: "jest.config.mjs",
-		enableFindRelatedTests: true,
+	vitest: {
+		configFile: "vitest.config.ts",
 	},
 	tempDirName: ".stryker-tmp",
 	timeoutFactor: 1.5,

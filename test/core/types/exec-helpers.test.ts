@@ -3,6 +3,7 @@
 // QUOTE(ТЗ): "Надо дописать тесты что бы было 100% покрытие"
 // REF: Coverage requirement for all CORE functions
 
+import { describe, expect, it } from "vitest";
 import { extractStdoutFromError } from "../../../src/core/types/exec-helpers.js";
 
 describe("extractStdoutFromError", () => {

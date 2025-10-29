@@ -1,3 +1,4 @@
+import { describe, expect, it } from "vitest";
 import { formatChangeTree } from "../../../src/core/project/change-tree.js";
 import { createProjectSnapshot } from "../../../src/core/project/tree.js";
 import type { FileChangeInfo } from "../../../src/core/types/project-info.js";

@@ -4,6 +4,7 @@
 // REF: REQ-20250210-MODULAR-ARCH, REQ-LINT-FIX
 // SOURCE: n/a
 
+import { describe, expect, test } from "vitest";
 import type { CLIOptions } from "../../src/core/types/index.js";
 import { parseCLIArgs } from "../../src/shell/config/index.js";
 

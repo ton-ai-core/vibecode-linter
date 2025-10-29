@@ -1,6 +1,44 @@
 import { execSync } from "node:child_process";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
+import { afterAll } from "vitest";
+import { createIsolatedE2EProject } from "../../utils/tempProject.js";
+
+// CHANGE: Add ANSI escape code removal utility
+// WHY: Linter output contains color codes that need normalization
+// QUOTE(ТЗ): "убрать ANSI, привести пути к относительным"
+// REF: user-request-e2e-isolation
+// INVARIANT: ∀ text: stripAnsi(stripAnsi(text)) = stripAnsi(text)
+const stripAnsi = (text: string): string => {
+	// Remove ANSI escape sequences (colors, cursor movement, etc.)
+	// Use String.fromCharCode to avoid control character linting issues
+	const escapeChar = String.fromCharCode(27); // ESC character
+	const ansiRegex = new RegExp(`${escapeChar}\\[[0-9;]*[a-zA-Z]`, "g");
+	return text.replace(ansiRegex, "");
+};
+
+// CHANGE: Add output normalization utility
+// WHY: Need to normalize paths and headers for deterministic testing
+// QUOTE(ТЗ): "нормализовать пути/заголовки"
+// REF: user-request-e2e-isolation
+// INVARIANT: Converts absolute paths to relative src/ paths
+const normalizeOutput = (output: string, isolatedRoot: string): string => {
+	let normalized = stripAnsi(output);
+
+	// CHANGE: Replace absolute paths with relative src/ paths
+	// WHY: Tests should check relative paths, not absolute temp paths
+	// INVARIANT: /tmp/path/src/file.ts:line:col → src/file.ts:line:col
+	const srcPath = path.join(isolatedRoot, "src");
+	const escapedSrcPath = srcPath.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+	normalized = normalized.replace(new RegExp(escapedSrcPath, "g"), "src");
+
+	// CHANGE: Also replace the isolated root path itself
+	// WHY: Some error messages might show the root path
+	const escapedRootPath = isolatedRoot.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+	normalized = normalized.replace(new RegExp(escapedRootPath, "g"), ".");
+
+	return normalized;
+};
 
 // CHANGE: Cached E2E test utilities for performance
 // WHY: CLI execution is slow, cache results to avoid repeated runs
@@ -11,6 +49,14 @@ import { fileURLToPath } from "node:url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// CHANGE: Cache isolated E2E project for entire test suite
+// WHY: Creating git repo is expensive (~100ms), cache for all tests
+// QUOTE(ТЗ): "E2E тесты изменились потому что у нас в diff появляется при коммитах"
+// REF: REQ-E2E-DETERMINISTIC, user-request-e2e-isolation
+// INVARIANT: Single isolated copy per test suite run, ∀ test: uses_same_isolated_copy
+// POSTCONDITION: Cleanup runs once after all tests complete
+let isolatedE2EProject: { path: string; cleanup: () => void } | null = null;
 
 export interface LinterResult {
 	readonly output: string;
@@ -34,26 +80,64 @@ export interface ParsedError {
 // INVARIANT: Results cached per target path and args combination
 const resultCache = new Map<string, LinterResult>();
 
-// CHANGE: Create test paths for E2E tests
-// WHY: Centralize path creation logic
-// INVARIANT: Consistent paths across all E2E tests
+// CHANGE: Create test paths with isolated E2E project for deterministic output
+// WHY: Linter shows git diff context which changes with main repo commits
+// QUOTE(ТЗ): "E2E тесты изменились потому что у нас в diff появляется при коммитах"
+// REF: REQ-E2E-DETERMINISTIC, user-request-e2e-isolation
+// INVARIANT: ∀ test_run: git_status(isolated_copy) = CLEAN
+// POSTCONDITION: Isolated copy created once, reused for all tests, cleaned after suite
 export const createTestPaths = (): {
 	testProjectPath: string;
 	linterBin: string;
-} => ({
-	testProjectPath: path.join(__dirname, "../../../e2e-test-project/src"),
-	linterBin: path.join(__dirname, "../../../src/bin/vibecode-linter.ts"),
-});
+} => {
+	// CHANGE: Create isolated copy with git on first access
+	// WHY: Ensures deterministic git context independent of main repo
+	// INVARIANT: created_once → reused_everywhere → cleaned_once
+	if (isolatedE2EProject === null) {
+		const sourceDir = path.join(__dirname, "../../../e2e-test-project");
+		const tempProject = createIsolatedE2EProject(sourceDir);
+		// CHANGE: Store root path (cwd), not src/ path
+		// WHY: Linter needs CWD = project root to find tsconfig.json via path.resolve("tsconfig.json")
+		// INVARIANT: Config files accessible via path.resolve() from cwd
+		isolatedE2EProject = {
+			path: tempProject.cwd,
+			cleanup: tempProject.cleanup,
+		};
+		
+		// CHANGE: Log isolated project path for debugging
+		// WHY: Help user understand where E2E project is stored
+		console.log(`🔍 E2E isolated project created at: ${tempProject.cwd}`);
 
-// CHANGE: Cached linter execution function
-// WHY: Cache results to avoid repeated slow CLI runs
+		// CHANGE: Cleanup after all tests complete
+		// WHY: Remove temporary files, avoid disk space leaks
+		// INVARIANT: cleanup runs exactly once per test suite
+		afterAll(() => {
+			if (isolatedE2EProject !== null) {
+				isolatedE2EProject.cleanup();
+				isolatedE2EProject = null;
+			}
+		});
+	}
+
+	return {
+		// CHANGE: Return root path, not src/ path
+		// WHY: runLinterCached will cd into this directory, then run linter on "./src"
+		testProjectPath: isolatedE2EProject.path,
+		linterBin: path.join(__dirname, "../../../src/bin/vibecode-linter.ts"),
+	};
+};
+
+// CHANGE: Cached linter execution function with deterministic environment
+// WHY: Linter needs CWD = project root and deterministic environment variables
 // INVARIANT: Same input always returns same cached result
+// POSTCONDITION: Linter runs with cwd = projectRoot, normalized output
 export const runLinterCached = (
 	linterBin: string,
+	projectRoot: string,
 	targetPath: string,
 	args: string = "",
 ): LinterResult => {
-	const cacheKey = `${linterBin}|${targetPath}|${args}`;
+	const cacheKey = `${linterBin}|${projectRoot}|${targetPath}|${args}`;
 
 	// Return cached result if available
 	const cached = resultCache.get(cacheKey);
@@ -66,18 +150,49 @@ export const runLinterCached = (
 	let exitCode = 0;
 
 	try {
-		output = execSync(`npx tsx ${linterBin} ${targetPath} ${args}`, {
+		// CHANGE: Set deterministic environment variables
+		// WHY: Ensure consistent locale and timezone for reproducible output
+		// QUOTE(ТЗ): "Установить LANG/LC_ALL=en_US.UTF-8, TZ=UTC"
+		// REF: user-request-e2e-isolation
+		const deterministicEnv = {
+			...process.env,
+			LANG: "en_US.UTF-8",
+			LC_ALL: "en_US.UTF-8",
+			TZ: "UTC",
+			// Disable color output for consistent formatting
+			NO_COLOR: "1",
+			FORCE_COLOR: "0",
+		};
+
+		// CHANGE: Set CWD to projectRoot so linter can find tsconfig.json
+		// WHY: Linter uses path.resolve("tsconfig.json") which is relative to CWD
+		// QUOTE(ТЗ): "E2E тесты изменились потому что у нас в diff появляется при коммитах"
+		// REF: REQ-E2E-DETERMINISTIC, user-request-e2e-isolation
+		const rawOutput = execSync(`npx tsx ${linterBin} ${targetPath} ${args}`, {
 			encoding: "utf-8",
 			stdio: "pipe",
 			timeout: 60000, // 60 second timeout for first run
+			cwd: projectRoot,
+			env: deterministicEnv,
 		});
+
+		// CHANGE: Normalize output for deterministic testing
+		// WHY: Remove ANSI codes and normalize paths
+		// INVARIANT: Normalized output is deterministic across runs
+		output = normalizeOutput(rawOutput, projectRoot);
 	} catch (error) {
 		const execError = error as {
 			stdout?: string;
 			stderr?: string;
 			status?: number;
 		};
-		output = execError.stdout ?? "";
+
+		// CHANGE: Handle error output from stderr when stdout is empty
+		// WHY: Linter may output errors to stderr on failure
+		// QUOTE(ТЗ): "На ошибках брать error.stdout"
+		// REF: user-request-e2e-isolation
+		const rawOutput = execError.stdout ?? execError.stderr ?? "";
+		output = normalizeOutput(rawOutput, projectRoot);
 		stderr = execError.stderr ?? "";
 		exitCode = execError.status ?? 1;
 	}
@@ -238,8 +353,15 @@ export const getCachedLinterResults = (): {
 } => {
 	const { testProjectPath, linterBin } = createTestPaths();
 
+	// CHANGE: Lint "src" directory, with CWD = testProjectPath (project root)
+	// WHY: Linter needs CWD = project root to find tsconfig.json via path.resolve()
 	return {
-		normal: runLinterCached(linterBin, testProjectPath),
-		duplicates: runLinterCached(linterBin, testProjectPath, "--duplicates"),
+		normal: runLinterCached(linterBin, testProjectPath, "src", ""),
+		duplicates: runLinterCached(
+			linterBin,
+			testProjectPath,
+			"src",
+			"--duplicates",
+		),
 	};
 };

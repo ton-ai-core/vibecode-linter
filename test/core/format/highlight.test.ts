@@ -1,6 +1,7 @@
 // CHANGE: Unit tests for calculateColumnPosition (split to satisfy max-lines-per-function)
 // WHY: Keep each test block under rule limit and improve coverage for core
 
+import { describe, expect, it } from "vitest";
 import { calculateColumnPosition } from "../../../src/core/format/highlight.js";
 
 describe("calculateColumnPosition", () => {

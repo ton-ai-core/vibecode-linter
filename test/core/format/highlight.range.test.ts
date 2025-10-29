@@ -1,6 +1,7 @@
 // CHANGE: Refactor tests to remove duplicate sequences flagged by jscpd
 // WHY: Avoid repeated 'startCol/calculateHighlightRange' blocks using a small helper
 
+import { describe, expect, it } from "vitest";
 import { calculateHighlightRange } from "../../../src/core/format/highlight.js";
 import type { LintMessageWithFile } from "../../../src/core/types/index.js";
 import { eslintMsg, tsMsg } from "../../utils/builders.js";
