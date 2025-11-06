@@ -17,7 +17,7 @@ function mkdirp(dir: string): void {
 	fs.mkdirSync(dir, { recursive: true });
 }
 
-describe("TypeScript diagnostics scope (solution-style tsconfig, NodeNext)", () => {
+describe("typeScript diagnostics scope (solution-style tsconfig, NodeNext)", () => {
 	const fixtureDir = path.join(process.cwd(), "test", "fixtures", "ts-scope");
 	const badFile = path.join(fixtureDir, "bad.ts");
 
@@ -36,7 +36,7 @@ describe("TypeScript diagnostics scope (solution-style tsconfig, NodeNext)", () 
 		}
 	});
 
-	test("returns TS errors strictly from the provided test subtree", () => {
+	it("returns TS errors strictly from the provided test subtree", () => {
 		// CHANGE: Remove async/await, use pure Effect.runPromise return
 		// WHY: Functional paradigm forbids async/await - use Effect composition
 		// PURITY: SHELL - contains file system effects
@@ -59,12 +59,12 @@ describe("TypeScript diagnostics scope (solution-style tsconfig, NodeNext)", () 
 						m.code === "TS2322" &&
 						(m.filePath.endsWith("bad.ts") || m.filePath.endsWith("bad.tsx")),
 				);
-				expect(hasTS2322).toBe(true);
+				expect(hasTS2322).toBeTruthy();
 			}),
 		);
 	});
 
-	test("does not leak test/ diagnostics into src/ scope", () =>
+	it("does not leak test/ diagnostics into src/ scope", () =>
 		// CHANGE: Remove async/await, use pure Effect.runPromise return
 		// WHY: Functional paradigm forbids async/await - use Effect composition
 		// PURITY: SHELL - contains file system effects
@@ -80,7 +80,7 @@ describe("TypeScript diagnostics scope (solution-style tsconfig, NodeNext)", () 
 					(m) =>
 						m.filePath.endsWith("bad.ts") || m.filePath.endsWith("bad.tsx"),
 				);
-				expect(leaked).toBe(false);
+				expect(leaked).toBeFalsy();
 			}),
 		));
 });

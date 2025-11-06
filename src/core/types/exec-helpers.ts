@@ -27,7 +27,7 @@ export function extractStdoutFromError(
 	if (!("stdout" in error)) {
 		return null;
 	}
-	const stdout = (error as ExecError).stdout;
+	const { stdout } = error as ExecError;
 	// Type system guarantees stdout is string | undefined
 	// Only need to check for undefined and empty values
 	if (stdout === undefined || stdout.trim().length === 0) {

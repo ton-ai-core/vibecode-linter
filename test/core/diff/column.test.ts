@@ -145,9 +145,9 @@ describe("column invariants", () => {
 				fc.integer({ min: 2, max: 8 }),
 				(content, tabWidth) => {
 					const expanded = expandTabs(content, tabWidth);
-					expect(expanded.includes("\t")).toBe(false);
+					expect(expanded).not.toContain("\t");
 					const visualWidth = visualColumnAt(content, content.length, tabWidth);
-					expect(expanded.length).toBe(visualWidth);
+					expect(expanded).toHaveLength(visualWidth);
 				},
 			),
 		);

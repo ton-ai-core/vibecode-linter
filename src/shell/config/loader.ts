@@ -34,7 +34,7 @@ type JSONValue =
  */
 function isJSONObject(
 	value: JSONValue,
-): value is { readonly [key: string]: JSONValue } {
+): value is Readonly<Record<string, JSONValue>> {
 	return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
@@ -110,9 +110,9 @@ function validatePriorityLevel(value: JSONValue): PriorityLevel | null {
 		return null;
 	}
 
-	const level = value.level;
-	const name = value.name;
-	const rules = value.rules;
+	const { level } = value;
+	const { name } = value;
+	const { rules } = value;
 
 	if (!isNumber(level) || !isString(name) || !isArray(rules)) {
 		return null;
@@ -170,7 +170,7 @@ export function loadLinterConfig(
 			return null;
 		}
 
-		const priorityLevels = parsed.priorityLevels;
+		const { priorityLevels } = parsed;
 		if (!isArray(priorityLevels)) {
 			return null;
 		}
@@ -198,6 +198,11 @@ export function loadLinterConfig(
  *
  * @param m Сообщение линтера (может содержать ruleId, code, rule, category)
  * @returns Идентификатор правила в нижнем регистре
+ *
+ * CHANGE: Remove String() wrapper — nullish coalescing already produces a string
+ * WHY: (m.ruleId ?? m.code ?? m.rule ?? m.category ?? "") is guaranteed to be string
+ * QUOTE(ТЗ): "Исправить все ошибки линтера"
+ * REF: REQ-LINT-FIX, @typescript-eslint/no-unnecessary-type-conversion
  */
 export function ruleIdOf(m: {
 	ruleId?: string | null;
@@ -205,7 +210,7 @@ export function ruleIdOf(m: {
 	rule?: string;
 	category?: string;
 }): string {
-	return String(m.ruleId ?? m.code ?? m.rule ?? m.category ?? "").toLowerCase();
+	return (m.ruleId ?? m.code ?? m.rule ?? m.category ?? "").toLowerCase();
 }
 
 /**

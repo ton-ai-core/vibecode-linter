@@ -2,7 +2,9 @@
 // WHY: Reduces line count and complexity of printer.ts
 // REF: ESLint max-lines-per-function, max-lines
 import * as fs from "node:fs";
+
 import { Effect } from "effect";
+
 import {
 	getPriorityLevel as coreGetPriorityLevel,
 	getPriorityName as coreGetPriorityName,
@@ -157,7 +159,7 @@ export function printDiffBlock(
 	m: LintMessageWithFile,
 	diffRange: DiffRangeConfig,
 	diffContext: number,
-): Effect.Effect<GitDiffBlock | null, never> {
+): Effect.Effect<GitDiffBlock | null> {
 	return getGitDiffBlock(m, diffRange, diffContext).pipe(
 		Effect.map((diffBlock) => {
 			if (diffBlock) {
@@ -190,7 +192,7 @@ export function printMessage(
 	cache: Map<string, readonly string[]>,
 	diffRange: DiffRangeConfig,
 	diffContext: number,
-): Effect.Effect<void, never> {
+): Effect.Effect<void> {
 	printMessageHeader(m);
 
 	return printDiffBlock(m, diffRange, diffContext).pipe(

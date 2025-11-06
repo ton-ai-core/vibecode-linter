@@ -3,6 +3,7 @@
 // REF: ESLint max-lines
 
 import { Effect } from "effect";
+
 import { extractDiffSnippet } from "../../core/diff/index.js";
 import type { DiffSnippet } from "../../core/types/index.js";
 import { execGitNonEmptyOrNull, getCommitSnippetForLine } from "./utils.js";
@@ -78,13 +79,10 @@ export function processCommitSegment(
 	filePath: string,
 	line: number,
 	relativePath: string,
-): Effect.Effect<
-	{
-		readonly lines: string[];
-		readonly snippet: readonly string[] | undefined;
-	} | null,
-	never
-> {
+): Effect.Effect<{
+	readonly lines: string[];
+	readonly snippet: readonly string[] | undefined;
+} | null> {
 	return Effect.gen(function* (_) {
 		const lines = segment.split(/\r?\n/u);
 		const info = extractCommitBasicInfo(lines);
@@ -160,7 +158,7 @@ export function fetchCommitHistoryForLine(
 	filePath: string,
 	line: number,
 	limit: number,
-): Effect.Effect<CommitInfo[] | null, never> {
+): Effect.Effect<CommitInfo[] | null> {
 	const historyCommand = `git log -L ${line},${line}:${filePath} --date=short --pretty=format:"commit %H%nAuthor: %an <%ae>%nDate: %ad%n%n    %s%n"`;
 
 	// CHANGE: Use execGitNonEmptyOrNull to centralize stdout extraction + non-empty invariant
@@ -194,7 +192,7 @@ export function handleSingleCommit(
 	line: number,
 	relativePath: string,
 	contextLines: number,
-): Effect.Effect<CommitDiffBlock[], never> {
+): Effect.Effect<CommitDiffBlock[]> {
 	return Effect.gen(function* (_) {
 		const emptyTree = "4b825dc642cb6eb9a060e54bf8d69288fbee4904";
 		const diffCommand = `git diff --unified=${contextLines} ${emptyTree}..${creation.hash} -- "${filePath}"`;
@@ -239,7 +237,7 @@ export function buildDiffBlocks(
 	fileInfo: { path: string; relativePath: string; line: number },
 	limit: number,
 	contextLines: number,
-): Effect.Effect<CommitDiffBlock[], never> {
+): Effect.Effect<CommitDiffBlock[]> {
 	return Effect.gen(function* (_) {
 		const diffBlocks: CommitDiffBlock[] = [];
 

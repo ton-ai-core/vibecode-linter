@@ -5,8 +5,10 @@
 // SOURCE: n/a
 
 import * as path from "node:path";
+
 import { match } from "ts-pattern";
 import ts from "typescript";
+
 import type { LintMessageWithFile } from "../../core/types/index.js";
 
 export type MsgId = string;
@@ -101,14 +103,14 @@ export function getPosition(
 	// QUOTE(TЗ): "Исправить все ошибки линтера"
 	// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
 	const hasEndPosition = isValidEndPosition(message);
-	// CHANGE: Avoid referencing possibly undefined fields directly; compute via locals under guard
-	// WHY: TS flagged 'message.endLine'/'message.endColumn' possibly undefined even after boolean guard
+	// CHANGE: When isValidEndPosition guards, endLine and endColumn are guaranteed to be numbers
+	// WHY: Type predicate `msg is { endLine: number; endColumn: number }` narrows types safely
 	// QUOTE(TЗ): "Исправить все ошибки линтера"
 	// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
 	let end: number;
 	if (hasEndPosition) {
-		const endLine: number = message.endLine ?? 0;
-		const endColumn: number = message.endColumn ?? 0;
+		const endLine: number = message.endLine;
+		const endColumn: number = message.endColumn;
 		end = ts.getPositionOfLineAndCharacter(
 			sourceFile,
 			endLine - 1,

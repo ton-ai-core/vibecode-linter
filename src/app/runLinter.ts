@@ -49,7 +49,7 @@ import {
  */
 function collectLintMessagesEffect(
 	targetPath: string,
-): Effect.Effect<LintMessageWithFile[], never> {
+): Effect.Effect<LintMessageWithFile[]> {
 	return Effect.gen(function* () {
 		// CHANGE: Use Effect.all with mode: "all" for concurrent execution
 		// WHY: Runs all linters in parallel with typed error handling
@@ -165,7 +165,7 @@ function preflightOk(cliOptions: CLIOptions): boolean {
  *
  * @pure false (executes checks, console output)
  */
-function haveCliDependencies(): Effect.Effect<boolean, never> {
+function haveCliDependencies(): Effect.Effect<boolean> {
 	return Effect.gen(function* (_) {
 		const depCheck = yield* _(checkDependencies());
 		if (!depCheck.allAvailable) {
@@ -190,7 +190,7 @@ function haveCliDependencies(): Effect.Effect<boolean, never> {
 function maybeRunAutoFixEffect(
 	targetPath: string,
 	noFix: boolean,
-): Effect.Effect<void, never> {
+): Effect.Effect<void> {
 	if (noFix) return Effect.succeed(undefined);
 
 	// CHANGE: Use Effect.all with concurrent execution and error recovery
@@ -225,9 +225,7 @@ function maybeRunAutoFixEffect(
  * @postcondition (hasLintErrors ∨ hasDuplicates) → 1 else 0
  * @complexity O(n + m) where n=files, m=diagnostics
  */
-export function runLinter(
-	cliOptions: CLIOptions,
-): Effect.Effect<ExitCode, never> {
+export function runLinter(cliOptions: CLIOptions): Effect.Effect<ExitCode> {
 	return Effect.gen(function* (_) {
 		// CHANGE: Preflight checks remain sync for now (will be Effect-ified in future iteration)
 		// WHY: Incremental refactoring - focus on linter execution first
@@ -292,7 +290,7 @@ export function runLinter(
  * @pure false (coordinates effects)
  * @complexity O(1) - orchestration only
  */
-export function main(): Effect.Effect<ExitCode, never> {
+export function main(): Effect.Effect<ExitCode> {
 	const cliOptions = parseCLIArgs();
 	return runLinter(cliOptions);
 }

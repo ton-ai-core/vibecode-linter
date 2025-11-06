@@ -8,6 +8,7 @@
 // COMPLEXITY: O(n) where n = |messages| for grouping, O(1) for level/name
 
 import { pipe } from "effect";
+
 import type { LintMessageWithFile } from "../types/index.js";
 
 /**
@@ -37,7 +38,7 @@ export function ruleIdOfCore(m: LintMessageWithFile): string {
 	// INVARIANT: ∀ m: LintMessageWithFile. m.source ∈ {typescript, eslint, biome}
 	if (m.source === "typescript") return m.code;
 	// Type system guarantees m.source is "eslint" or "biome" here
-	const ruleId = m.ruleId;
+	const { ruleId } = m;
 	return typeof ruleId === "string" && ruleId.length > 0 ? ruleId : "unknown";
 }
 
@@ -59,7 +60,7 @@ export function getPriorityLevel(
 	const explicit = ruleLevelMap.explicitRules.get(ruleId);
 	if (explicit !== undefined) return explicit.level;
 
-	const allLevel = ruleLevelMap.allLevel;
+	const { allLevel } = ruleLevelMap;
 	if (allLevel !== undefined) return allLevel.level;
 
 	return 2;
@@ -83,7 +84,7 @@ export function getPriorityName(
 	const explicit = ruleLevelMap.explicitRules.get(ruleId);
 	if (explicit !== undefined) return explicit.name;
 
-	const allLevel = ruleLevelMap.allLevel;
+	const { allLevel } = ruleLevelMap;
 	if (allLevel !== undefined) return allLevel.name;
 
 	return "Critical Compiler Errors";

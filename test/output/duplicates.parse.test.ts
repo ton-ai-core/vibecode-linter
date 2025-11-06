@@ -55,7 +55,7 @@ function minimalSarif(a: string, b: string): SarifReport {
 }
 
 describe("parseSarifReport (SARIF locations parsing)", (): void => {
-	test("extracts duplicate info from SARIF locations (without relying on message text)", (): void => {
+	it("extracts duplicate info from SARIF locations (without relying on message text)", (): void => {
 		const tmpRoot = fs.mkdtempSync(
 			path.join(os.tmpdir(), "vibecode-linter-sarif-"),
 		);
@@ -69,8 +69,8 @@ describe("parseSarifReport (SARIF locations parsing)", (): void => {
 		);
 
 		const result = parseSarifReport(sarifPath);
-		expect(Array.isArray(result)).toBe(true);
-		expect(result.length).toBe(1);
+		expect(Array.isArray(result)).toBeTruthy();
+		expect(result).toHaveLength(1);
 
 		// CHANGE: Narrow after length assertion using explicit cast for tests
 		// WHY: TypeScript cannot narrow from expect(result.length).toBe(1); runtime guarantees > 0 here

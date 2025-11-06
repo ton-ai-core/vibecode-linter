@@ -73,18 +73,21 @@ function getNodeAtPosition(
 	visit(sourceFile);
 
 	// Walk up to a meaningful ancestor node
-	// CHANGE: Make parent check explicit instead of truthiness
-	// WHY: strict-boolean-expressions — object in conditional is always true/false; we must compare to undefined
+	// CHANGE: Use ts.Node parent check for type safety
+	// WHY: ts.Node.parent property may be undefined at runtime, guard properly
 	// QUOTE(ТЗ): "Исправить все ошибки линтера"
 	// REF: REQ-LINT-FIX, @typescript-eslint/strict-boolean-expressions
 	while (
-		node.parent !== undefined &&
 		!ts.isIdentifier(node) &&
 		!ts.isCallExpression(node) &&
 		!ts.isPropertyAccessExpression(node) &&
 		!ts.isElementAccessExpression(node)
 	) {
-		node = node.parent;
+		if (typeof node.parent === "object") {
+			node = node.parent;
+		} else {
+			break;
+		}
 	}
 	return node;
 }
@@ -100,10 +103,10 @@ function processNodeDeclarations(
 	useMessage: LintMessageWithFile,
 	file: string,
 	context: DependencyContext,
-): ReadonlyArray<readonly [MsgId, MsgId]> {
+): readonly (readonly [MsgId, MsgId])[] {
 	const checker: ts.TypeChecker = context.checker;
 	const symbols = getDefinitionSymbols(checker, node);
-	const edges: Array<readonly [MsgId, MsgId]> = [];
+	const edges: (readonly [MsgId, MsgId])[] = [];
 
 	for (const symbol of symbols) {
 		const declarations: readonly ts.Declaration[] = symbol.declarations ?? [];
@@ -133,8 +136,8 @@ function processImportDeclarations(
 	file: string,
 	msgs: readonly LintMessageWithFile[],
 	context: DependencyContext,
-): ReadonlyArray<readonly [MsgId, MsgId]> {
-	const edges: Array<readonly [MsgId, MsgId]> = [];
+): readonly (readonly [MsgId, MsgId])[] {
+	const edges: (readonly [MsgId, MsgId])[] = [];
 	const program: ts.Program = context.program;
 	const byFile: Map<string, LintMessageWithFile[]> = context.byFile;
 
@@ -196,11 +199,11 @@ function processImportDeclarations(
 export function buildDependencyEdges(
 	messages: readonly LintMessageWithFile[],
 	program: ts.Program,
-): ReadonlyArray<readonly [MsgId, MsgId]> {
+): readonly (readonly [MsgId, MsgId])[] {
 	const byFile = groupMessagesByFile(messages);
 	const checker = program.getTypeChecker();
 	const context: DependencyContext = { program, checker, byFile };
-	const edges: Array<readonly [MsgId, MsgId]> = [];
+	const edges: (readonly [MsgId, MsgId])[] = [];
 
 	for (const [file, msgs] of byFile) {
 		const sourceFile = program.getSourceFile(file);
@@ -264,7 +267,7 @@ function initializeGraph(ids: readonly MsgId[]): {
 // REF: ESLint complexity
 // SOURCE: n/a
 function buildGraphFromEdges(
-	edges: ReadonlyArray<readonly [MsgId, MsgId]>,
+	edges: readonly (readonly [MsgId, MsgId])[],
 	successors: Map<MsgId, Set<MsgId>>,
 	inDegree: Map<MsgId, number>,
 ): void {
@@ -348,7 +351,7 @@ function addRemainingNodes(order: MsgId[], ids: readonly MsgId[]): MsgId[] {
  */
 export function topologicalSort(
 	messages: readonly LintMessageWithFile[],
-	edges: ReadonlyArray<readonly [MsgId, MsgId]>,
+	edges: readonly (readonly [MsgId, MsgId])[],
 ): Map<MsgId, number> {
 	const ids: MsgId[] = messages.map((m) => createMessageId(m.filePath, m));
 	const { successors, inDegree } = initializeGraph(ids);

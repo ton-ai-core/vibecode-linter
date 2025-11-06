@@ -21,7 +21,7 @@ describe("buildDirectoryTree — synthetic paths", () => {
 		const tree = buildDirectoryTree(snapshot.root, map);
 		expect([...tree.directories.keys()]).toEqual(["new"]);
 		const deep = tree.directories.get("new")?.directories.get("deep");
-		expect(deep?.files.has("file.ts")).toBe(true);
+		expect(deep?.files.has("file.ts")).toBeTruthy();
 	});
 
 	it("adds root-level files when change map introduces them", () => {

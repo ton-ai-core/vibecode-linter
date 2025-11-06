@@ -28,10 +28,10 @@ export class PreflightFailed extends Data.TaggedError("PreflightFailed")<{
  * @complexity O(1)
  */
 export class MissingDeps extends Data.TaggedError("MissingDeps")<{
-	readonly deps: ReadonlyArray<{
+	readonly deps: readonly {
 		readonly name: string;
 		readonly command: string;
-	}>;
+	}[];
 }> {}
 
 /**

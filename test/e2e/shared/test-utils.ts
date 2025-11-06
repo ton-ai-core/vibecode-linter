@@ -103,7 +103,7 @@ export const createTestPaths = (): {
 			path: tempProject.cwd,
 			cleanup: tempProject.cleanup,
 		};
-		
+
 		// CHANGE: Log isolated project path for debugging
 		// WHY: Help user understand where E2E project is stored
 		console.log(`🔍 E2E isolated project created at: ${tempProject.cwd}`);

@@ -13,7 +13,6 @@ import { Effect } from "effect";
 
 import { deriveFileContentMetrics } from "../../core/project/metrics.js";
 import type { ProjectFileRecord } from "../../core/types/index.js";
-
 import { fs, path } from "../utils/node-mods.js";
 
 /**
@@ -53,7 +52,7 @@ function getErrorMessage(error: Error | string): string {
 function handleFileSystemError(
 	error: Error | string,
 	context: string,
-): Effect.Effect<readonly ProjectFileRecord[], never> {
+): Effect.Effect<readonly ProjectFileRecord[]> {
 	console.warn(`⚠️  Unable to read ${context}: ${getErrorMessage(error)}`);
 	return Effect.succeed<readonly ProjectFileRecord[]>([]);
 }
@@ -100,7 +99,7 @@ function joinRelative(base: string, name: string): string {
 function createFileRecord(
 	absolutePath: string,
 	relativePath: string,
-): Effect.Effect<ProjectFileRecord | null, never> {
+): Effect.Effect<ProjectFileRecord | null> {
 	return Effect.tryPromise({
 		try: () => fsPromises.stat(absolutePath),
 		catch: (error) => error as Error,
@@ -146,7 +145,7 @@ function createFileRecord(
 function walkDirectory(
 	absoluteDir: string,
 	relativeBase: string,
-): Effect.Effect<readonly ProjectFileRecord[], never> {
+): Effect.Effect<readonly ProjectFileRecord[]> {
 	return Effect.gen(function* (_) {
 		const dirents = yield* _(
 			Effect.tryPromise({
@@ -159,7 +158,7 @@ function walkDirectory(
 		const sorted = [...dirents].sort((a, b) => a.name.localeCompare(b.name));
 
 		for (const dirent of sorted) {
-			const name = dirent.name;
+			const { name } = dirent;
 			const relativePath = joinRelative(relativeBase, name);
 			const absolutePath = path.join(absoluteDir, name);
 
@@ -203,7 +202,7 @@ function walkDirectory(
  */
 export function collectProjectFilesEffect(
 	targetPath: string,
-): Effect.Effect<readonly ProjectFileRecord[], never> {
+): Effect.Effect<readonly ProjectFileRecord[]> {
 	return Effect.gen(function* (_) {
 		const absoluteTarget = path.resolve(process.cwd(), targetPath);
 

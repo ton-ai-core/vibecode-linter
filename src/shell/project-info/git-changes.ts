@@ -54,7 +54,7 @@ function trimQuotes(value: string): string {
 
 function resolveTargetInfo(
 	targetPath: string,
-): Effect.Effect<TargetResolution, never> {
+): Effect.Effect<TargetResolution> {
 	return Effect.gen(function* (_) {
 		const absolute = path.resolve(process.cwd(), targetPath);
 		const stats = yield* _(
@@ -81,7 +81,7 @@ function resolveTargetInfo(
 function createRelativeResolver(
 	target: TargetResolution,
 ): (gitPath: string) => string | null {
-	const normalizedTarget = target.normalizedTarget;
+	const { normalizedTarget } = target;
 	if (!target.isDirectory) {
 		const targetFile = normalizedTarget;
 		return (gitPath) => {
@@ -147,7 +147,7 @@ function insertTrackedStatus(
 	resolveRelative: (gitPath: string) => string | null,
 	map: Map<string, FileChangeInfo>,
 ): void {
-	const match = line.match(/^(..)\s+(.*)$/u);
+	const match = /^(..)\s+(.*)$/u.exec(line);
 	if (match === null) return;
 	const [, code, rawPath] = match;
 	const safeCode = code ?? "";
@@ -250,7 +250,7 @@ function parseNumstat(
 
 function collectNumstatForModes(
 	resolveRelative: (gitPath: string) => string | null,
-): Effect.Effect<Map<string, NumstatEntry>, never> {
+): Effect.Effect<Map<string, NumstatEntry>> {
 	return Effect.gen(function* (_) {
 		const combined = new Map<string, NumstatEntry>();
 		const commands = ["git diff --numstat", "git diff --cached --numstat"];
@@ -279,7 +279,7 @@ function collectNumstatForModes(
 
 function collectStatusMap(
 	resolveRelative: (gitPath: string) => string | null,
-): Effect.Effect<Map<string, FileChangeInfo>, never> {
+): Effect.Effect<Map<string, FileChangeInfo>> {
 	return Effect.gen(function* (_) {
 		const rawResult = yield* _(execGitStdoutOrNull("git status -sb"));
 		const raw = rawResult ?? "";
@@ -313,7 +313,7 @@ function mergeNumstatIntoStatus(
  */
 export function collectGitChangeInfoEffect(
 	targetPath: string,
-): Effect.Effect<ReadonlyMap<string, FileChangeInfo>, never> {
+): Effect.Effect<ReadonlyMap<string, FileChangeInfo>> {
 	return Effect.gen(function* (_) {
 		const targetInfo = yield* _(resolveTargetInfo(targetPath));
 		const resolveRelative = createRelativeResolver(targetInfo);

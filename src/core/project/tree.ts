@@ -225,14 +225,14 @@ function formatMetrics(metrics: FileContentMetrics): string {
  */
 function formatSize(sizeBytes: number): string {
 	if (sizeBytes <= 0) return "";
-	const units = ["B", "KB", "MB", "GB"];
+	const units = ["B", "KB", "MB", "GB"] as const;
 	let value = sizeBytes;
 	let unitIndex = 0;
 	while (value >= 1024 && unitIndex < units.length - 1) {
 		value /= 1024;
 		unitIndex += 1;
 	}
-	const unitLabel = units[unitIndex];
+	const unitLabel = units[unitIndex] ?? "B";
 	return `${value.toFixed(value >= 10 || unitIndex === 0 ? 0 : 1)}${unitLabel}`;
 }
 

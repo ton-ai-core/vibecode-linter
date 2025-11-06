@@ -6,6 +6,7 @@
 // COMPLEXITY: O(n) where n = diagnostics count
 
 import * as fs from "node:fs";
+
 import type { LintResult } from "../../core/types/index.js";
 import type {
 	BiomeMessagePart,
@@ -28,7 +29,7 @@ interface BiomeDiagnostic {
 	};
 	category?: string;
 	description?: string;
-	message?: string | ReadonlyArray<string | BiomeMessagePart>;
+	message?: string | readonly (string | BiomeMessagePart)[];
 	title?: string;
 }
 
@@ -84,7 +85,6 @@ function isObjectSpan(
 ): span is BiomeSpan {
 	return (
 		typeof span === "object" &&
-		span !== null &&
 		"start" in span &&
 		typeof span.start === "number"
 	);
@@ -94,7 +94,7 @@ function toSpan(
 	span: BiomeSpan | readonly [number, number] | undefined,
 ): readonly [number, number] | null {
 	if (!span) return null;
-	if (isArraySpan(span)) return [span[0], span[1] ?? span[0]];
+	if (isArraySpan(span)) return [span[0], span[1]];
 	if (isObjectSpan(span)) return [span.start, span.end ?? span.start];
 	return null;
 }
@@ -234,7 +234,7 @@ function processDiagnostic(
 		existingResult = { filePath, messages: [] };
 		results.push(existingResult);
 	}
-	(existingResult.messages as Array<typeof resultMessage>).push(resultMessage);
+	(existingResult.messages as (typeof resultMessage)[]).push(resultMessage);
 }
 
 // CHANGE: Introduced parsed-flag container for Biome diagnostics

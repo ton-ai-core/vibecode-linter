@@ -10,6 +10,7 @@
 // COMPLEXITY: O(1) time/space (delegates to APP)
 
 import { Effect } from "effect";
+
 import { main } from "../app/runLinter.js";
 
 /**

@@ -7,7 +7,7 @@
 // PURITY: SHELL
 // EFFECT: Effect<readonly MutationReport, never, MutationWorkspace>
 // INVARIANT: coverageAnalysis = perTest ⇒ killed(mutant) ↔ failing(test)
-// COMPLEXITY: O(M · T)/O(1), with M mutants and T Jest executions
+// COMPLEXITY: O(M · T)/O(1), with M mutants and T Vitest executions
 
 import os from "node:os";
 

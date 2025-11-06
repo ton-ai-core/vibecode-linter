@@ -26,46 +26,46 @@ function withArgv<T>(args: readonly string[], fn: () => T): T {
 }
 
 describe("parseCLIArgs: defaults and positional", () => {
-	test("returns defaults when no args provided", (): void => {
+	it("returns defaults when no args provided", (): void => {
 		const opts = withArgv([], () => parseCLIArgs());
 		// CHANGE: Assert default values from implementation
 		// WHY: Guard against accidental regressions
 		expect(opts.targetPath).toBe(".");
 		expect(opts.maxClones).toBe(15);
 		expect(typeof opts.width).toBe("number");
-		expect(opts.noFix).toBe(false);
-		expect(opts.noPreflight).toBe(false);
-		expect(opts.fixPeers).toBe(false);
+		expect(opts.noFix).toBeFalsy();
+		expect(opts.noPreflight).toBeFalsy();
+		expect(opts.fixPeers).toBeFalsy();
 	});
 
-	test("parses single positional as targetPath", (): void => {
+	it("parses single positional as targetPath", (): void => {
 		const opts = withArgv(["src/"], () => parseCLIArgs());
 		expect(opts.targetPath).toBe("src/");
 	});
 
-	test("ignores empty string arguments", (): void => {
+	it("ignores empty string arguments", (): void => {
 		const opts = withArgv(["", "src"], () => parseCLIArgs());
 		expect(opts.targetPath).toBe("src");
 	});
 });
 
 describe("parseCLIArgs: numeric flags", () => {
-	test("--max-clones 20 sets maxClones", (): void => {
+	it("--max-clones 20 sets maxClones", (): void => {
 		const opts = withArgv(["--max-clones", "20"], () => parseCLIArgs());
 		expect(opts.maxClones).toBe(20);
 	});
 
-	test("--width 200 sets width", (): void => {
+	it("--width 200 sets width", (): void => {
 		const opts = withArgv(["--width", "200"], () => parseCLIArgs());
 		expect(opts.width).toBe(200);
 	});
 
-	test("--context 5 sets context", (): void => {
+	it("--context 5 sets context", (): void => {
 		const opts = withArgv(["--context", "5"], () => parseCLIArgs());
 		expect(opts.context).toBe(5);
 	});
 
-	test("numeric flags skip next token (do not treat it as positional)", (): void => {
+	it("numeric flags skip next token (do not treat it as positional)", (): void => {
 		const opts = withArgv(["--max-clones", "7", "src"], () => parseCLIArgs());
 		expect(opts.maxClones).toBe(7);
 		expect(opts.targetPath).toBe("src");
@@ -73,22 +73,22 @@ describe("parseCLIArgs: numeric flags", () => {
 });
 
 describe("parseCLIArgs: boolean flags", () => {
-	test("--no-fix flips noFix=true", (): void => {
+	it("--no-fix flips noFix=true", (): void => {
 		const opts = withArgv(["--no-fix"], () => parseCLIArgs());
-		expect(opts.noFix).toBe(true);
+		expect(opts.noFix).toBeTruthy();
 	});
 
-	test("--no-preflight flips noPreflight=true", (): void => {
+	it("--no-preflight flips noPreflight=true", (): void => {
 		const opts = withArgv(["--no-preflight"], () => parseCLIArgs());
-		expect(opts.noPreflight).toBe(true);
+		expect(opts.noPreflight).toBeTruthy();
 	});
 
-	test("--fix-peers flips fixPeers=true", (): void => {
+	it("--fix-peers flips fixPeers=true", (): void => {
 		const opts = withArgv(["--fix-peers"], () => parseCLIArgs());
-		expect(opts.fixPeers).toBe(true);
+		expect(opts.fixPeers).toBeTruthy();
 	});
 
-	test("combines boolean and numeric flags with positional", (): void => {
+	it("combines boolean and numeric flags with positional", (): void => {
 		const opts: CLIOptions = withArgv(
 			[
 				"--no-fix",
@@ -100,10 +100,10 @@ describe("parseCLIArgs: boolean flags", () => {
 			],
 			() => parseCLIArgs(),
 		);
-		expect(opts.noFix).toBe(true);
+		expect(opts.noFix).toBeTruthy();
 		expect(opts.maxClones).toBe(9);
 		expect(opts.targetPath).toBe("src/components");
-		expect(opts.fixPeers).toBe(true);
-		expect(opts.noPreflight).toBe(true);
+		expect(opts.fixPeers).toBeTruthy();
+		expect(opts.noPreflight).toBeTruthy();
 	});
 });

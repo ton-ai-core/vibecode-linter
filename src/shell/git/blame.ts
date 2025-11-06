@@ -9,6 +9,7 @@
 // REF: lint/style/useNodejsImportProtocol
 // SOURCE: https://biomejs.dev/linter/rules/lint/style/useNodejsImportProtocol
 import * as path from "node:path";
+
 import { Effect } from "effect";
 
 import type {
@@ -27,7 +28,7 @@ function executeBlameCommand(
 	filePath: string,
 	startLine: number,
 	endLine: number,
-): Effect.Effect<string | null, never> {
+): Effect.Effect<string | null> {
 	const blameCommand = `git blame --line-porcelain -L ${startLine},${endLine} -- "${filePath}"`;
 
 	return execGitCommand(blameCommand, 2 * 1024 * 1024).pipe(
@@ -188,7 +189,7 @@ export function getGitBlameBlock(
 	filePath: string,
 	line: number,
 	options?: GitBlameOptions,
-): Effect.Effect<GitBlameResult | null, never> {
+): Effect.Effect<GitBlameResult | null> {
 	const contextSize = 2;
 	const startLine = Math.max(1, line - contextSize);
 	const endLine = line + contextSize;

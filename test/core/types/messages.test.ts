@@ -44,46 +44,46 @@ const biomeMessage: BiomeMessage = {
 	filePath: "/test/file.ts",
 };
 
-describe("Type guards for LintMessage variants", () => {
+describe("type guards for LintMessage variants", () => {
 	describe("isTypeScriptMessage", () => {
 		it("returns true for TypeScript message", () => {
-			expect(isTypeScriptMessage(tsMessage)).toBe(true);
+			expect(isTypeScriptMessage(tsMessage)).toBeTruthy();
 		});
 
 		it("returns false for ESLint message", () => {
-			expect(isTypeScriptMessage(eslintMessage)).toBe(false);
+			expect(isTypeScriptMessage(eslintMessage)).toBeFalsy();
 		});
 
 		it("returns false for Biome message", () => {
-			expect(isTypeScriptMessage(biomeMessage)).toBe(false);
+			expect(isTypeScriptMessage(biomeMessage)).toBeFalsy();
 		});
 	});
 
 	describe("isESLintMessage", () => {
 		it("returns true for ESLint message", () => {
-			expect(isESLintMessage(eslintMessage)).toBe(true);
+			expect(isESLintMessage(eslintMessage)).toBeTruthy();
 		});
 
 		it("returns false for TypeScript message", () => {
-			expect(isESLintMessage(tsMessage)).toBe(false);
+			expect(isESLintMessage(tsMessage)).toBeFalsy();
 		});
 
 		it("returns false for Biome message", () => {
-			expect(isESLintMessage(biomeMessage)).toBe(false);
+			expect(isESLintMessage(biomeMessage)).toBeFalsy();
 		});
 	});
 
 	describe("isBiomeMessage", () => {
 		it("returns true for Biome message", () => {
-			expect(isBiomeMessage(biomeMessage)).toBe(true);
+			expect(isBiomeMessage(biomeMessage)).toBeTruthy();
 		});
 
 		it("returns false for TypeScript message", () => {
-			expect(isBiomeMessage(tsMessage)).toBe(false);
+			expect(isBiomeMessage(tsMessage)).toBeFalsy();
 		});
 
 		it("returns false for ESLint message", () => {
-			expect(isBiomeMessage(eslintMessage)).toBe(false);
+			expect(isBiomeMessage(eslintMessage)).toBeFalsy();
 		});
 	});
 });

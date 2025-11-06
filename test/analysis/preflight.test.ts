@@ -16,44 +16,44 @@ import {
 import { createTempProject } from "../utils/tempProject.js";
 
 describe("preflight: filesystem and environment checks", () => {
-	test("hasPackageJson returns false when package.json is absent", (): void => {
+	it("hasPackageJson returns false when package.json is absent", (): void => {
 		const t = createTempProject({ withPackageJson: false });
 		try {
-			expect(hasPackageJson(t.cwd)).toBe(false);
+			expect(hasPackageJson(t.cwd)).toBeFalsy();
 		} finally {
 			t.cleanup();
 		}
 	});
 
-	test("hasPackageJson returns true when package.json exists", (): void => {
+	it("hasPackageJson returns true when package.json exists", (): void => {
 		const t = createTempProject({ withPackageJson: true });
 		try {
-			expect(hasPackageJson(t.cwd)).toBe(true);
+			expect(hasPackageJson(t.cwd)).toBeTruthy();
 		} finally {
 			t.cleanup();
 		}
 	});
 
-	test("isNpxIsolatedProcess detects cache marker", (): void => {
+	it("isNpxIsolatedProcess detects cache marker", (): void => {
 		const marker = path.join("/", ".npm", "_npx", "12345");
 		const positive = isNpxIsolatedProcess(marker, "node", process.execPath);
-		expect(positive).toBe(true);
+		expect(positive).toBeTruthy();
 
 		const negative = isNpxIsolatedProcess(
 			"/user/project",
 			"node",
 			process.execPath,
 		);
-		expect(negative).toBe(false);
+		expect(negative).toBeFalsy();
 	});
 });
 
 describe("preflight: runPreflight scenarios (negative)", () => {
-	test("empty directory -> noPackageJson + missing peers, ok=false", (): void => {
+	it("empty directory -> noPackageJson + missing peers, ok=false", (): void => {
 		const t = createTempProject({});
 		try {
 			const result = runPreflight(t.cwd);
-			expect(result.ok).toBe(false);
+			expect(result.ok).toBeFalsy();
 			// At minimum, project root is missing
 			expect(result.issues).toEqual(
 				expect.arrayContaining<PreflightIssueCode>([
@@ -67,11 +67,11 @@ describe("preflight: runPreflight scenarios (negative)", () => {
 		}
 	});
 
-	test("only package.json -> missing peers, ok=false", (): void => {
+	it("only package.json -> missing peers, ok=false", (): void => {
 		const t = createTempProject({ withPackageJson: true });
 		try {
 			const result = runPreflight(t.cwd);
-			expect(result.ok).toBe(false);
+			expect(result.ok).toBeFalsy();
 			expect(result.issues).toEqual(
 				expect.arrayContaining<PreflightIssueCode>([
 					"missingTypescript",
@@ -85,7 +85,7 @@ describe("preflight: runPreflight scenarios (negative)", () => {
 });
 
 describe("preflight: runPreflight scenarios (positive)", () => {
-	test("package.json + typescript + biome -> ok=true (no blocking issues)", (): void => {
+	it("package.json + typescript + biome -> ok=true (no blocking issues)", (): void => {
 		const t = createTempProject({
 			withPackageJson: true,
 			withTypescript: true,
@@ -93,7 +93,7 @@ describe("preflight: runPreflight scenarios (positive)", () => {
 		});
 		try {
 			const result = runPreflight(t.cwd);
-			expect(result.ok).toBe(true);
+			expect(result.ok).toBeTruthy();
 			// No blocking issues expected
 			const blocking: readonly PreflightIssueCode[] = result.issues.filter(
 				(c) =>
@@ -101,7 +101,7 @@ describe("preflight: runPreflight scenarios (positive)", () => {
 					c === "missingTypescript" ||
 					c === "missingBiome",
 			);
-			expect(blocking.length).toBe(0);
+			expect(blocking).toHaveLength(0);
 		} finally {
 			t.cleanup();
 		}
@@ -130,7 +130,7 @@ describe("preflight: printPreflightReport messages (English, actionable)", () =>
 		vi.restoreAllMocks();
 	});
 
-	test("printPreflightReport prints guidance for missing TypeScript and Biome", (): void => {
+	it("printPreflightReport prints guidance for missing TypeScript and Biome", (): void => {
 		const { err, warn } = setupSpies();
 		const issues: readonly PreflightIssueCode[] = [
 			"missingTypescript",
@@ -153,7 +153,7 @@ describe("preflight: printPreflightReport messages (English, actionable)", () =>
 		expect(warn).not.toHaveBeenCalled();
 	});
 
-	test("printPreflightReport prints advisory for npxIsolated", (): void => {
+	it("printPreflightReport prints advisory for npxIsolated", (): void => {
 		const { err, warn } = setupSpies();
 		const issues: readonly PreflightIssueCode[] = ["npxIsolated"];
 

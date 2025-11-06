@@ -5,6 +5,7 @@
 // SOURCE: lint.ts lines 1558-1813
 
 import { Effect } from "effect";
+
 import type {
 	CLIOptions,
 	LinterConfig,
@@ -24,7 +25,7 @@ function printSections(
 	sections: Map<string, LintMessageWithFile[]>,
 	diffRange: { diffArg: string; label: string },
 	diffContext: number,
-): Effect.Effect<void, never> {
+): Effect.Effect<void> {
 	return Effect.gen(function* (_) {
 		for (const [name, arr] of sections) {
 			console.log(`\n=== ${name} (${arr.length} issues) ===`);
@@ -48,7 +49,7 @@ export function processResults(
 	messages: readonly LintMessageWithFile[],
 	config: LinterConfig | null,
 	cliOptions: CLIOptions,
-): Effect.Effect<boolean, never> {
+): Effect.Effect<boolean> {
 	const sortedMessages = sortMessages(messages);
 	const ruleLevelMap = config ? makeRuleLevelMap(config) : null;
 	const diffContext = cliOptions.context ?? 3;

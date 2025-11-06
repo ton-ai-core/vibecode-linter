@@ -48,7 +48,7 @@ export function printFileContext(
 }
 
 function printDiffLines(
-	lines: ReadonlyArray<{ headLineNumber: number | null; content: string }>,
+	lines: readonly { headLineNumber: number | null; content: string }[],
 	prefix: string,
 	maxLines: number,
 ): void {
@@ -65,28 +65,28 @@ function printDiffLines(
 }
 
 function categorizeDiffLines(
-	lines: ReadonlyArray<{
+	lines: readonly {
 		symbol?: string | undefined;
 		headLineNumber: number | null;
 		content: string;
-	}>,
+	}[],
 	startIdx: number,
 	endIdx: number,
 ): {
-	removed: Array<{ headLineNumber: number | null; content: string }>;
-	added: Array<{ headLineNumber: number | null; content: string }>;
-	context: Array<{ headLineNumber: number | null; content: string }>;
+	removed: { headLineNumber: number | null; content: string }[];
+	added: { headLineNumber: number | null; content: string }[];
+	context: { headLineNumber: number | null; content: string }[];
 } {
-	const removed: Array<{ headLineNumber: number | null; content: string }> = [];
-	const added: Array<{ headLineNumber: number | null; content: string }> = [];
-	const context: Array<{ headLineNumber: number | null; content: string }> = [];
+	const removed: { headLineNumber: number | null; content: string }[] = [];
+	const added: { headLineNumber: number | null; content: string }[] = [];
+	const context: { headLineNumber: number | null; content: string }[] = [];
 
 	for (let i = startIdx; i < endIdx; i += 1) {
 		const line = lines[i];
 		// CHANGE: Avoid truthiness on possibly undefined line and symbol
 		// WHY: strict-boolean-expressions — explicit undefined checks
 		// REF: REQ-LINT-FIX
-		if (line === undefined || line.symbol === undefined) continue;
+		if (line?.symbol === undefined) continue;
 
 		if (line.symbol === "-") removed.push(line);
 		else if (line.symbol === "+") added.push(line);

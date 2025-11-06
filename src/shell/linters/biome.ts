@@ -13,6 +13,7 @@
 
 import { exec } from "node:child_process";
 import { promisify } from "node:util";
+
 import { Effect, pipe } from "effect";
 
 import { ExternalToolError, type ParseError } from "../../core/errors.js";
@@ -239,7 +240,7 @@ const listBiomeTargetFiles = (
 // COMPLEXITY: O(n) where n = |files|
 const collectPerFileDiagnostics = (
 	files: readonly string[],
-): Effect.Effect<readonly BiomeResult[], never> =>
+): Effect.Effect<readonly BiomeResult[]> =>
 	Effect.gen(function* () {
 		const allResults: BiomeResult[] = [];
 		for (const file of files) {
@@ -261,7 +262,7 @@ const collectPerFileDiagnostics = (
 // COMPLEXITY: O(1) per file (Biome CLI dominates)
 const runBiomeCheckForFile = (
 	file: string,
-): Effect.Effect<readonly BiomeResult[], never> =>
+): Effect.Effect<readonly BiomeResult[]> =>
 	execCommand(`npx biome check "${file}" --reporter=json`)
 		.pipe(Effect.catchAll(() => Effect.succeed("")))
 		.pipe(

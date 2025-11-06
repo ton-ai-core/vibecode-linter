@@ -6,6 +6,7 @@
 
 import { exec } from "node:child_process";
 import { promisify } from "node:util";
+
 import { Effect } from "effect";
 
 const execAsync = promisify(exec);
@@ -75,9 +76,7 @@ const DEPENDENCIES: readonly Dependency[] = [
  * @param checkCommand Команда для проверки
  * @returns True если команда доступна
  */
-function isCommandAvailable(
-	checkCommand: string,
-): Effect.Effect<boolean, never> {
+function isCommandAvailable(checkCommand: string): Effect.Effect<boolean> {
 	return Effect.tryPromise({
 		try: () => execAsync(checkCommand, { timeout: 5000 }),
 		catch: () => false,
@@ -100,10 +99,7 @@ interface DependencyCheckResult {
  *
  * @returns Результат проверки
  */
-export function checkDependencies(): Effect.Effect<
-	DependencyCheckResult,
-	never
-> {
+export function checkDependencies(): Effect.Effect<DependencyCheckResult> {
 	return Effect.gen(function* (_) {
 		const missing: Dependency[] = [];
 

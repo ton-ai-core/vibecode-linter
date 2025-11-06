@@ -9,6 +9,7 @@
 				"@ton-ai-core/suggest-members/suggest-members",
 				"@ton-ai-core/suggest-members/suggest-imports",
 				"@ton-ai-core/suggest-members/suggest-module-paths",
+				"@ton-ai-core/suggest-members/suggest-exports",
 				"@typescript-eslint/no-explicit-any"
 			]
 		},

@@ -237,7 +237,7 @@ function logRecentCommits(
  * COMPLEXITY: O(k) where k=status lines
  */
 function logGitSection(insight: GitInsight): void {
-	const status = insight.status;
+	const { status } = insight;
 	console.log("\n🌿 Git status");
 	if (!status.isRepository) {
 		console.log("   • Not a git repository");
@@ -297,7 +297,7 @@ function logChangeTree(lines: readonly string[]): void {
  */
 export function reportProjectInsightsEffect(
 	targetPath: string,
-): Effect.Effect<void, never> {
+): Effect.Effect<void> {
 	return Effect.gen(function* () {
 		const rootLabel = deriveRootLabel(targetPath);
 		const files = yield* collectProjectFilesEffect(targetPath);

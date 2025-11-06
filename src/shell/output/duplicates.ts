@@ -5,6 +5,7 @@
 // SOURCE: lint.ts lines 1196-1284, 1815-1893
 
 import { Effect } from "effect";
+
 import type {
 	DuplicateInfo,
 	SarifLocation,
@@ -138,9 +139,10 @@ function extractCloneGroups(messageText: string): CloneGroups | null {
 	// CHANGE: Single source of truth for regex and group extraction
 	// WHY: Avoid duplication and lower complexity in the caller
 	// REF: REQ-LINT-FIX
-	const match = messageText.match(
-		/Clone detected in typescript, - (.+?)\[(\d+):(\d+) - (\d+):(\d+)\] and (.+?)\[(\d+):(\d+) - (\d+):(\d+)\]/,
-	);
+	const match =
+		/Clone detected in typescript, - (.+?)\[(\d+):(\d+) - (\d+):(\d+)\] and (.+?)\[(\d+):(\d+) - (\d+):(\d+)\]/.exec(
+			messageText,
+		);
 	if (match === null) {
 		return null;
 	}
@@ -196,12 +198,14 @@ function loadSarifContent(sarifPath: string): SarifReport | null {
 	}
 }
 
-function validateSarifStructure(sarif: SarifReport | null): boolean {
-	return !!sarif?.runs?.[0]?.results;
+function validateSarifStructure(
+	sarif: SarifReport | null,
+): sarif is SarifReport {
+	return sarif !== null && sarif.runs.length > 0;
 }
 
 function isValidResult(result: {
-	locations?: ReadonlyArray<{ physicalLocation?: object }>;
+	locations?: readonly { physicalLocation?: object }[];
 	message?: { text: string };
 }): boolean {
 	const hasLocations =
@@ -245,9 +249,11 @@ function extractRegion(loc: SarifLocation): RegionInfo | null {
 		return null;
 	}
 
-	const uri = physical.artifactLocation?.uri;
-	const start = physical.region?.startLine;
-	const end = physical.region?.endLine;
+	// After isDefined check, TypeScript ensures physical is SarifLocation's physicalLocation type
+	// which has required artifactLocation and region properties
+	const uri = physical.artifactLocation.uri;
+	const start = physical.region.startLine;
+	const end = physical.region.endLine;
 
 	if (!isNonEmptyString(uri) || !isNum(start) || !isNum(end)) {
 		return null;
@@ -293,7 +299,7 @@ function extractDuplicatesFromResults(
 		}
 
 		// 2) Fallback: parse free-text message if present
-		if (result.message?.text) {
+		if (typeof result.message.text === "string") {
 			const fallback = parseDuplicateLocation(result.message.text);
 			if (fallback) duplicates.push(fallback);
 		}
@@ -317,11 +323,16 @@ function extractDuplicatesFromResults(
 export function parseSarifReport(sarifPath: string): readonly DuplicateInfo[] {
 	try {
 		const sarif = loadSarifContent(sarifPath);
-		if (!validateSarifStructure(sarif) || !sarif?.runs?.[0]?.results) {
+		// Type guard check - after this, sarif is guaranteed to be SarifReport
+		if (!validateSarifStructure(sarif)) {
 			return [];
 		}
 
-		const results = sarif.runs[0].results;
+		// After type guard validateSarifStructure, sarif.runs.length > 0 is guaranteed
+		const results = sarif.runs[0]?.results;
+		if (!results) {
+			return [];
+		}
 		return extractDuplicatesFromResults(results);
 	} catch (error) {
 		console.error("Error parsing SARIF report:", error);

@@ -9,6 +9,7 @@
 // We build Program from p (respecting extends tsconfig.base.json) and filter diagnostics to files within T. Thus diagnostics(T) ⊆ diagnostics(p) and is consistent with TypeScript semantics.
 
 import * as path from "node:path";
+
 import { Effect, pipe } from "effect";
 import ts from "typescript";
 
@@ -38,7 +39,7 @@ function debugSnapshot(s: {
 	readonly projectFiles: number;
 	readonly preFilter: number;
 	readonly postFilter: number;
-	readonly samplePre: ReadonlyArray<string | undefined>;
+	readonly samplePre: readonly (string | undefined)[];
 	readonly samplePost: readonly string[];
 }): void {
 	if (!VCL_DEBUG_TS) return;
@@ -175,7 +176,7 @@ function loadRootAndReferences(
 	const projects: ParsedProject[] = [];
 
 	const raw = rootParsed.raw as
-		| { readonly references?: ReadonlyArray<{ readonly path: string }> }
+		| { readonly references?: readonly { readonly path: string }[] }
 		| undefined;
 	const references = raw?.references ?? [];
 
@@ -249,7 +250,7 @@ function pickProjectForTarget(
 
 /** Convert TS Diagnostic into our TypeScriptMessage (if file-scoped). */
 function diagToMessage(diag: ts.Diagnostic): TypeScriptMessage | null {
-	const file = diag.file;
+	const { file } = diag;
 	if (file === undefined) {
 		return null;
 	}
@@ -329,10 +330,10 @@ function loadAndSelectProject(
 function getProgramDiagnostics(
 	selected: ParsedProject,
 	targetPath: string,
-): Effect.Effect<
-	{ diags: readonly ts.Diagnostic[]; allMessages: TypeScriptMessage[] },
-	never
-> {
+): Effect.Effect<{
+	diags: readonly ts.Diagnostic[];
+	allMessages: TypeScriptMessage[];
+}> {
 	return Effect.gen(function* () {
 		const absTarget = path.resolve(targetPath);
 		const rootNames = computeRootNames(selected.parsed, absTarget);

@@ -55,7 +55,7 @@ const DEFAULT_STATUS: GitStatusSummary = {
  * COMPLEXITY: O(k)
  */
 function extractTrackingSegment(header: string): string | null {
-	const bracketMatch = header.match(/\[(.+)\]/u);
+	const bracketMatch = /\[(.+)\]/u.exec(header);
 	return bracketMatch === null ? null : (bracketMatch[1] ?? null);
 }
 
@@ -176,7 +176,7 @@ function parseCommitLine(line: string): GitCommitInfo | null {
  * INVARIANT: statusLines excludes header
  * COMPLEXITY: O(1)
  */
-function fetchGitStatusEffect(): Effect.Effect<GitStatusSummary, never> {
+function fetchGitStatusEffect(): Effect.Effect<GitStatusSummary> {
 	return Effect.gen(function* (_) {
 		const rawResult = yield* _(execGitStdoutOrNull("git status -sb"));
 		const raw = rawResult ?? "";
@@ -233,7 +233,7 @@ function sanitizeGitRef(ref: string | null): string | null {
 
 function fetchRecentCommitsEffect(
 	targetRef: string | null,
-): Effect.Effect<readonly GitCommitInfo[], never> {
+): Effect.Effect<readonly GitCommitInfo[]> {
 	const ref = sanitizeGitRef(targetRef);
 	if (ref === null) {
 		return Effect.succeed<readonly GitCommitInfo[]>([]);
@@ -271,7 +271,7 @@ function fetchRecentCommitsEffect(
  * INVARIANT: commits.length ≤ 5
  * COMPLEXITY: O(1)
  */
-export function fetchGitInsightEffect(): Effect.Effect<GitInsight, never> {
+export function fetchGitInsightEffect(): Effect.Effect<GitInsight> {
 	return Effect.gen(function* (_) {
 		const status = yield* _(fetchGitStatusEffect());
 		if (!status.isRepository) {

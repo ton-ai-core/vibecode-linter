@@ -125,7 +125,7 @@ export function isBiomeMessage(message: LintMessage): message is BiomeMessage {
  */
 export interface LintResult {
 	readonly filePath: string;
-	readonly messages: ReadonlyArray<
-		BaseLintMessage & { readonly ruleId: string | null }
-	>;
+	readonly messages: readonly (BaseLintMessage & {
+		readonly ruleId: string | null;
+	})[];
 }

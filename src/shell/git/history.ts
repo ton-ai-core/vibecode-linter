@@ -14,7 +14,7 @@ import {
 } from "./history-helpers.js";
 import { execGitNonEmptyOrNull } from "./utils.js";
 
-export type { CommitInfo, CommitDiffBlock };
+export type { CommitDiffBlock, CommitInfo };
 
 // CHANGE: Helper to reduce complexity by picking first defined value
 // WHY: Replace conditional update of latestSnippet with a pure helper
@@ -29,7 +29,7 @@ function buildHistoryResult(
 	line: number,
 	relativePath: string,
 	limit: number,
-): Effect.Effect<GitHistoryBlock | null, never> {
+): Effect.Effect<GitHistoryBlock | null> {
 	return Effect.gen(function* (_) {
 		const header =
 			"--- history (recent line updates) -------------------------";
@@ -69,7 +69,7 @@ export function getGitHistoryBlock(
 	filePath: string,
 	line: number,
 	limit: number,
-): Effect.Effect<GitHistoryBlock | null, never> {
+): Effect.Effect<GitHistoryBlock | null> {
 	return Effect.gen(function* (_) {
 		const historyCommand = `git log -L ${line},${line}:${filePath} --date=short`;
 
@@ -112,7 +112,7 @@ export function getCommitDiffBlocks(
 	line: number,
 	limit: number,
 	contextLines = 3,
-): Effect.Effect<readonly CommitDiffBlock[] | null, never> {
+): Effect.Effect<readonly CommitDiffBlock[] | null> {
 	return Effect.gen(function* (_) {
 		const commits = yield* _(fetchCommitHistoryForLine(filePath, line, limit));
 		// CHANGE: Avoid truthiness on nullable array

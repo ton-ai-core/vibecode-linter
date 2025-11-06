@@ -5,6 +5,7 @@
 // SOURCE: n/a
 
 import { Effect } from "effect";
+
 import type { DiffRangeConfig } from "../../core/types/index.js";
 import { execCommand } from "../utils/exec.js";
 // CHANGE: Use node: protocol for Node.js built-in modules
@@ -59,7 +60,7 @@ export function getCommitSnippetForLine(
 	filePath: string,
 	lineNumber: number,
 	context = 3,
-): Effect.Effect<readonly string[] | null, never> {
+): Effect.Effect<readonly string[] | null> {
 	const relativePath = path
 		.relative(process.cwd(), filePath)
 		.replace(/\\/g, "/");
@@ -92,7 +93,7 @@ export function getCommitSnippetForLine(
  *
  * @returns Конфигурация диапазона для git diff
  */
-export function detectDiffRange(): Effect.Effect<DiffRangeConfig, never> {
+export function detectDiffRange(): Effect.Effect<DiffRangeConfig> {
 	return Effect.tryPromise({
 		try: () =>
 			execAsync(
@@ -139,7 +140,7 @@ export function detectDiffRange(): Effect.Effect<DiffRangeConfig, never> {
 export function execGitStdoutOrNull(
 	command: string,
 	maxBuffer = 10 * 1024 * 1024,
-): Effect.Effect<string | null, never> {
+): Effect.Effect<string | null> {
 	return execCommand(command, { maxBuffer }).pipe(
 		Effect.map((stdout) => (stdout.length > 0 ? stdout : null)),
 		Effect.catchAll(() => Effect.succeed(null)),
@@ -164,7 +165,7 @@ export function execGitStdoutOrNull(
 export function execGitNonEmptyOrNull(
 	command: string,
 	maxBuffer = 10 * 1024 * 1024,
-): Effect.Effect<string | null, never> {
+): Effect.Effect<string | null> {
 	return execGitStdoutOrNull(command, maxBuffer).pipe(
 		Effect.map((out) => {
 			if (typeof out !== "string") return null;

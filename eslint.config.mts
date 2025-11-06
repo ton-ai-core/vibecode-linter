@@ -1,190 +1,62 @@
 // eslint.config.mjs
-// CHANGE: Migrate from eslint-plugin-jest to eslint-plugin-vitest
-// WHY: Project migrated from Jest to Vitest for testing
-// REF: Migration from Jest to Vitest
-import js from "@eslint/js";
-import eslintComments from "@eslint-community/eslint-plugin-eslint-comments";
+// @ts-check
+import eslint from '@eslint/js';
+import { defineConfig } from 'eslint/config';
+import tseslint from 'typescript-eslint';
+import vitest from "eslint-plugin-vitest";
 import suggestMembers from "@ton-ai-core/eslint-plugin-suggest-members";
-import importX from "eslint-plugin-import-x";
-import vitestPlugin from "eslint-plugin-vitest";
-import jsonc from "eslint-plugin-jsonc";
-import promisePlugin from "eslint-plugin-promise";
-import simpleImportSort from "eslint-plugin-simple-import-sort";
-import sql from "eslint-plugin-sql";
-import sqlTemplate from "eslint-plugin-sql-template";
-import typeormTS from "eslint-plugin-typeorm-typescript";
-import unusedImports from "eslint-plugin-unused-imports";
-import yml from "eslint-plugin-yml";
 import globals from "globals";
-import tseslint from "typescript-eslint";
+import eslintCommentsConfigs from "@eslint-community/eslint-plugin-eslint-comments/configs";
 
-export default tseslint.config(
-	// Игноры
-	{
-		ignores: [
-			"dist/**",
-			"build/**",
-			".api",
-			"*.json",
-			"*.yml",
-			"*.yaml",
-			"*.config.js",
-			"*.config.ts",
-			"reports/**",
+export default defineConfig(
+  eslint.configs.recommended,
+  tseslint.configs.strictTypeChecked,
+  suggestMembers.configs.recommended,
+  eslintCommentsConfigs.recommended,
+  {
+    languageOptions: {
+      parser: tseslint.parser,
+	  globals: { ...globals.node, ...globals.browser },
+      parserOptions: {
+        projectService: true,          
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+	files: ["**/*.ts"],
+	rules: {
+		complexity: ["error", 8],
+		"max-lines-per-function": [
+			"error",
+			{ max: 50, skipBlankLines: true, skipComments: true },
 		],
-	},
-
-	// Основные TS-файлы
-	{
-		files: ["**/*.{ts,tsx}"],
-		extends: [
-			js.configs.recommended,
-			...tseslint.configs.recommended,
-			...tseslint.configs.recommendedTypeChecked,
+		"max-params": ["error", 5],
+		"max-depth": ["error", 4],
+		"max-lines": [
+			"error",
+			{ max: 300, skipBlankLines: true, skipComments: true },
 		],
-		plugins: {
-			"@eslint-community/eslint-comments": eslintComments,
-			vitest: vitestPlugin,
-			"@ton-ai-core/suggest-members": suggestMembers,
-			"typeorm-typescript": typeormTS,
-			sql,
-			"sql-template": sqlTemplate,
-			"import-x": importX,
-			"simple-import-sort": simpleImportSort,
-			"unused-imports": unusedImports,
-			promise: promisePlugin,
-			jsonc,
-			yml,
-		},
-		languageOptions: {
-			ecmaVersion: "latest",
-			sourceType: "module",
-			globals: { ...globals.node, ...globals.browser },
-			parserOptions: {
-				tsconfigRootDir: import.meta.dirname,
-				projectService: true,
+
+		"@typescript-eslint/restrict-template-expressions": ["error", {
+			allowNumber: true,
+			allowBoolean: true,
+			allowNullish: false,
+			allowAny: false,
+			allowRegExp: false
+		}],
+		"@typescript-eslint/ban-ts-comment": [
+			"error",
+			{
+				"ts-ignore": true,
+				"ts-nocheck": true,
+				"ts-expect-error": true,
+				"ts-check": true,
 			},
-		},
-		settings: {
-			// Резолверы для import-x: TS-алиасы + node:* core-модули
-			"import-x/resolver": {
-				typescript: {
-					alwaysTryTypes: true,
-					project: "./tsconfig.json",
-				},
-				node: {
-					extensions: [".ts", ".tsx", ".d.ts", ".js", ".jsx", ".json", ".node"],
-					preferBuiltins: true,
-				},
-			},
-			"import-x/core-modules": [
-				"node:fs",
-				"node:path",
-				"node:url",
-				"node:crypto",
-				"node:os",
-				"node:stream",
-				"node:http",
-				"node:https",
-				"node:buffer",
-				"node:util",
-			],
-		},
-		rules: {
-			// Метрики/сложность
-			complexity: ["error", 8],
-			"max-lines-per-function": [
-				"error",
-				{ max: 50, skipBlankLines: true, skipComments: true },
-			],
-			"max-params": ["error", 5],
-			"max-depth": ["error", 4],
-			"max-lines": [
-				"error",
-				{ max: 300, skipBlankLines: true, skipComments: true },
-			],
-
-			// Архитектура/импорты
-			"import-x/no-cycle": ["error", { maxDepth: 10 }],
-			"no-restricted-imports": [
-				"error",
-				{
-					patterns: ["src/domain/**"],
-					paths: [
-						{
-							name: "src/domain",
-							message:
-								"Domain layer must not be imported by UI layer. Use domain/public-api instead.",
-						},
-					],
-				},
-			],
-
-			// TS строгие правила
-			"@typescript-eslint/no-unused-vars": [
-				"error",
-				{
-					argsIgnorePattern: "^_",
-					varsIgnorePattern: "^_",
-					caughtErrorsIgnorePattern: "^_",
-				},
-			],
-			"@typescript-eslint/no-explicit-any": "error",
-			// TS-версия с разрешением идиом
-			"no-unused-expressions": "off",
-			"@typescript-eslint/no-unused-expressions": [
-				"error",
-				{ allowShortCircuit: true, allowTernary: true },
-			],
-			"@typescript-eslint/explicit-function-return-type": "error",
-			"@typescript-eslint/explicit-module-boundary-types": "error",
-			"@typescript-eslint/no-unsafe-assignment": "error",
-			"@typescript-eslint/no-unsafe-member-access": "error",
-			"@typescript-eslint/no-unsafe-call": "error",
-			"@typescript-eslint/no-unsafe-return": "error",
-			"@typescript-eslint/switch-exhaustiveness-check": "error",
-			"@typescript-eslint/no-floating-promises": "error",
-			"@typescript-eslint/await-thenable": "error",
-			"@typescript-eslint/no-misused-promises": "error",
-			"@typescript-eslint/require-await": "error",
-			"@typescript-eslint/no-unnecessary-type-assertion": "error",
-			"@typescript-eslint/prefer-readonly": "error",
-			"@typescript-eslint/prefer-as-const": "error",
-			"@typescript-eslint/strict-boolean-expressions": "error",
-			"@typescript-eslint/ban-ts-comment": [
-				"error",
-				{
-					"ts-ignore": true,
-					"ts-nocheck": true,
-					"ts-expect-error": true,
-					"ts-check": true,
-				},
-			],
-
-			// Запрет верхнего типа unknown (типовой)
-			"@typescript-eslint/no-restricted-types": [
-				"error",
-				{
-					types: {
-						unknown: {
-							message:
-								"Не используем 'unknown'. Уточни тип или наведи порядок в источнике данных.",
-						},
-						Promise: {
-							message: "Запрещён Promise — используй Effect.Effect<A, E, R>.",
-							suggest: ["Effect.Effect"],
-						},
-						"Promise<*>": {
-							message:
-								"Запрещён Promise<T> — используй Effect.Effect<T, E, R>.",
-							suggest: ["Effect.Effect<T, E, R>"],
-						},
-					},
-				},
-			],
-
-			// Сводный запрет синтаксиса (мутабельный тюпл)
-			"no-restricted-syntax": [
+		],
+		"@eslint-community/eslint-comments/no-use": "error",
+		"@eslint-community/eslint-comments/no-unlimited-disable": "error",
+		"@eslint-community/eslint-comments/disable-enable-pair": "error",
+		"@eslint-community/eslint-comments/no-unused-disable": "error",
+		"no-restricted-syntax": [
 				"error",
 				{
 					selector: "TSUnknownKeyword",
@@ -229,197 +101,51 @@ export default tseslint.config(
 					message:
 						"Запрещены Promise.* — используй комбинаторы Effect (all, forEach, etc.).",
 				},
-			],
-
-			// catch var — не навязывать unknown
-			"@typescript-eslint/use-unknown-in-catch-callback-variable": "off",
-
-			// Бросать только Error
-			"no-throw-literal": "off",
-			"@typescript-eslint/only-throw-error": [
-				"error",
-				{ allowThrowingUnknown: false, allowThrowingAny: false },
-			],
-
-			// Комментарии
-			"@eslint-community/eslint-comments/no-use": "error",
-			"@eslint-community/eslint-comments/no-unlimited-disable": "error",
-			"@eslint-community/eslint-comments/disable-enable-pair": "error",
-			"@eslint-community/eslint-comments/no-unused-disable": "error",
-
-			// Плагины проекта
-			"@ton-ai-core/suggest-members/suggest-members": "error",
-			"@ton-ai-core/suggest-members/suggest-imports": "error",
-			"@ton-ai-core/suggest-members/suggest-module-paths": "error",
-
-			// TypeORM
-			"typeorm-typescript/enforce-column-types": [
-				"error",
-				{ driver: "sqlite" },
-			],
-			"typeorm-typescript/enforce-relation-types": [
-				"error",
-				{ specifyUndefined: "always" },
-			],
-			"typeorm-typescript/enforce-consistent-nullability": [
-				"error",
-				{ specifyNullable: "always" },
-			],
-
-			// SQL
-			"sql/format": ["warn", { ignoreTagless: true }],
-			"sql/no-unsafe-query": ["error", { allowLiteral: false }],
-			"sql-template/no-unsafe-query": "error",
-
-			// Импорты и порядок
-			"import-x/no-unresolved": "error",
-			"import-x/no-duplicates": "error",
-			"import-x/first": "error",
-			"import-x/newline-after-import": "error",
-			// избегаем конфликтов с Biome organizeImports
-			"simple-import-sort/imports": "off",
-			"simple-import-sort/exports": "off",
-
-			// Чистка мусора
-			"unused-imports/no-unused-imports": "error",
-			"unused-imports/no-unused-vars": "off",
-
-			// Промисы/глобалы
-			"promise/param-names": "error",
-			"promise/no-multiple-resolved": "error",
-			"no-restricted-globals": ["error", "Reflect"],
-
-			/* === ДОБАВЛЕННЫЕ ПРАВИЛА (в конце) === */
-			"@typescript-eslint/array-type": ["error", { default: "array-simple" }],
-			"arrow-body-style": ["error", "as-needed"],
-			curly: ["error", "multi-line"],
-			eqeqeq: ["error", "always", { null: "ignore" }],
-			"@typescript-eslint/consistent-type-assertions": [
-				"error",
-				{ assertionStyle: "as" },
-			],
-			"@typescript-eslint/explicit-member-accessibility": [
-				"error",
-				{ accessibility: "no-public" },
-			],
-			"@typescript-eslint/no-inferrable-types": [
-				"error",
-				{ ignoreParameters: true, ignoreProperties: true },
-			],
-			"@typescript-eslint/consistent-type-imports": [
-				"error",
-				{ disallowTypeAnnotations: false },
-			],
-			"@typescript-eslint/no-namespace": ["error", { allowDeclarations: true }],
-			"import-x/no-relative-packages": "error",
-			"no-cond-assign": "error",
-			"no-debugger": "error",
-			"no-duplicate-case": "error",
-			"no-unsafe-finally": "error",
-			"no-var": "error",
-			"object-shorthand": "error",
-			"one-var": ["error", "never"],
-			"prefer-arrow-callback": "error",
-			"prefer-const": ["error", { destructuring: "all" }],
-			radix: "error",
-			"default-case": "error",
-			"@typescript-eslint/no-unsafe-argument": "error",
-			"@typescript-eslint/restrict-template-expressions": "error",
-			"@typescript-eslint/restrict-plus-operands": "error",
-			"@typescript-eslint/no-confusing-non-null-assertion": "error",
-			"@typescript-eslint/consistent-type-definitions": ["error", "interface"],
-			"@typescript-eslint/parameter-properties": "error",
-		},
-	},
-
-	// FCIS: CORE vs SHELL layer overrides
-	{
-		files: ["src/core/**/*.ts"],
-		rules: {
-			"no-console": "error",
-			"no-restricted-imports": [
+		],
+		"@typescript-eslint/no-restricted-types": [
 				"error",
 				{
-					patterns: [
-						{
-							group: [
-								"node:*",
-								"fs",
-								"child_process",
-								"os",
-								"http",
-								"https",
-								"stream",
-								"path",
-								"url",
-								"buffer",
-								"process",
-							],
+					types: {
+						unknown: {
 							message:
-								"CORE layer must be pure: no Node I/O modules or process",
+								"Не используем 'unknown'. Уточни тип или наведи порядок в источнике данных.",
 						},
-					],
+						Promise: {
+							message: "Запрещён Promise — используй Effect.Effect<A, E, R>.",
+							suggest: ["Effect.Effect"],
+						},
+						"Promise<*>": {
+							message:
+								"Запрещён Promise<T> — используй Effect.Effect<T, E, R>.",
+							suggest: ["Effect.Effect<T, E, R>"],
+						},
+					},
 				},
 			],
-			"no-restricted-globals": ["error", "process"],
-		},
-	},
+		"@typescript-eslint/use-unknown-in-catch-callback-variable": "off",
+		"no-throw-literal": "off",
+		"@typescript-eslint/only-throw-error": [
+			"error",
+			{ allowThrowingUnknown: false, allowThrowingAny: false },
+		],
+	}
+  },
+  {
+    files: ['**/*.{test,spec}.{ts,tsx}', 'tests/**', '**/__tests__/**'],
+    ...vitest.configs.all,
+    languageOptions: {
+      globals: {
+        ...vitest.environments.env.globals,
+      },
+    },
+  },
 
-	// Тесты
-	// CHANGE: Use vitest plugin instead of jest
-	// WHY: Project migrated to Vitest
-	{
-		files: ["**/*.spec.{ts,tsx}", "**/*.test.{ts,tsx}"],
-		plugins: { vitest: vitestPlugin },
-		languageOptions: {
-			globals: { ...globals.node },
-			parserOptions: {
-				tsconfigRootDir: import.meta.dirname,
-				projectService: true,
-			},
-		},
-		rules: {
-			...(vitestPlugin.configs.recommended?.rules ?? {}),
-			"vitest/expect-expect": "off",
-		},
-	},
+  // 3) Для JS-файлов отключим типо-зависимые проверки
+  {
+    files: ['**/*.{js,cjs,mjs}'],
+    extends: [tseslint.configs.disableTypeChecked],
+  },
 
-	// E2E тесты - более мягкие ограничения
-	{
-		files: ["test/e2e/**/*.test.{ts,tsx}"],
-		rules: {
-			"max-lines-per-function": [
-				"error",
-				{ max: 300, skipBlankLines: true, skipComments: true },
-			],
-			"max-lines": [
-				"error",
-				{ max: 500, skipBlankLines: true, skipComments: true },
-			],
-			complexity: ["error", 15],
-		},
-	},
-
-	// E2E тесты - исключения для интеграционных тестов
-	{
-		files: ["**/e2e/**/*.test.{ts,tsx}"],
-		rules: {
-			"max-lines-per-function": "off", // E2E тесты могут быть длинными
-			"max-lines": "off", // E2E файлы могут быть большими
-		},
-	},
-
-	// JSON/JSONC
-	{
-		files: ["**/*.json", "**/*.jsonc"],
-		plugins: { jsonc },
-		rules: { "jsonc/sort-keys": "error" },
-	},
-
-	// YAML
-	{
-		files: ["**/*.{yml,yaml}"],
-		plugins: { yml },
-		rules: { "yml/sort-keys": "error" },
-	},
+  // 4) Глобальные игноры
+  { ignores: ['dist/**', 'build/**', 'coverage/**'] },
 );

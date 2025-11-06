@@ -5,6 +5,7 @@
 // SOURCE: n/a
 
 import { Effect } from "effect";
+
 import {
 	computeRealColumnFromVisual,
 	expandTabs,
@@ -37,7 +38,7 @@ function refineHighlightRange(
 	message: LintMessage,
 ): { start: number; end: number } {
 	const text = message.message;
-	const identMatch = text.match(/["']([A-Za-z0-9_$]+)["']/);
+	const identMatch = /["']([A-Za-z0-9_$]+)["']/.exec(text);
 	const identifier = identMatch?.[1];
 	// CHANGE: Avoid truthiness check on possibly undefined string
 	// WHY: strict-boolean-expressions — handle undefined explicitly
@@ -61,7 +62,7 @@ function createDiffAttempts(
 	message: LintMessage & { filePath: string },
 	rangeConfig: DiffRangeConfig,
 	contextLines: number,
-): ReadonlyArray<{ readonly descriptor: string; readonly command: string }> {
+): readonly { readonly descriptor: string; readonly command: string }[] {
 	return [
 		{
 			descriptor: rangeConfig.label,
@@ -84,18 +85,15 @@ function createDiffAttempts(
 // REF: ESLint max-lines-per-function
 // SOURCE: n/a
 function executeDiffAttempts(
-	attempts: ReadonlyArray<{
+	attempts: readonly {
 		readonly descriptor: string;
 		readonly command: string;
-	}>,
+	}[],
 	targetLine: number,
-): Effect.Effect<
-	{
-		readonly snippet: DiffSnippet;
-		readonly descriptor: string;
-	} | null,
-	never
-> {
+): Effect.Effect<{
+	readonly snippet: DiffSnippet;
+	readonly descriptor: string;
+} | null> {
 	return Effect.gen(function* (_) {
 		const diffOutputs: string[] = [];
 		const descriptors: string[] = [];
@@ -343,7 +341,7 @@ export function getGitDiffBlock(
 	message: LintMessage & { filePath: string },
 	rangeConfig: DiffRangeConfig,
 	contextLines: number,
-): Effect.Effect<GitDiffBlock | null, never> {
+): Effect.Effect<GitDiffBlock | null> {
 	const normalizedContext = contextLines > 0 ? contextLines : 3;
 
 	const attempts = createDiffAttempts(message, rangeConfig, normalizedContext);
@@ -354,7 +352,7 @@ export function getGitDiffBlock(
 			}
 
 			const { snippet, descriptor } = selection;
-			const pointerIndex = snippet.pointerIndex;
+			const { pointerIndex } = snippet;
 			if (pointerIndex === null) {
 				return null;
 			}

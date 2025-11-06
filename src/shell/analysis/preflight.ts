@@ -8,6 +8,7 @@ import * as fs from "node:fs";
 import { createRequire } from "node:module";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
+
 import { match } from "ts-pattern";
 
 // CHANGE: Define __dirname and require equivalents for ES modules

@@ -7,6 +7,7 @@
 // COMPLEXITY: O(n) per line where n = |currentLine|
 
 import { pipe } from "effect";
+
 import type { LintMessageWithFile } from "../types/index.js";
 
 /**
@@ -91,8 +92,8 @@ function calculateFunctionArgsEnd(
 	startCol: number,
 ): number {
 	const beforeCursor = currentLine.substring(0, startCol + 15);
-	const funcCallMatch = beforeCursor.match(
-		/([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\([^)]*$/,
+	const funcCallMatch = /([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\([^)]*$/.exec(
+		beforeCursor,
 	);
 	if (!funcCallMatch) return startCol + 1;
 
@@ -117,16 +118,15 @@ function calculateWordEnd(currentLine: string, startCol: number): number {
 	const charAtPos = currentLine.charAt(startCol);
 	if (charAtPos === "" || !/[a-zA-Z_$]/.test(charAtPos)) return startCol + 1;
 
-	// CHANGE: Use non-null assertion based on mathematical proof
+	// CHANGE: Use type guard instead of non-null assertion
 	// WHY: After charAtPos passes /[a-zA-Z_$]/ test, match always succeeds
 	// INVARIANT: ∀ line, col: charAt(col) ∈ [a-zA-Z_$] → match finds ≥1 char
 	// PROOF: If charAt(startCol) ∈ [a-zA-Z_$], then substring(startCol)[0] ∈ [a-zA-Z_$]
 	//        Therefore regex /^[a-zA-Z_$][a-zA-Z0-9_$]*/ must match at least 1 char
-	//        Thus wordMatch cannot be null (mathematical guarantee, not runtime check)
+	//        Thus wordMatch will always be non-null (guaranteed by invariant)
 	const remainingLine = currentLine.substring(startCol);
-	const wordMatch = remainingLine.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*/);
-	// biome-ignore lint/style/noNonNullAssertion: mathematically proven non-null by invariant above
-	const wordLen = wordMatch![0].length;
+	const wordMatch = /^[a-zA-Z_$][a-zA-Z0-9_$]*/.exec(remainingLine);
+	const wordLen = wordMatch ? wordMatch[0].length : 0;
 	return Math.min(startCol + wordLen, currentLine.length);
 }
 

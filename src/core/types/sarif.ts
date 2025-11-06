@@ -44,9 +44,9 @@ export interface SarifResult {
  * @property runs Массив запусков анализа
  */
 export interface SarifReport {
-	readonly runs: ReadonlyArray<{
+	readonly runs: readonly {
 		readonly results: readonly SarifResult[];
-	}>;
+	}[];
 }
 
 /**
