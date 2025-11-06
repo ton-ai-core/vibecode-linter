@@ -138,6 +138,12 @@ export default defineConfig(
         ...vitest.environments.env.globals,
       },
     },
+    rules: {
+      // Allow eslint-disable/enable comments in test files for fine-grained control
+      '@eslint-community/eslint-comments/no-use': 'off',
+      // Disable line count limit for E2E tests that contain multiple test cases
+      'max-lines-per-function': 'off',
+    },
   },
 
   // 3) Для JS-файлов отключим типо-зависимые проверки

@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vitest";
+import { describe, expect, it } from "vitest";
 import { getCachedLinterResults } from "./shared/test-utils.js";
 
 // CHANGE: Comprehensive E2E test with exact 1-to-1 validation
@@ -9,14 +9,14 @@ import { getCachedLinterResults } from "./shared/test-utils.js";
 // INVARIANT: ∀ error ∈ Output: format(error) = expected_format ∧ cursor_position(error) = exact_position
 // COMPLEXITY: O(n) where n = |output_lines| for validation
 
-describe("Linter Output E2E Tests", () => {
+describe("linter Output E2E Tests", () => {
 	// CHANGE: Cache results once for all tests
 	// WHY: Avoid repeated slow CLI execution - 1 раз запустил и проверяешь
 	// INVARIANT: Single execution per test suite, ∀ test: uses_same_cached_result
 	const results = getCachedLinterResults();
 
-	describe("Exact Error Format Validation", () => {
-		test("validates mixed-issues.ts:69:16 error format 1-to-1", () => {
+	describe("exact Error Format Validation", () => {
+		it("validates mixed-issues.ts:69:16 error format 1-to-1", () => {
 			const { output } = results.normal;
 
 			// INVARIANT: Must contain exact error header line with normalized path
@@ -40,7 +40,7 @@ describe("Linter Output E2E Tests", () => {
 			expect(output).toContain("-- src/mixed-issues.ts");
 		});
 
-		test("validates 01-typescript-errors.ts:55:17 error format 1-to-1", () => {
+		it("validates 01-typescript-errors.ts:55:17 error format 1-to-1", () => {
 			const { output } = results.normal;
 
 			// INVARIANT: Must contain exact error header line with normalized path
@@ -63,7 +63,7 @@ describe("Linter Output E2E Tests", () => {
 			expect(output).toContain("+   57 |");
 		});
 
-		test("validates 02-eslint-violations.ts:22:16 error format 1-to-1", () => {
+		it("validates 02-eslint-violations.ts:22:16 error format 1-to-1", () => {
 			const { output } = results.normal;
 
 			// INVARIANT: Must contain exact error header line with normalized path
@@ -86,7 +86,7 @@ describe("Linter Output E2E Tests", () => {
 			expect(output).toMatch(/\+\s*24\s*\|\s*return param;/);
 		});
 
-		test("validates duplicate-code-1.ts:40:40 error format 1-to-1", () => {
+		it("validates duplicate-code-1.ts:40:40 error format 1-to-1", () => {
 			const { output } = results.normal;
 
 			// INVARIANT: Must contain exact error header line with normalized path
@@ -152,8 +152,8 @@ describe("Linter Output E2E Tests", () => {
 		}
 	};
 
-	describe("Cursor Positioning Validation", () => {
-		test("validates cursor alignment for mixed-issues.ts:69:16", () => {
+	describe("cursor Positioning Validation", () => {
+		it("validates cursor alignment for mixed-issues.ts:69:16", () => {
 			const { output } = results.normal;
 			validateCursorAlignment(
 				output,
@@ -162,7 +162,7 @@ describe("Linter Output E2E Tests", () => {
 			);
 		});
 
-		test("validates cursor alignment for 01-typescript-errors.ts:55:17", () => {
+		it("validates cursor alignment for 01-typescript-errors.ts:55:17", () => {
 			const { output } = results.normal;
 			validateCursorAlignment(
 				output,
@@ -170,7 +170,7 @@ describe("Linter Output E2E Tests", () => {
 			);
 		});
 
-		test("validates cursor alignment for function parameters", () => {
+		it("validates cursor alignment for function parameters", () => {
 			const { output } = results.normal;
 			validateCursorAlignment(
 				output,
@@ -179,12 +179,12 @@ describe("Linter Output E2E Tests", () => {
 		});
 	});
 
-	describe("Code Context Validation", () => {
+	describe("code Context Validation", () => {
 		// CHANGE: Removed "validates sequential line numbers" test to eliminate duplication
 		// WHY: Sequential line numbers already validated in all "Exact Error Format Validation" tests
 		// INVARIANT: ∀ test ∈ ExactErrorFormatTests: validates_sequential_context(test)
 
-		test("validates proper indentation in code context", () => {
+		it("validates proper indentation in code context", () => {
 			const { output } = results.normal;
 
 			// INVARIANT: Code should maintain proper indentation (git diff format)
@@ -202,7 +202,7 @@ describe("Linter Output E2E Tests", () => {
 			});
 		});
 
-		test("validates Russian text preservation in context", () => {
+		it("validates Russian text preservation in context", () => {
 			const { output } = results.normal;
 
 			// INVARIANT: Russian text should be preserved exactly
@@ -213,8 +213,8 @@ describe("Linter Output E2E Tests", () => {
 		});
 	});
 
-	describe("Error Message Validation", () => {
-		test("validates exact error messages", () => {
+	describe("error Message Validation", () => {
+		it("validates exact error messages", () => {
 			const { output } = results.normal;
 
 			// INVARIANT: Error messages must be exactly as expected
@@ -227,7 +227,7 @@ describe("Linter Output E2E Tests", () => {
 			expect(messageCount).toBe(15); // Should be exactly 15 occurrences in critical section
 		});
 
-		test("validates rule names are correct", () => {
+		it("validates rule names are correct", () => {
 			const { output } = results.normal;
 
 			// INVARIANT: Rule names must be exactly correct
@@ -236,7 +236,7 @@ describe("Linter Output E2E Tests", () => {
 			expect(ruleMatches?.length).toBeGreaterThan(10); // Should have many rule matches
 		});
 
-		test("validates source attribution", () => {
+		it("validates source attribution", () => {
 			const { output } = results.normal;
 
 			// INVARIANT: Source should be correctly attributed
@@ -246,8 +246,8 @@ describe("Linter Output E2E Tests", () => {
 		});
 	});
 
-	describe("File Path Validation", () => {
-		test("validates file paths are shown correctly", () => {
+	describe("file Path Validation", () => {
+		it("validates file paths are shown correctly", () => {
 			const { output } = results.normal;
 
 			// INVARIANT: File paths should show normalized src/ paths
@@ -257,7 +257,7 @@ describe("Linter Output E2E Tests", () => {
 			expect(output).toContain("src/duplicate-code-1.ts:40:40");
 		});
 
-		test("validates line and column numbers are accurate", () => {
+		it("validates line and column numbers are accurate", () => {
 			const { output } = results.normal;
 
 			// INVARIANT: Line:column should match actual positions
@@ -268,8 +268,8 @@ describe("Linter Output E2E Tests", () => {
 		});
 	});
 
-	describe("Summary Statistics Validation", () => {
-		test("validates exact error counts", () => {
+	describe("summary Statistics Validation", () => {
+		it("validates exact error counts", () => {
 			const { output } = results.normal;
 
 			// INVARIANT: Summary must show exact counts (updated for isolated copy)
@@ -278,7 +278,7 @@ describe("Linter Output E2E Tests", () => {
 			);
 		});
 
-		test("validates critical errors section header", () => {
+		it("validates critical errors section header", () => {
 			const { output } = results.normal;
 
 			// INVARIANT: Header must show exact count
@@ -286,8 +286,8 @@ describe("Linter Output E2E Tests", () => {
 		});
 	});
 
-	describe("Git Integration Validation", () => {
-		test("validates git blame information", () => {
+	describe("git Integration Validation", () => {
+		it("validates git blame information", () => {
 			const { output } = results.normal;
 
 			// INVARIANT: Git diff history should be shown for each error
@@ -302,8 +302,8 @@ describe("Linter Output E2E Tests", () => {
 		});
 	});
 
-	describe("Unicode and Formatting Validation", () => {
-		test("validates Unicode characters are preserved", () => {
+	describe("unicode and Formatting Validation", () => {
+		it("validates Unicode characters are preserved", () => {
 			const { output } = results.normal;
 
 			// INVARIANT: Unicode characters should be preserved exactly
@@ -316,7 +316,7 @@ describe("Linter Output E2E Tests", () => {
 			expect(output).toContain("❌"); // Cross mark
 		});
 
-		test("validates special characters in code", () => {
+		it("validates special characters in code", () => {
 			const { output } = results.normal;
 
 			// INVARIANT: Special characters in code should be preserved
@@ -326,8 +326,8 @@ describe("Linter Output E2E Tests", () => {
 		});
 	});
 
-	describe("Performance Validation", () => {
-		test("validates cached execution is fast", () => {
+	describe("performance Validation", () => {
+		it("validates cached execution is fast", () => {
 			const startTime = Date.now();
 
 			// Second call should be instant due to caching

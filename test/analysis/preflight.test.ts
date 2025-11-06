@@ -5,7 +5,7 @@
 // SOURCE: n/a
 
 import * as path from "node:path";
-import { afterEach, describe, expect, type Mock, test, vi } from "vitest"; // CHANGE: Migrate from Jest to Vitest
+import { afterEach, describe, expect, it, type Mock, vi } from "vitest"; // CHANGE: Migrate from Jest to Vitest
 import {
 	hasPackageJson,
 	isNpxIsolatedProcess,
