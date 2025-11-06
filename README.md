@@ -13,8 +13,8 @@ npx @ton-ai-core/vibecode-linter@latest src/
 ### Global Installation
 
 ```bash
-npm install -g @ton-ai-core/vibecode-linter
-vibecode-linter src/
+npm install @ton-ai-core/vibecode-linter
+npx @ton-ai-core/vibecode-linter src/
 ```
 
 ## 📖 Usage
