@@ -75,6 +75,10 @@ export function processResults(
 		}
 
 		printStatistics(sortedMessages);
-		return sortedMessages.filter((m) => m.severity === 2).length > 0;
+		// CHANGE: Include warnings (severity 1) in blocking check
+		// WHY: Warnings должны блокировать выполнение так же как errors
+		// QUOTE(#2): "Если есть warning в коде, его нужно исправить и не позволяет двигаться дальше"
+		// INVARIANT: ∀m: (m.severity === 1 ∨ m.severity === 2) → blocks_execution
+		return sortedMessages.filter((m) => m.severity >= 1).length > 0;
 	});
 }
